@@ -330,8 +330,12 @@ function checkDocsInOCR(ocrFields, azureText) {
     if (foundInUnidentified) return true;
 
     if (azureText) {
-        const matches = azureText.match(/25\d{6}/g);
-        if (matches && matches.length > 0) return true;
+        // Search for both DOCNO and BOOKNUM patterns with word boundaries
+        const docMatches = azureText.match(/\b25\d{6}\b/g);
+        const booknumMatches = azureText.match(/\b108\d{6}\b/g);
+        if ((docMatches && docMatches.length > 0) || (booknumMatches && booknumMatches.length > 0)) {
+            return true;
+        }
     }
 
     return false;

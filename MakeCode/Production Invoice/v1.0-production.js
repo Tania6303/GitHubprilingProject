@@ -691,8 +691,11 @@ function checkDocsInOCR(ocrFields, azureText) {
         }
     }
 
-    if (azureText && azureText.match(/25\d{6}/g)) {
-        return true;
+    // בדיקה גם ב-AZURE_TEXT - שני הדפוסים עם word boundaries
+    if (azureText) {
+        if (azureText.match(/\b25\d{6}\b/g) || azureText.match(/\b108\d{6}\b/g)) {
+            return true;
+        }
     }
 
     return false;
