@@ -264,17 +264,6 @@ function processInvoiceComplete(input) {
             check_vehicles: hasVehicles || false
         };
 
-        // ✨ חדש! פלט 4: אזהרות ופערים למשתמש
-        const userWarnings = generateUserWarnings(
-            executionReport,
-            validation,
-            learningAnalysis,
-            searchResults,
-            invoice,
-            input.docs_list,
-            ocrFields
-        );
-
         return {
             status: "success",
 
@@ -290,10 +279,7 @@ function processInvoiceComplete(input) {
             technical_config: technicalConfig,
 
             // 4. סצנריו עיבוד - מה צריך לשלוף מהמערכת
-            processing_scenario: processingScenario,
-
-            // 5. ✨ חדש! אזהרות ופערים למשתמש
-            user_warnings: userWarnings
+            processing_scenario: processingScenario
         };
 
     } catch (error) {
@@ -1708,192 +1694,6 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
 }
 
 // ============================================================================
-// ✨ חדש! פונקציה ליצירת אזהרות ופערים למשתמש
-// ============================================================================
-
-function generateUserWarnings(executionReport, validation, learningAnalysis, searchResults, invoice, docsList, ocrFields) {
-    const warnings = [];
-    const errors = [];
-
-    // 1. שגיאות קריטיות מה-execution
-    if (executionReport.errors && executionReport.errors.length > 0) {
-        executionReport.errors.forEach(err => {
-            errors.push({
-                severity: "error",
-                category: "processing",
-                message: err,
-                user_message: `⛔ שגיאה: ${err}`
-            });
-        });
-    }
-
-    // 2. אזהרות מה-execution
-    if (executionReport.warnings && executionReport.warnings.length > 0) {
-        executionReport.warnings.forEach(warn => {
-            warnings.push({
-                severity: "warning",
-                category: "processing",
-                message: warn,
-                user_message: `⚠️ ${warn}`
-            });
-        });
-    }
-
-    // 3. פערי כמויות
-    if (validation && validation.checks && validation.checks.totquant) {
-        const totquantCheck = validation.checks.totquant;
-
-        // פער בין פריטים לתעודות
-        if (!totquantCheck.items_vs_docs_match && totquantCheck.docs_sum > 0) {
-            warnings.push({
-                severity: "warning",
-                category: "quantity_mismatch",
-                message: `Quantity mismatch: Items=${totquantCheck.invoice_items_sum}, Docs=${totquantCheck.docs_sum}`,
-                user_message: `⚠️ פער כמויות: ${totquantCheck.invoice_items_sum} (פריטים) לעומת ${totquantCheck.docs_sum} (תעודות)`,
-                details: {
-                    invoice_items_sum: totquantCheck.invoice_items_sum,
-                    docs_sum: totquantCheck.docs_sum,
-                    difference: Math.abs(totquantCheck.invoice_items_sum - totquantCheck.docs_sum)
-                }
-            });
-        }
-
-        // פער מ-OCR Items אם יש
-        if (ocrFields && ocrFields.Items && ocrFields.Items.length > 0) {
-            const ocrTotal = ocrFields.Items.reduce((sum, item) => sum + (item.Quantity || 0), 0);
-            const docsTotal = totquantCheck.docs_sum;
-
-            if (ocrTotal > 0 && docsTotal > 0 && ocrTotal !== docsTotal) {
-                const diff = Math.abs(ocrTotal - docsTotal);
-                const percentDiff = (diff / docsTotal * 100).toFixed(2);
-
-                if (diff > 10 || percentDiff > 0.5) {
-                    warnings.push({
-                        severity: "warning",
-                        category: "quantity_ocr_mismatch",
-                        message: `OCR quantity (${ocrTotal}) vs Docs quantity (${docsTotal})`,
-                        user_message: `⚠️ פער בין OCR לתעודות: ${ocrTotal} (OCR) לעומת ${docsTotal} (תעודות) - הפרש ${diff} יחידות (${percentDiff}%)`,
-                        details: {
-                            ocr_total: ocrTotal,
-                            docs_total: docsTotal,
-                            difference: diff,
-                            percent_difference: percentDiff
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    // 4. אזהרות validation
-    if (validation && validation.warnings && validation.warnings.length > 0) {
-        validation.warnings.forEach(warn => {
-            warnings.push({
-                severity: "warning",
-                category: "validation",
-                message: warn,
-                user_message: `⚠️ ${warn}`
-            });
-        });
-    }
-
-    // 5. שדות חסרים
-    if (executionReport.not_found && executionReport.not_found.length > 0) {
-        const notFoundList = executionReport.not_found.join(', ');
-        warnings.push({
-            severity: "info",
-            category: "missing_fields",
-            message: `Fields not found: ${notFoundList}`,
-            user_message: `ℹ️ שדות שלא נמצאו: ${notFoundList}`
-        });
-    }
-
-    // 6. רכבים/פריטים חדשים שדורשים למידה
-    if (learningAnalysis && learningAnalysis.learning_required) {
-        if (learningAnalysis.new_patterns.new_vehicles && learningAnalysis.new_patterns.new_vehicles.length > 0) {
-            const vehicles = learningAnalysis.new_patterns.new_vehicles.map(v => v.vehicle_number).join(', ');
-            warnings.push({
-                severity: "info",
-                category: "learning",
-                message: `New vehicles require mapping: ${vehicles}`,
-                user_message: `💡 רכבים חדשים שדורשים מיפוי: ${vehicles}`
-            });
-        }
-
-        if (learningAnalysis.new_patterns.new_partnames && learningAnalysis.new_patterns.new_partnames.length > 0) {
-            const partnames = learningAnalysis.new_patterns.new_partnames.map(p => p.partname).join(', ');
-            warnings.push({
-                severity: "info",
-                category: "learning",
-                message: `New part numbers: ${partnames}`,
-                user_message: `💡 מקטים חדשים: ${partnames}`
-            });
-        }
-
-        if (learningAnalysis.new_patterns.unknown_accounts && learningAnalysis.new_patterns.unknown_accounts.length > 0) {
-            const count = learningAnalysis.new_patterns.unknown_accounts.length;
-            errors.push({
-                severity: "error",
-                category: "missing_accounts",
-                message: `${count} items missing ACCNAME`,
-                user_message: `⛔ ${count} פריטים ללא חשבון (ACCNAME)`
-            });
-        }
-    }
-
-    // 7. תעודות שנמצאו לפי כמויות (לא OCR)
-    if (searchResults.documents && searchResults.documents.length > 0) {
-        // בדוק אם היו מצאנו את התעודות רק בגלל quantity matching
-        // (זה יקרה אם אין BOOKNUM ב-OCR אבל הכמויות תואמות)
-        const unidentified = ocrFields.UnidentifiedNumbers || [];
-        const hasDocNumsInOCR = unidentified.some(item => {
-            const val = typeof item === 'object' ? item.value : item;
-            return /^(25|108)\d{6}$/.test(val);
-        });
-
-        if (!hasDocNumsInOCR && searchResults.documents.length > 0) {
-            warnings.push({
-                severity: "info",
-                category: "document_matching",
-                message: "Documents matched by quantity, not found in OCR",
-                user_message: `💡 תעודות נמצאו לפי התאמת כמויות (לא ב-OCR). אנא אמת ידנית.`,
-                details: {
-                    matched_docs: searchResults.documents.map(d => d.DOCNO)
-                }
-            });
-        }
-    }
-
-    // סיכום
-    return {
-        has_warnings: warnings.length > 0,
-        has_errors: errors.length > 0,
-        total_count: warnings.length + errors.length,
-        errors: errors,
-        warnings: warnings,
-        summary: generateWarningsSummary(errors, warnings)
-    };
-}
-
-function generateWarningsSummary(errors, warnings) {
-    if (errors.length === 0 && warnings.length === 0) {
-        return "✅ לא נמצאו בעיות - הכל תקין";
-    }
-
-    const parts = [];
-
-    if (errors.length > 0) {
-        parts.push(`⛔ ${errors.length} שגיאות`);
-    }
-
-    if (warnings.length > 0) {
-        parts.push(`⚠️ ${warnings.length} אזהרות`);
-    }
-
-    return parts.join(' | ');
-}
-
-// ============================================================================
 // נקודת כניסה - רק אם input מוגדר (סביבת Azure Functions)
 // ============================================================================
 
@@ -1909,6 +1709,7 @@ if (typeof input !== 'undefined') {
     const result = processInvoiceComplete(processInput);
 
     console.log(JSON.stringify(result));
+    return result;
 }
 
 // ============================================================================
