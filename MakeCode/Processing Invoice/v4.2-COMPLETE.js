@@ -896,14 +896,33 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
     }
 
     // תעודות
-    if (searchResults.documents && searchResults.documents.length > 0) {
-        if (searchResults.documents.length === 1) {
-            invoice.DOCNO = searchResults.documents[0].DOCNO;
-        } else {
-            invoice.PIVDOC_SUBFORM = searchResults.documents.map(d => ({
-                DOCNO: d.DOCNO,
-                BOOKNUM: d.BOOKNUM
-            }));
+    if (structure.has_doc) {
+        // אם מצאנו תעודות ב-OCR - השתמש בהן
+        if (searchResults.documents && searchResults.documents.length > 0) {
+            if (searchResults.documents.length === 1) {
+                invoice.DOCNO = searchResults.documents[0].DOCNO;
+            } else {
+                invoice.PIVDOC_SUBFORM = searchResults.documents.map(d => ({
+                    DOCNO: d.DOCNO,
+                    BOOKNUM: d.BOOKNUM
+                }));
+            }
+        }
+        // אם לא מצאנו ב-OCR אבל יש ב-docs_list - קח מ-docs_list
+        else if (docsList && docsList.DOC_YES_NO === "Y" && docsList.list_of_docs && docsList.list_of_docs.length > 0) {
+            try {
+                const docs = docsList.list_of_docs.flatMap(d => JSON.parse(d));
+                if (docs.length === 1) {
+                    invoice.DOCNO = docs[0].DOCNO;
+                } else if (docs.length > 1) {
+                    invoice.PIVDOC_SUBFORM = docs.map(d => ({
+                        DOCNO: d.DOCNO,
+                        BOOKNUM: d.BOOKNUM
+                    }));
+                }
+            } catch (e) {
+                // אם יש שגיאת parsing, המשך בלי תעודות
+            }
         }
     }
 
