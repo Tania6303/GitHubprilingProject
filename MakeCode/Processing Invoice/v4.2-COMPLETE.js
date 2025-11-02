@@ -300,7 +300,7 @@ function checkImportExists(importFiles) {
 
     try {
         const parsed = JSON.parse('[' + importFiles.IMPFILES[0] + ']');
-        return parsed.length > 0 && parsed[0].IMPFNUM;
+        return parsed.length > 0 && !!parsed[0].IMPFNUM;
     } catch (e) {
         return false;
     }
