@@ -244,14 +244,38 @@ function processInvoiceComplete(input) {
         const cleanedInvoice = cleanInvoiceForPriority(invoice);
 
         // ============================================================================
-        // שלב 8: יצירת 2 פלטים נוספים
+        // שלב 8: יצירת פלטים נוספים - לכל תבנית אפשרית!
         // ============================================================================
 
-        // פלט 1: הנחיות ל-LLM (פרומפט בשפה טבעית)
-        const llmPrompt = generateLLMPrompt(config, ocrFields, searchResults, executionReport, templateIndex, structure);
+        // פלט 1: הנחיות ל-LLM - לכל תבנית
+        const allLlmPrompts = [];
+        const allTechnicalConfigs = [];
 
-        // פלט 2: קונפיג טכני למערכת
-        const technicalConfig = generateTechnicalConfig(config, ocrFields, searchResults, executionReport, templateIndex, structure);
+        for (let i = 0; i < config.structure.length; i++) {
+            const templateStructure = config.structure[i];
+
+            allLlmPrompts.push(generateLLMPrompt(
+                config,
+                ocrFields,
+                searchResults,
+                executionReport,
+                i,
+                templateStructure
+            ));
+
+            allTechnicalConfigs.push(generateTechnicalConfig(
+                config,
+                ocrFields,
+                searchResults,
+                executionReport,
+                i,
+                templateStructure
+            ));
+        }
+
+        // פלט 2: הנחיות לתבנית שנבחרה (לנוחות)
+        const selectedLlmPrompt = allLlmPrompts[templateIndex];
+        const selectedTechnicalConfig = allTechnicalConfigs[templateIndex];
 
         // פלט 3: סצנריו עיבוד - מה MAKE צריך לשלוף מהמערכת
         const hasVehicles = vehicleRules &&
@@ -272,13 +296,22 @@ function processInvoiceComplete(input) {
                 PINVOICES: [cleanedInvoice]
             },
 
-            // 2. הנחיות ל-LLM (פרומפט בשפה טבעית)
-            llm_prompt: llmPrompt,
+            // 2. איזו תבנית נבחרה
+            selected_template_index: templateIndex,
 
-            // 3. קונפיג טכני למערכת
-            technical_config: technicalConfig,
+            // 3. הנחיות ל-LLM - לתבנית שנבחרה (backward compatibility)
+            llm_prompt: selectedLlmPrompt,
 
-            // 4. סצנריו עיבוד - מה צריך לשלוף מהמערכת
+            // 4. הנחיות ל-LLM - לכל התבניות
+            all_llm_prompts: allLlmPrompts,
+
+            // 5. קונפיג טכני - לתבנית שנבחרה (backward compatibility)
+            technical_config: selectedTechnicalConfig,
+
+            // 6. קונפיג טכני - לכל התבניות
+            all_technical_configs: allTechnicalConfigs,
+
+            // 7. סצנריו עיבוד - מה צריך לשלוף מהמערכת
             processing_scenario: processingScenario
         };
 
