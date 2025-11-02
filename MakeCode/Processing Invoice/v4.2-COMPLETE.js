@@ -247,7 +247,27 @@ function processInvoiceComplete(input) {
         // שלב 8: יצירת פלטים נוספים - לכל תבנית אפשרית!
         // ============================================================================
 
-        // פלט 1: הנחיות ל-LLM - לכל תבנית
+        // פלט 1: חשבוניות לכל התבניות
+        const allInvoices = [];
+        for (let i = 0; i < config.structure.length; i++) {
+            const templateStructure = config.structure[i];
+            const templateData = input.learned_config.template.PINVOICES[i];
+
+            const tempInvoice = buildInvoiceFromTemplate(
+                templateData,
+                templateStructure,
+                config,
+                searchResults,
+                input.learned_config,
+                ocrFields,
+                input.docs_list
+            );
+
+            const cleanedTempInvoice = cleanInvoiceForPriority(tempInvoice);
+            allInvoices.push(cleanedTempInvoice);
+        }
+
+        // פלט 2: הנחיות ל-LLM - לכל תבנית
         const allLlmPrompts = [];
         const allTechnicalConfigs = [];
 
@@ -277,23 +297,29 @@ function processInvoiceComplete(input) {
         const selectedLlmPrompt = allLlmPrompts[templateIndex];
         const selectedTechnicalConfig = allTechnicalConfigs[templateIndex];
 
-        // פלט 3: סצנריו עיבוד - מה MAKE צריך לשלוף מהמערכת
+        // פלט 3: סצנריו עיבוד - מה MAKE צריך לשלוף מהמערכת - לכל תבנית!
         const hasVehicles = vehicleRules &&
                            vehicleRules.vehicle_account_mapping &&
                            Object.keys(vehicleRules.vehicle_account_mapping).length > 0;
 
-        const processingScenario = {
-            check_docs: structure.has_doc || false,
-            check_import: structure.has_import || false,
-            check_vehicles: hasVehicles || false
-        };
+        const allProcessingScenarios = [];
+        for (let i = 0; i < config.structure.length; i++) {
+            const templateStructure = config.structure[i];
+            allProcessingScenarios.push({
+                check_docs: templateStructure.has_doc || false,
+                check_import: templateStructure.has_import || false,
+                check_vehicles: hasVehicles || false
+            });
+        }
+
+        const selectedProcessingScenario = allProcessingScenarios[templateIndex];
 
         return {
             status: "success",
 
-            // 1. JSON לפריוריטי (הפלט העיקרי)
+            // 1. JSON לפריוריטי (הפלט העיקרי) - כל התבניות!
             invoice_data: {
-                PINVOICES: [cleanedInvoice]
+                PINVOICES: allInvoices
             },
 
             // 2. איזו תבנית נבחרה
@@ -311,8 +337,11 @@ function processInvoiceComplete(input) {
                 all_templates: allTechnicalConfigs
             },
 
-            // 5. סצנריו עיבוד - מה צריך לשלוף מהמערכת
-            processing_scenario: processingScenario
+            // 5. סצנריו עיבוד - מה צריך לשלוף מהמערכת - עם כל התבניות בפנים
+            processing_scenario: {
+                ...selectedProcessingScenario,
+                all_templates: allProcessingScenarios
+            }
         };
 
     } catch (error) {
