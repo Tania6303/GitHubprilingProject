@@ -72,11 +72,13 @@ function processInvoiceComplete(input) {
         // א. בדיקת יבוא
         const hasImport = checkImportExists(input.import_files);
 
-        // ב. בדיקת תעודות - ב-OCR!
-        const hasDocs = checkDocsInOCR(
+        // ב. בדיקת תעודות - ב-OCR או ב-docs_list!
+        const hasDocsInOCR = checkDocsInOCR(
             input.AZURE_RESULT.data.fields,
             input.AZURE_TEXT
         );
+        const hasDocsInList = checkDocsExist(input.docs_list);
+        const hasDocs = hasDocsInOCR || hasDocsInList;
 
         // ג. זיהוי חיוב/זיכוי
         const debitType = identifyDebitType(input.AZURE_RESULT.data.fields);
@@ -208,7 +210,8 @@ function processInvoiceComplete(input) {
             config,
             searchResults,
             input.learned_config,
-            ocrFields  // ✨ חדש! מעביר גם את ocrFields
+            ocrFields,  // ✨ חדש! מעביר גם את ocrFields
+            input.docs_list  // ✨ חדש! מעביר גם את docs_list
         );
 
         // ============================================================================
@@ -241,42 +244,101 @@ function processInvoiceComplete(input) {
         const cleanedInvoice = cleanInvoiceForPriority(invoice);
 
         // ============================================================================
-        // שלב 8: יצירת 2 פלטים נוספים
+        // שלב 8: יצירת פלטים נוספים - לכל תבנית אפשרית!
         // ============================================================================
 
-        // פלט 1: הנחיות ל-LLM (פרומפט בשפה טבעית)
-        const llmPrompt = generateLLMPrompt(config, ocrFields, searchResults, executionReport);
+        // פלט 1: חשבוניות לכל התבניות
+        const allInvoices = [];
+        for (let i = 0; i < config.structure.length; i++) {
+            const templateStructure = config.structure[i];
+            const templateData = input.learned_config.template.PINVOICES[i];
 
-        // פלט 2: קונפיג טכני למערכת
-        const technicalConfig = generateTechnicalConfig(config, ocrFields, searchResults, executionReport);
+            const tempInvoice = buildInvoiceFromTemplate(
+                templateData,
+                templateStructure,
+                config,
+                searchResults,
+                input.learned_config,
+                ocrFields,
+                input.docs_list
+            );
 
-        // פלט 3: סצנריו עיבוד - מה MAKE צריך לשלוף מהמערכת
+            const cleanedTempInvoice = cleanInvoiceForPriority(tempInvoice);
+            allInvoices.push(cleanedTempInvoice);
+        }
+
+        // פלט 2: הנחיות ל-LLM - לכל תבנית
+        const allLlmPrompts = [];
+        const allTechnicalConfigs = [];
+
+        for (let i = 0; i < config.structure.length; i++) {
+            const templateStructure = config.structure[i];
+
+            allLlmPrompts.push(generateLLMPrompt(
+                config,
+                ocrFields,
+                searchResults,
+                executionReport,
+                i,
+                templateStructure
+            ));
+
+            allTechnicalConfigs.push(generateTechnicalConfig(
+                config,
+                ocrFields,
+                searchResults,
+                executionReport,
+                i,
+                templateStructure
+            ));
+        }
+
+        // פלט 2: הנחיות לתבנית שנבחרה (לנוחות)
+        const selectedLlmPrompt = allLlmPrompts[templateIndex];
+        const selectedTechnicalConfig = allTechnicalConfigs[templateIndex];
+
+        // פלט 3: סצנריו עיבוד - מה MAKE צריך לשלוף מהמערכת - לכל תבנית!
         const hasVehicles = vehicleRules &&
                            vehicleRules.vehicle_account_mapping &&
                            Object.keys(vehicleRules.vehicle_account_mapping).length > 0;
 
-        const processingScenario = {
-            check_docs: structure.has_doc || false,
-            check_import: structure.has_import || false,
-            check_vehicles: hasVehicles || false
-        };
+        const allProcessingScenarios = [];
+        for (let i = 0; i < config.structure.length; i++) {
+            const templateStructure = config.structure[i];
+            allProcessingScenarios.push({
+                check_docs: templateStructure.has_doc || false,
+                check_import: templateStructure.has_import || false,
+                check_vehicles: hasVehicles || false
+            });
+        }
+
+        const selectedProcessingScenario = allProcessingScenarios[templateIndex];
 
         return {
             status: "success",
 
-            // 1. JSON לפריוריטי (הפלט העיקרי)
+            // 1. JSON לפריוריטי (הפלט העיקרי) - כל התבניות!
             invoice_data: {
-                PINVOICES: [cleanedInvoice]
+                PINVOICES: allInvoices
             },
 
-            // 2. הנחיות ל-LLM (פרומפט בשפה טבעית)
-            llm_prompt: llmPrompt,
+            // 2. הנחיות ל-LLM - עם כל התבניות בפנים
+            llm_prompt: {
+                ...selectedLlmPrompt,
+                all_templates: allLlmPrompts
+            },
 
-            // 3. קונפיג טכני למערכת
-            technical_config: technicalConfig,
+            // 3. קונפיג טכני - עם כל התבניות בפנים
+            technical_config: {
+                ...selectedTechnicalConfig,
+                all_templates: allTechnicalConfigs
+            },
 
-            // 4. סצנריו עיבוד - מה צריך לשלוף מהמערכת
-            processing_scenario: processingScenario
+            // 4. סצנריו עיבוד - מה צריך לשלוף מהמערכת - עם כל התבניות בפנים
+            processing_scenario: {
+                ...selectedProcessingScenario,
+                all_templates: allProcessingScenarios
+            }
         };
 
     } catch (error) {
@@ -298,7 +360,7 @@ function checkImportExists(importFiles) {
 
     try {
         const parsed = JSON.parse('[' + importFiles.IMPFILES[0] + ']');
-        return parsed.length > 0 && parsed[0].IMPFNUM;
+        return parsed.length > 0 && !!parsed[0].IMPFNUM;
     } catch (e) {
         return false;
     }
@@ -311,18 +373,19 @@ function checkDocsExist(docsList) {
 
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
-    const docPattern = /^25\d{6}$/;
+    const docPattern = /^25\d{6}$/;          // DOCNO pattern
+    const booknumPattern = /^108\d{6}$/;     // BOOKNUM pattern
 
     let foundInUnidentified = false;
 
     if (unidentified.length > 0) {
         if (typeof unidentified[0] === 'object' && unidentified[0].value) {
             foundInUnidentified = unidentified.some(item =>
-                docPattern.test(item.value)
+                docPattern.test(item.value) || booknumPattern.test(item.value)
             );
         } else {
             foundInUnidentified = unidentified.some(num =>
-                docPattern.test(num)
+                docPattern.test(num) || booknumPattern.test(num)
             );
         }
     }
@@ -330,8 +393,12 @@ function checkDocsInOCR(ocrFields, azureText) {
     if (foundInUnidentified) return true;
 
     if (azureText) {
-        const matches = azureText.match(/25\d{6}/g);
-        if (matches && matches.length > 0) return true;
+        // Search for both DOCNO and BOOKNUM patterns with word boundaries
+        const docMatches = azureText.match(/\b25\d{6}\b/g);
+        const booknumMatches = azureText.match(/\b108\d{6}\b/g);
+        if ((docMatches && docMatches.length > 0) || (booknumMatches && booknumMatches.length > 0)) {
+            return true;
+        }
     }
 
     return false;
@@ -602,7 +669,101 @@ function searchDocuments(ocrFields, azureText, patterns, docsList) {
         }
     }
 
+    // ✨ חדש! Fallback 2: התאמה לפי כמויות כשהOCR לא מצא תעודות
+    if (foundDocs.length === 0 && ocrFields.Items && ocrFields.Items.length > 0) {
+        const totalOcrQuantity = ocrFields.Items.reduce((sum, item) => sum + (item.Quantity || 0), 0);
+
+        if (totalOcrQuantity > 0) {
+            // פונקציית עזר להשוואת כמויות עם סובלנות
+            const isQuantityMatch = (qty1, qty2) => {
+                if (qty1 === qty2) return true;
+                const tolerance = Math.min(Math.abs(qty1 * 0.005), 10);
+                return Math.abs(qty1 - qty2) <= tolerance;
+            };
+
+            // נסה למצוא תעודה בודדת שמתאימה (עם סובלנות)
+            const singleMatch = availableDocs.find(doc => isQuantityMatch(doc.TOTQUANT, totalOcrQuantity));
+            if (singleMatch) {
+                foundDocs.push({
+                    DOCNO: singleMatch.DOCNO,
+                    BOOKNUM: singleMatch.BOOKNUM,
+                    TOTQUANT: singleMatch.TOTQUANT || null
+                });
+            }
+            // אם לא נמצא תעודה בודדת, נסה לחפש קומבינציה של מספר תעודות
+            else {
+                const matchedDocs = findDocCombinationByQuantity(totalOcrQuantity, availableDocs);
+                if (matchedDocs.length > 0) {
+                    foundDocs.push(...matchedDocs);
+                }
+            }
+        }
+    }
+
     return foundDocs;
+}
+
+// ============================================================================
+// ✨ חדש! פונקציה למציאת קומבינציה של תעודות לפי כמות
+// ============================================================================
+
+function findDocCombinationByQuantity(targetQuantity, availableDocs) {
+    // אם אין תעודות או כמות יעד לא תקינה
+    if (!availableDocs || availableDocs.length === 0 || targetQuantity <= 0) {
+        return [];
+    }
+
+    // פונקציית עזר להשוואת כמויות עם סובלנות קטנה
+    const isQuantityMatch = (qty1, qty2) => {
+        // התאמה מדויקת
+        if (qty1 === qty2) return true;
+
+        // סובלנות של 0.5% או 10 יחידות (הקטן מביניהם)
+        const tolerance = Math.min(Math.abs(qty1 * 0.005), 10);
+        return Math.abs(qty1 - qty2) <= tolerance;
+    };
+
+    // נסה כל קומבינציה אפשרית (עד 4 תעודות מקסימום)
+    const maxCombinationSize = Math.min(4, availableDocs.length);
+
+    for (let size = 2; size <= maxCombinationSize; size++) {
+        const combinations = getCombinations(availableDocs, size);
+
+        for (const combo of combinations) {
+            const comboTotal = combo.reduce((sum, doc) => sum + (doc.TOTQUANT || 0), 0);
+
+            if (isQuantityMatch(comboTotal, targetQuantity)) {
+                // נמצאה קומבינציה מתאימה!
+                return combo.map(doc => ({
+                    DOCNO: doc.DOCNO,
+                    BOOKNUM: doc.BOOKNUM,
+                    TOTQUANT: doc.TOTQUANT || null
+                }));
+            }
+        }
+    }
+
+    return [];
+}
+
+// פונקציית עזר לחישוב קומבינציות
+function getCombinations(array, size) {
+    if (size === 1) {
+        return array.map(item => [item]);
+    }
+
+    const combinations = [];
+
+    for (let i = 0; i < array.length - size + 1; i++) {
+        const head = array[i];
+        const tailCombos = getCombinations(array.slice(i + 1), size - 1);
+
+        for (const combo of tailCombos) {
+            combinations.push([head, ...combo]);
+        }
+    }
+
+    return combinations;
 }
 
 // ============================================================================
@@ -787,11 +948,11 @@ function extractShortDescription(ocrFields, vehicleNum) {
             if (match) {
                 // נמצא דפוס טיפול - נקה אותו ונחזיר
                 let serviceDesc = match[0];
-                // המר "קמ" ל-"ק\"מ" והסר פסיקים מהמספר
+                // המר "קמ" ל-"ק"מ" והסר פסיקים מהמספר
                 serviceDesc = serviceDesc
                     .replace(/,/g, '')          // הסר פסיקים
-                    .replace(/קמ/g, 'ק\"מ')     // תקנן את "קמ" ל-"ק\"מ"
-                    .replace(/ק״מ/g, 'ק\"מ');  // תקנן את ״ ל-\"
+                    .replace(/קמ/g, 'ק"מ')      // תקנן את "קמ" ל-"ק"מ"
+                    .replace(/ק״מ/g, 'ק"מ');   // תקנן את ״ ל-"
 
                 return serviceDesc;
             }
@@ -829,7 +990,7 @@ function extractShortDescription(ocrFields, vehicleNum) {
 // פונקציות עזר - שלב 4
 // ============================================================================
 
-function buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields) {
+function buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields, docsList) {
     const invoice = {
         SUPNAME: config.supplier_config.supplier_code,
         CODE: template.CODE,
@@ -888,19 +1049,38 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
     }
 
     // תעודות
-    if (searchResults.documents && searchResults.documents.length > 0) {
-        if (searchResults.documents.length === 1) {
-            invoice.DOCNO = searchResults.documents[0].DOCNO;
-        } else {
-            invoice.PIVDOC_SUBFORM = searchResults.documents.map(d => ({
-                DOCNO: d.DOCNO,
-                BOOKNUM: d.BOOKNUM
-            }));
+    if (structure.has_doc) {
+        // אם מצאנו תעודות ב-OCR - השתמש בהן
+        if (searchResults.documents && searchResults.documents.length > 0) {
+            if (searchResults.documents.length === 1) {
+                invoice.DOCNO = searchResults.documents[0].DOCNO;
+            } else {
+                invoice.PIVDOC_SUBFORM = searchResults.documents.map(d => ({
+                    DOCNO: d.DOCNO,
+                    BOOKNUM: d.BOOKNUM
+                }));
+            }
+        }
+        // אם לא מצאנו ב-OCR אבל יש ב-docs_list - קח מ-docs_list
+        else if (docsList && docsList.DOC_YES_NO === "Y" && docsList.list_of_docs && docsList.list_of_docs.length > 0) {
+            try {
+                const docs = docsList.list_of_docs.flatMap(d => JSON.parse(d));
+                if (docs.length === 1) {
+                    invoice.DOCNO = docs[0].DOCNO;
+                } else if (docs.length > 1) {
+                    invoice.PIVDOC_SUBFORM = docs.map(d => ({
+                        DOCNO: d.DOCNO,
+                        BOOKNUM: d.BOOKNUM
+                    }));
+                }
+            } catch (e) {
+                // אם יש שגיאת parsing, המשך בלי תעודות
+            }
         }
     }
 
     // פריטים
-    const needItems = shouldAddItems(structure, searchResults.documents);
+    const needItems = shouldAddItems(structure, searchResults.documents, docsList);
 
     if (needItems) {
         const vehicleRules = config.rules?.critical_patterns?.vehicle_rules;
@@ -933,10 +1113,28 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
     return invoice;
 }
 
-function shouldAddItems(structure, documents) {
+function shouldAddItems(structure, documents, docsList) {
+    // אם אין תעודות בכלל בתבנית → צריך פריטים
     if (!structure.has_doc) return true;
-    if (structure.has_doc && (!documents || documents.length === 0)) return true;
-    if (structure.has_doc && structure.inventory_management === "not_managed_inventory") return true;
+
+    // בדוק אם יש תעודות בפועל (ב-OCR או ב-docs_list)
+    const hasDocsInOCR = documents && documents.length > 0;
+    const hasDocsInList = docsList && docsList.DOC_YES_NO === "Y";
+    const hasDocsActually = hasDocsInOCR || hasDocsInList;
+
+    // אם התבנית אומרת שיש תעודות אבל אין בפועל → צריך פריטים
+    if (structure.has_doc && !hasDocsActually) return true;
+
+    // אם יש תעודות בפועל:
+    if (hasDocsActually) {
+        // אם יש גם יבוא → לא צריך פריטים (הכל בתעודות)
+        if (structure.has_import) return false;
+
+        // אם אין יבוא אבל יש מלאי לא מנוהל → צריך פריטים
+        if (structure.inventory_management === "not_managed_inventory") return true;
+    }
+
+    // אחרת → לא צריך פריטים
     return false;
 }
 
@@ -1200,7 +1398,7 @@ function analyzeLearning(invoice, config) {
 // פונקציות עזר - שלב 7 (יצירת פלטים נוספים)
 // ============================================================================
 
-function generateLLMPrompt(config, ocrFields, searchResults, executionReport) {
+function generateLLMPrompt(config, ocrFields, searchResults, executionReport, templateIndex, structure) {
     const supplierCode = config.supplier_config.supplier_code;
     const supplierName = config.supplier_config.supplier_name;
 
@@ -1276,26 +1474,76 @@ function generateLLMPrompt(config, ocrFields, searchResults, executionReport) {
         });
     }
 
+    // בניית document_type דינמית לפי מבנה התבנית שנבחרה
+    let documentType = "";
+    if (structure.has_import && structure.has_doc) {
+        documentType = "חשבונית עם תיק יבוא עם תעודות";
+    } else if (structure.has_import) {
+        documentType = "חשבונית יבוא";
+    } else if (structure.has_doc) {
+        documentType = "חשבונית עם תעודות";
+    } else if (structure.debit_type === "C") {
+        documentType = "זיכוי רגיל עם פירוט";
+    } else if (vehicleRules && Object.keys(vehicleRules.vehicle_account_mapping || {}).length > 0) {
+        documentType = "חשבונית שירותי רכב ומוסך";
+    } else {
+        documentType = "חשבונית רגילה עם פירוט";
+    }
+
+    // בניית overview דינמי לפי מבנה התבנית שנבחרה
+    let overview = `חשבונית מספק ${supplierName}.`;
+
+    if (structure.has_import && structure.has_doc) {
+        overview += " תבנית: יבוא + תעודות. הספק מספק מוצרי מצאי ויבוא.";
+    } else if (structure.has_import) {
+        overview += " תבנית: יבוא. הספק מספק מוצרים מיובאים.";
+    } else if (structure.has_doc) {
+        overview += " תבנית: תעודות. הספק מספק מוצרים על בסיס תעודות אספקה.";
+    } else if (vehicleRules && Object.keys(vehicleRules.vehicle_account_mapping || {}).length > 0) {
+        overview += " תבנית: שירותי רכב ומוסך.";
+    } else {
+        overview += " תבנית: חשבונית רגילה עם פירוט.";
+    }
+
+    // בניית processing_steps דינמי לפי מבנה התבנית
+    const processingSteps = [];
+    processingSteps.push("1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId");
+    processingSteps.push("2. חלץ תאריך חשבונית (IVDATE) מתוך InvoiceDate");
+
+    if (structure.has_import) {
+        processingSteps.push("3. זהה מספר יבוא (IMPFNUM) מתוך import_files");
+    }
+
+    if (structure.has_doc) {
+        processingSteps.push(`${processingSteps.length + 1}. זהה תעודות (DOCNO/BOOKNUM) - חפש מספרים בפורמט 25XXXXXX או 108XXXXXX`);
+    }
+
+    if (structure.has_purchase_orders) {
+        processingSteps.push(`${processingSteps.length + 1}. זהה הזמנת רכש (ORDNAME) אם קיימת`);
+    }
+
+    if (vehicleRules && Object.keys(vehicleRules.vehicle_account_mapping || {}).length > 0) {
+        processingSteps.push(`${processingSteps.length + 1}. חלץ מספרי רכבים מ-UnidentifiedNumbers (פורמט XXX-XX-XXX)`);
+        processingSteps.push(`${processingSteps.length + 1}. מפה כל רכב לחשבון הנכון לפי vehicle_mapping`);
+        processingSteps.push(`${processingSteps.length + 1}. צור תיאור קצר של השירות מהפריט הראשון`);
+    } else {
+        processingSteps.push(`${processingSteps.length + 1}. חשב את המחיר הכולל לפני מע"מ: InvoiceTotal - TotalTax`);
+    }
+
     return {
         supplier_code: supplierCode,
         supplier_name: supplierName,
-        document_type: "חשבונית שירותי רכב",
+        document_type: documentType,
         instructions: {
-            overview: `חשבונית מספק ${supplierName}. הספק מספק שירותי רכב ומוסך.`,
-            processing_steps: [
-                "1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId",
-                "2. חשב את המחיר הכולל לפני מע\"מ: InvoiceTotal - TotalTax",
-                "3. חלץ מספרי רכבים מ-UnidentifiedNumbers (פורמט XXX-XX-XXX)",
-                "4. מפה כל רכב לחשבון הנכון לפי vehicle_mapping",
-                "5. צור תיאור קצר של השירות מהפריט הראשון"
-            ],
+            overview: overview,
+            processing_steps: processingSteps,
             fields: fieldInstructions,
             vehicle_mapping: vehicleMapping
         }
     };
 }
 
-function generateTechnicalConfig(config, ocrFields, searchResults, executionReport) {
+function generateTechnicalConfig(config, ocrFields, searchResults, executionReport, templateIndex, structure) {
     const supplierCode = config.supplier_config.supplier_code;
     const supplierName = config.supplier_config.supplier_name;
 
@@ -1413,8 +1661,8 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
         };
     }
 
-    // DOCUMENTS (DOCNO + BOOKNUM)
-    if (config.structure && config.structure.some(s => s.has_doc)) {
+    // DOCUMENTS (DOCNO + BOOKNUM) - רק אם התבנית שנבחרה דורשת תעודות
+    if (structure.has_doc) {
         extractionRules.documents = {
             search_in: [
                 {
@@ -1534,11 +1782,26 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
         ]
     };
 
+    // קביעת document_type דינמי לפי התבנית שנבחרה
+    let documentTypeKey = "regular_invoice";
+    if (structure.has_import && structure.has_doc) {
+        documentTypeKey = "import_with_docs_invoice";
+    } else if (structure.has_import) {
+        documentTypeKey = "import_invoice";
+    } else if (structure.has_doc) {
+        documentTypeKey = "docs_invoice";
+    } else if (structure.debit_type === "C") {
+        documentTypeKey = "credit_note";
+    } else if (config.rules?.critical_patterns?.vehicle_rules?.vehicle_account_mapping &&
+               Object.keys(config.rules.critical_patterns.vehicle_rules.vehicle_account_mapping).length > 0) {
+        documentTypeKey = "vehicle_service_invoice";
+    }
+
     return {
         supplier_code: supplierCode,
         supplier_name: supplierName,
         version: "4.2",
-        document_type: "vehicle_service_invoice",
+        document_type: documentTypeKey,
         extraction_rules: extractionRules,
         vehicle_mapping: vehicleMapping,
         template: template,

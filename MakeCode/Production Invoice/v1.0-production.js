@@ -276,39 +276,49 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
     }
 
     // parse TEMPLETE (שגיאת כתיב מכוונת - זה השם בפועל)
+    let parsedConfig = null;
     if (supplierTemplate && supplierTemplate.TEMPLETE) {
         try {
             const templateStr = typeof supplierTemplate.TEMPLETE === 'string'
                 ? supplierTemplate.TEMPLETE
                 : JSON.stringify(supplierTemplate.TEMPLETE);
             const templateData = JSON.parse(templateStr);
-            // חלץ את ה-PINVOICES מתוך invoice_data
-            if (templateData.invoice_data && templateData.invoice_data.PINVOICES && templateData.invoice_data.PINVOICES[0]) {
+
+            // ✨ חלץ את כל ה-PINVOICES ואת ה-technical_config
+            if (templateData.invoice_data && templateData.invoice_data.PINVOICES) {
                 parsedTemplate = {
-                    PINVOICES: [templateData.invoice_data.PINVOICES[0]],
-                    document_types_count: 1
+                    PINVOICES: templateData.invoice_data.PINVOICES,  // ✨ כל התבניות!
+                    document_types_count: templateData.invoice_data.PINVOICES.length
                 };
+            }
+
+            // חלץ גם את ה-technical_config אם קיים
+            if (templateData.technical_config) {
+                parsedConfig = templateData.technical_config;
             }
         } catch (e) {
             parsedTemplate = null;
+            parsedConfig = null;
         }
     }
 
-    // בניית config
+    // בניית config - ✨ תמיכה במספר תבניות!
+    const templatesCount = parsedTemplate?.PINVOICES?.length || 1;
+
     const config = {
         status: "success",
         supplier_id: supname || "",
-        supplier_name: supplierTemplate?.supplier_name || "",
-        vendor_tax_id_reference: supplierTemplate?.vendor_tax_id_reference || "",
+        supplier_name: supplierTemplate?.SDES || parsedConfig?.supplier_config?.supplier_name || "",
+        vendor_tax_id_reference: supplierTemplate?.VATNUM || parsedConfig?.supplier_config?.vendor_tax_id_reference || "",
         supplier_phone: supplierTemplate?.supplier_phone || "",
         supplier_email: supplierTemplate?.supplier_email || "",
         json_files_analyzed: 1,
-        templates_detected: 1,
-        config: {
+        templates_detected: templatesCount,  // ✨ מספר התבניות שנמצאו
+        config: parsedConfig || {
             supplier_config: {
                 supplier_code: supname || "",
-                supplier_name: supplierTemplate?.supplier_name || "",
-                vendor_tax_id_reference: supplierTemplate?.vendor_tax_id_reference || ""
+                supplier_name: supplierTemplate?.SDES || "",
+                vendor_tax_id_reference: supplierTemplate?.VATNUM || ""
             },
             structure: [
                 {
@@ -533,10 +543,32 @@ function processInvoiceComplete(input) {
 
         console.log("DEBUG: azureResult type:", typeof azureResult, "has data?", !!azureResult.data);
 
-        // וידוא שיש data.fields
+        // וידוא שיש data.fields - תמיכה ב-Azure v3.0 format (analyzeResult)
         if (!azureResult.data) {
-            console.log("DEBUG: Creating azureResult.data");
-            azureResult.data = { fields: {}, documents: [] };
+            // בדוק אם יש analyzeResult (Azure v3.0)
+            if (azureResult.analyzeResult) {
+                console.log("DEBUG: Converting analyzeResult to data.fields format");
+                const analyzeResult = azureResult.analyzeResult;
+                const documents = analyzeResult.documents || [];
+
+                if (documents.length > 0) {
+                    // המר שדות Azure v3.0 לפורמט פשוט
+                    const rawFields = documents[0].fields || {};
+                    const normalizedFields = normalizeAzureFields(rawFields);
+
+                    azureResult.data = {
+                        fields: normalizedFields,
+                        documents: documents
+                    };
+                } else {
+                    // אם אין documents, צור data ריק
+                    console.log("DEBUG: No documents in analyzeResult, creating empty data");
+                    azureResult.data = { fields: {}, documents: [] };
+                }
+            } else {
+                console.log("DEBUG: Creating azureResult.data");
+                azureResult.data = { fields: {}, documents: [] };
+            }
         }
         if (!azureResult.data.fields) {
             console.log("DEBUG: Creating azureResult.data.fields");
@@ -553,22 +585,33 @@ function processInvoiceComplete(input) {
 
         executionReport.found.push(`סוג: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);
 
-        const config = learnedConfig.config || {};
-        const structure = config.structure?.[0] || {
+        // תמיכה בשני מבנים: config/template או technical_config/invoice_data
+        const config = learnedConfig.config || learnedConfig.technical_config || {};
+
+        // ✨ תמיכה במספר תבניות - נבנה חשבונית לכל תבנית!
+        const allStructures = config.structure || [{
             has_import: false,
             has_doc: false,
             debit_type: "D",
             has_budcode: true,
             inventory_management: "not_managed_inventory"
-        };
+        }];
 
-        const template = learnedConfig.template?.PINVOICES?.[0] || {
-            SUPNAME: config.supplier_config?.supplier_code || "",
-            CODE: "ש\"ח",
-            DEBIT: "D"
-        };
+        // תמיכה בשני מבנים של template
+        let allTemplates;
+        if (learnedConfig.template?.PINVOICES) {
+            allTemplates = learnedConfig.template.PINVOICES;
+        } else if (learnedConfig.invoice_data?.PINVOICES) {
+            allTemplates = learnedConfig.invoice_data.PINVOICES;
+        } else {
+            allTemplates = [{
+                SUPNAME: config.supplier_config?.supplier_code || "",
+                CODE: "ש\"ח",
+                DEBIT: "D"
+            }];
+        }
 
-        executionReport.found.push(`תבנית: נמצאה`);
+        executionReport.found.push(`תבניות: נמצאו ${allStructures.length} תבניות`);
 
         executionReport.stage = "שלב 2: הבנת דפוסים";
 
@@ -583,46 +626,64 @@ function processInvoiceComplete(input) {
         executionReport.stage = "שלב 3: חיפוש נתונים";
 
         const ocrFields = azureResult.data.fields || {};
-        const searchResults = searchAllData(
-            ocrFields,
-            azureText,
-            patterns,
-            structure,
-            importFiles,
-            docsList,
-            vehicleRules
-        );
 
-        Object.keys(searchResults).forEach(key => {
-            if (key === 'vehicles' && searchResults.vehicles) {
-                if (searchResults.vehicles.length > 0) {
-                    executionReport.found.push(`רכבים: ${searchResults.vehicles.length} - ${searchResults.vehicles.join(', ')}`);
-                }
-            } else if (searchResults[key]) {
-                executionReport.found.push(`${key}: נמצא`);
+        // ✨ בניית חשבונית לכל תבנית!
+        const allInvoices = [];
+        const allValidations = [];
+        const allLearningAnalyses = [];
+
+        for (let i = 0; i < allStructures.length; i++) {
+            const structure = allStructures[i];
+            const template = allTemplates[i] || allTemplates[0];
+
+            // חיפוש נתונים לפי התבנית הנוכחית
+            const searchResults = searchAllData(
+                ocrFields,
+                azureText,
+                patterns,
+                structure,
+                importFiles,
+                docsList,
+                vehicleRules
+            );
+
+            if (i === 0) {
+                // רק בפעם הראשונה - הדפס את התוצאות
+                Object.keys(searchResults).forEach(key => {
+                    if (key === 'vehicles' && searchResults.vehicles) {
+                        if (searchResults.vehicles.length > 0) {
+                            executionReport.found.push(`רכבים: ${searchResults.vehicles.length} - ${searchResults.vehicles.join(', ')}`);
+                        }
+                    } else if (searchResults[key]) {
+                        executionReport.found.push(`${key}: נמצא`);
+                    }
+                });
             }
-        });
 
-        executionReport.stage = "שלב 4: בניית חשבונית";
+            // בניית חשבונית לתבנית זו
+            const invoice = buildInvoiceFromTemplate(
+                template,
+                structure,
+                config,
+                searchResults,
+                learnedConfig,
+                ocrFields
+            );
 
-        const invoice = buildInvoiceFromTemplate(
-            template,
-            structure,
-            config,
-            searchResults,
-            learnedConfig,
-            ocrFields
-        );
+            // בקרות
+            const validation = performValidation(invoice, ocrFields, config, docsList, patterns);
+            allValidations.push(validation);
 
-        executionReport.stage = "שלב 5: בקרות";
+            // ניתוח למידה
+            const learningAnalysis = analyzeLearning(invoice, config);
+            allLearningAnalyses.push(learningAnalysis);
 
-        const validation = performValidation(invoice, ocrFields, config, docsList, patterns);
+            // ניקוי
+            const cleanedInvoice = cleanInvoiceForPriority(invoice);
+            allInvoices.push(cleanedInvoice);
+        }
 
-        executionReport.stage = "שלב 6: ניתוח למידה";
-
-        const learningAnalysis = analyzeLearning(invoice, config);
-
-        const cleanedInvoice = cleanInvoiceForPriority(invoice);
+        executionReport.stage = "שלב 4-6: בנייה, בקרות וניתוח למידה - הושלם לכל התבניות";
 
         const result = {
             status: "success",
@@ -633,17 +694,20 @@ function processInvoiceComplete(input) {
                 confidence: "high"
             },
             invoice_data: {
-                PINVOICES: [cleanedInvoice]
+                PINVOICES: allInvoices  // ✨ כל החשבוניות - אחת לכל תבנית!
             },
-            validation: validation,
-            learning_analysis: learningAnalysis,
+            validation: allValidations[0],  // החזר את הולידציה הראשונה (לתאימות לאחור)
+            learning_analysis: allLearningAnalyses[0],  // החזר את הניתוח הראשון (לתאימות לאחור)
+            all_validations: allValidations,  // כל הולידציות
+            all_learning_analyses: allLearningAnalyses,  // כל הניתוחים
             execution_report: executionReport,
             metadata: {
                 ocr_invoice_id: ocrFields.InvoiceId || "",
                 ocr_invoice_date: ocrFields.InvoiceDate || "",
                 ocr_total_amount: ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || 0,
                 processing_timestamp: new Date().toISOString(),
-                version: "1.0-production"
+                version: "1.0-production",
+                templates_count: allInvoices.length  // ✨ מספר התבניות שנוצרו
             }
         };
 
@@ -677,22 +741,28 @@ function checkImportExists(importFiles) {
 
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
-    const docPattern = /^25\d{6}$/;
+    const docPattern = /^25\d{6}$/;          // DOCNO pattern
+    const booknumPattern = /^108\d{6}$/;     // BOOKNUM pattern
 
     if (unidentified.length > 0) {
         if (typeof unidentified[0] === 'object' && unidentified[0].value) {
-            if (unidentified.some(item => docPattern.test(item.value))) {
+            // בדיקה של שני הדפוסים - DOCNO או BOOKNUM
+            if (unidentified.some(item => docPattern.test(item.value) || booknumPattern.test(item.value))) {
                 return true;
             }
         } else {
-            if (unidentified.some(num => docPattern.test(num))) {
+            // בדיקה של שני הדפוסים - DOCNO או BOOKNUM
+            if (unidentified.some(num => docPattern.test(num) || booknumPattern.test(num))) {
                 return true;
             }
         }
     }
 
-    if (azureText && azureText.match(/25\d{6}/g)) {
-        return true;
+    // בדיקה גם ב-AZURE_TEXT - שני הדפוסים עם word boundaries
+    if (azureText) {
+        if (azureText.match(/\b25\d{6}\b/g) || azureText.match(/\b108\d{6}\b/g)) {
+            return true;
+        }
     }
 
     return false;
@@ -1063,18 +1133,31 @@ function analyzeLearning(invoice, config) {
 }
 
 // ============================================================================
-// נקודת כניסה
+// Exports - אפשר ייבוא כמודול
 // ============================================================================
 
-// קריאת INPUT - תמיכה בשני המבנים
-const inputData = input[0] || input;
+module.exports = {
+    processProductionInvoice,
+    processInvoiceComplete
+};
+
+// ============================================================================
+// נקודת כניסה - רק אם מריצים ישירות (לא כמודול)
+// ============================================================================
+
+if (typeof input !== 'undefined') {
+    // קריאת INPUT - תמיכה בשני המבנים
+    const inputData = input[0] || input;
 
 let result;
 if (inputData.AZURE && inputData.SUPNAME) {
     // מבנה חדש - Production Invoice
     result = processProductionInvoice(inputData);
+} else if (inputData.input && Array.isArray(inputData.input)) {
+    // מבנה Processing Invoice עם input array
+    result = processInvoiceComplete(inputData);
 } else {
-    // מבנה ישן - Processing Invoice
+    // מבנה ישן - Processing Invoice (fallback)
     const processInput = {
         learned_config: input.learned_config || {},
         docs_list: input.docs_list || { DOC_YES_NO: "N", list_of_docs: [] },
@@ -1091,5 +1174,6 @@ if (inputData.AZURE && inputData.SUPNAME) {
     ]});
 }
 
-console.log(JSON.stringify(result, null, 2));
-return result;
+    console.log(JSON.stringify(result, null, 2));
+    // אין return כאן - זה לא פונקציה
+}  // סוף ה-if של input check
