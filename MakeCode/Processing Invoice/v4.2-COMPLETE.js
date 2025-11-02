@@ -787,11 +787,11 @@ function extractShortDescription(ocrFields, vehicleNum) {
             if (match) {
                 // נמצא דפוס טיפול - נקה אותו ונחזיר
                 let serviceDesc = match[0];
-                // המר "קמ" ל-"ק\"מ" והסר פסיקים מהמספר
+                // המר "קמ" ל-"ק"מ" והסר פסיקים מהמספר
                 serviceDesc = serviceDesc
                     .replace(/,/g, '')          // הסר פסיקים
-                    .replace(/קמ/g, 'ק\"מ')     // תקנן את "קמ" ל-"ק\"מ"
-                    .replace(/ק״מ/g, 'ק\"מ');  // תקנן את ״ ל-\"
+                    .replace(/קמ/g, 'ק"מ')      // תקנן את "קמ" ל-"ק"מ"
+                    .replace(/ק״מ/g, 'ק"מ');   // תקנן את ״ ל-"
 
                 return serviceDesc;
             }
