@@ -1,0 +1,76 @@
+[
+    {
+        "logs": {
+            "stdout": [
+                "DEBUG: input structure: {\"input\":[{\"name\":\"learned_config\",\"value\":{\"status\":\"success\",\"llm_prompt\":{\"instructions\":{\"fields\":{\"price\":{\"example\":\"2524 - 385.02 = 2138.98\",\"formula\":\"InvoiceTotal_amount - TotalTax_amount\",\"f\n",
+                "DEBUG: inputData keys: [\n  'learned_config',\n  'docs_list',\n  'import_files',\n  'AZURE_RESULT',\n  'AZURE_TEXT'\n]\n",
+                "DEBUG: azureResult type: object has data? false\n",
+                "DEBUG: Creating azureResult.data\n",
+                "DEBUG: azureResult.data.fields type: object\n",
+                "{\n  \"status\": \"success\",\n  \"supplier_identification\": {\n    \"supplier_code\": \"\",\n    \"supplier_name\": \"\",\n    \"identification_method\": \"vendor_tax_id\",\n    \"confidence\": \"high\"\n  },\n  \"invoice_data\": {\n    \"PINVOICES\": [\n      {\n        \"SUPNAME\": \"\",\n        \"CODE\": \"ש\\\"ח\",\n        \"DEBIT\": \"D\",\n        \"IVDATE\": \"\",\n        \"BOOKNUM\": \"\",\n        \"PINVOICESCONT_SUBFORM\": []\n      }\n    ]\n  },\n  \"validation\": {\n    \"all_valid\": false,\n    \"checks\": {\n      \"required_fields_check\": \"failed\",\n      \"invoice_structure_check\": \"passed\"\n    },\n    \"warnings\": [\n      \"שדות חובה חסרים: SUPNAME, IVDATE, BOOKNUM\"\n    ]\n  },\n  \"learning_analysis\": {\n    \"learning_required\": false,\n    \"new_patterns\": {\n      \"new_partnames\": [],\n      \"new_vehicles\": [],\n      \"unknown_accounts\": []\n    },\n    \"learning_instructions\": [],\n    \"recommendation\": \"אין צורך בלמידה\"\n  },\n  \"execution_report\": {\n    \"stage\": \"שלב 6: ניתוח למידה\",\n    \"found\": [\n      \"סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D\",\n      \"תבנית: נמצאה\",\n      \"דפוסים: נמצאו\",\n      \"items: נמצא\"\n    ],\n    \"not_found\": [],\n    \"warnings\": [],\n    \"errors\": []\n  },\n  \"metadata\": {\n    \"ocr_invoice_id\": \"\",\n    \"ocr_invoice_date\": \"\",\n    \"ocr_total_amount\": 0,\n    \"processing_timestamp\": \"2025-11-02T14:53:28.214Z\",\n    \"version\": \"1.0-production\"\n  }\n}\n"
+            ],
+            "stderr": []
+        },
+        "executionTimeMs": 1076,
+        "result": {
+            "status": "success",
+            "supplier_identification": {
+                "supplier_code": "",
+                "supplier_name": "",
+                "identification_method": "vendor_tax_id",
+                "confidence": "high"
+            },
+            "invoice_data": {
+                "PINVOICES": [
+                    {
+                        "SUPNAME": "",
+                        "CODE": "ש\"ח",
+                        "DEBIT": "D",
+                        "IVDATE": "",
+                        "BOOKNUM": "",
+                        "PINVOICESCONT_SUBFORM": []
+                    }
+                ]
+            },
+            "validation": {
+                "all_valid": false,
+                "checks": {
+                    "required_fields_check": "failed",
+                    "invoice_structure_check": "passed"
+                },
+                "warnings": [
+                    "שדות חובה חסרים: SUPNAME, IVDATE, BOOKNUM"
+                ]
+            },
+            "learning_analysis": {
+                "learning_required": false,
+                "new_patterns": {
+                    "new_partnames": [],
+                    "new_vehicles": [],
+                    "unknown_accounts": []
+                },
+                "learning_instructions": [],
+                "recommendation": "אין צורך בלמידה"
+            },
+            "execution_report": {
+                "stage": "שלב 6: ניתוח למידה",
+                "found": [
+                    "סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D",
+                    "תבנית: נמצאה",
+                    "דפוסים: נמצאו",
+                    "items: נמצא"
+                ],
+                "not_found": [],
+                "warnings": [],
+                "errors": []
+            },
+            "metadata": {
+                "ocr_invoice_id": "",
+                "ocr_invoice_date": "",
+                "ocr_total_amount": 0,
+                "processing_timestamp": "2025-11-02T14:53:28.214Z",
+                "version": "1.0-production"
+            }
+        }
+    }
+]
