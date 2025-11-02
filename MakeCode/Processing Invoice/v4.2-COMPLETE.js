@@ -299,19 +299,19 @@ function processInvoiceComplete(input) {
             // 2. איזו תבנית נבחרה
             selected_template_index: templateIndex,
 
-            // 3. הנחיות ל-LLM - לתבנית שנבחרה (backward compatibility)
-            llm_prompt: selectedLlmPrompt,
+            // 3. הנחיות ל-LLM - עם כל התבניות בפנים
+            llm_prompt: {
+                ...selectedLlmPrompt,
+                all_templates: allLlmPrompts
+            },
 
-            // 4. הנחיות ל-LLM - לכל התבניות
-            all_llm_prompts: allLlmPrompts,
+            // 4. קונפיג טכני - עם כל התבניות בפנים
+            technical_config: {
+                ...selectedTechnicalConfig,
+                all_templates: allTechnicalConfigs
+            },
 
-            // 5. קונפיג טכני - לתבנית שנבחרה (backward compatibility)
-            technical_config: selectedTechnicalConfig,
-
-            // 6. קונפיג טכני - לכל התבניות
-            all_technical_configs: allTechnicalConfigs,
-
-            // 7. סצנריו עיבוד - מה צריך לשלוף מהמערכת
+            // 5. סצנריו עיבוד - מה צריך לשלוף מהמערכת
             processing_scenario: processingScenario
         };
 
