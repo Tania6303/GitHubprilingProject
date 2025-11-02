@@ -1897,20 +1897,20 @@ function generateWarningsSummary(errors, warnings) {
 // נקודת כניסה - רק אם input מוגדר (סביבת Azure Functions)
 // ============================================================================
 
-// Note: Commented out for module usage. In Azure Functions, input is provided automatically.
-// if (typeof input !== 'undefined') {
-//     const processInput = {
-//         learned_config: input.learned_config,
-//         docs_list: input.docs_list,
-//         import_files: input.import_files,
-//         AZURE_RESULT: input.AZURE_RESULT,
-//         AZURE_TEXT: input.AZURE_TEXT
-//     };
-//
-//     const result = processInvoiceComplete(processInput);
-//
-//     console.log(JSON.stringify(result));
-// }
+if (typeof input !== 'undefined') {
+    const processInput = {
+        learned_config: input.learned_config,
+        docs_list: input.docs_list,
+        import_files: input.import_files,
+        AZURE_RESULT: input.AZURE_RESULT,
+        AZURE_TEXT: input.AZURE_TEXT
+    };
+
+    const result = processInvoiceComplete(processInput);
+
+    // Return result for Azure Functions
+    result;
+}
 
 // ============================================================================
 // ייצוא פונקציות למודול
