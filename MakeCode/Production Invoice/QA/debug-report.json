@@ -1,0 +1,61 @@
+{
+  "timestamp": "2025-11-01T18:03:47.923Z",
+  "issues": [
+    {
+      "path": "root.supplier_identification.supplier_name",
+      "issue": "EMPTY_STRING",
+      "value": ""
+    },
+    {
+      "path": "root.validation.warnings",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    },
+    {
+      "path": "root.learning_analysis.new_patterns.new_partnames",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    },
+    {
+      "path": "root.learning_analysis.new_patterns.new_vehicles",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    },
+    {
+      "path": "root.learning_analysis.new_patterns.unknown_accounts",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    },
+    {
+      "path": "root.learning_analysis.learning_instructions",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    },
+    {
+      "path": "root.execution_report.not_found",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    },
+    {
+      "path": "root.execution_report.warnings",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    },
+    {
+      "path": "root.execution_report.errors",
+      "issue": "EMPTY_ARRAY",
+      "value": []
+    }
+  ],
+  "missing_value_fields": [],
+  "result_keys": [
+    "status",
+    "supplier_identification",
+    "invoice_data",
+    "validation",
+    "learning_analysis",
+    "execution_report",
+    "metadata"
+  ],
+  "result_status": "success"
+}

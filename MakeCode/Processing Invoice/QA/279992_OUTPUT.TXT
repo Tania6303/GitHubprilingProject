@@ -1,0 +1,16 @@
+[
+    {
+        "logs": {
+            "stdout": [
+                "{\"status\":\"error\",\"error_type\":\"Error\",\"message\":\"לא נמצאה תבנית מתאימה\"}\n"
+            ],
+            "stderr": []
+        },
+        "executionTimeMs": 974,
+        "result": {
+            "status": "error",
+            "error_type": "Error",
+            "message": "לא נמצאה תבנית מתאימה"
+        }
+    }
+]
