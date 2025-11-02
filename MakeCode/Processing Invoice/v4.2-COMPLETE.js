@@ -322,22 +322,19 @@ function processInvoiceComplete(input) {
                 PINVOICES: allInvoices
             },
 
-            // 2. איזו תבנית נבחרה
-            selected_template_index: templateIndex,
-
-            // 3. הנחיות ל-LLM - עם כל התבניות בפנים
+            // 2. הנחיות ל-LLM - עם כל התבניות בפנים
             llm_prompt: {
                 ...selectedLlmPrompt,
                 all_templates: allLlmPrompts
             },
 
-            // 4. קונפיג טכני - עם כל התבניות בפנים
+            // 3. קונפיג טכני - עם כל התבניות בפנים
             technical_config: {
                 ...selectedTechnicalConfig,
                 all_templates: allTechnicalConfigs
             },
 
-            // 5. סצנריו עיבוד - מה צריך לשלוף מהמערכת - עם כל התבניות בפנים
+            // 4. סצנריו עיבוד - מה צריך לשלוף מהמערכת - עם כל התבניות בפנים
             processing_scenario: {
                 ...selectedProcessingScenario,
                 all_templates: allProcessingScenarios

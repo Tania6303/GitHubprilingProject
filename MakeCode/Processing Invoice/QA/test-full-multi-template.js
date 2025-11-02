@@ -57,11 +57,11 @@ if (result.status === 'success') {
     console.log('\n=== 6. ציפיות ===');
     const hasThreeInvoices = result.invoice_data.PINVOICES.length === 3;
     const hasProcessingScenarioTemplates = result.processing_scenario.all_templates && result.processing_scenario.all_templates.length === 3;
-    const structureUnchanged = Object.keys(result).length === 6; // status, invoice_data, selected_template_index, llm_prompt, technical_config, processing_scenario
+    const structureUnchanged = Object.keys(result).length === 5; // status, invoice_data, llm_prompt, technical_config, processing_scenario
 
     console.log('✓ יש 3 חשבוניות ב-PINVOICES:', hasThreeInvoices ? '✅' : '❌');
     console.log('✓ יש all_templates ב-processing_scenario:', hasProcessingScenarioTemplates ? '✅' : '❌');
-    console.log('✓ מבנה לא השתנה (6 שדות ברמה עליונה):', structureUnchanged ? '✅' : '❌');
+    console.log('✓ מבנה לא השתנה (5 שדות ברמה עליונה):', structureUnchanged ? '✅' : '❌');
 
     if (hasThreeInvoices && hasProcessingScenarioTemplates && structureUnchanged) {
         console.log('\n🎉 מושלם! כל התבניות נוצרו בהצלחה!');
