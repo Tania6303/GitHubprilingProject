@@ -210,7 +210,8 @@ function processInvoiceComplete(input) {
             config,
             searchResults,
             input.learned_config,
-            ocrFields  // ✨ חדש! מעביר גם את ocrFields
+            ocrFields,  // ✨ חדש! מעביר גם את ocrFields
+            input.docs_list  // ✨ חדש! מעביר גם את docs_list
         );
 
         // ============================================================================
@@ -836,7 +837,7 @@ function extractShortDescription(ocrFields, vehicleNum) {
 // פונקציות עזר - שלב 4
 // ============================================================================
 
-function buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields) {
+function buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields, docsList) {
     const invoice = {
         SUPNAME: config.supplier_config.supplier_code,
         CODE: template.CODE,
@@ -907,7 +908,7 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
     }
 
     // פריטים
-    const needItems = shouldAddItems(structure, searchResults.documents);
+    const needItems = shouldAddItems(structure, searchResults.documents, docsList);
 
     if (needItems) {
         const vehicleRules = config.rules?.critical_patterns?.vehicle_rules;
@@ -940,10 +941,28 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
     return invoice;
 }
 
-function shouldAddItems(structure, documents) {
+function shouldAddItems(structure, documents, docsList) {
+    // אם אין תעודות בכלל בתבנית → צריך פריטים
     if (!structure.has_doc) return true;
-    if (structure.has_doc && (!documents || documents.length === 0)) return true;
-    if (structure.has_doc && structure.inventory_management === "not_managed_inventory") return true;
+
+    // בדוק אם יש תעודות בפועל (ב-OCR או ב-docs_list)
+    const hasDocsInOCR = documents && documents.length > 0;
+    const hasDocsInList = docsList && docsList.DOC_YES_NO === "Y";
+    const hasDocsActually = hasDocsInOCR || hasDocsInList;
+
+    // אם התבנית אומרת שיש תעודות אבל אין בפועל → צריך פריטים
+    if (structure.has_doc && !hasDocsActually) return true;
+
+    // אם יש תעודות בפועל:
+    if (hasDocsActually) {
+        // אם יש גם יבוא → לא צריך פריטים (הכל בתעודות)
+        if (structure.has_import) return false;
+
+        // אם אין יבוא אבל יש מלאי לא מנוהל → צריך פריטים
+        if (structure.inventory_management === "not_managed_inventory") return true;
+    }
+
+    // אחרת → לא צריך פריטים
     return false;
 }
 
