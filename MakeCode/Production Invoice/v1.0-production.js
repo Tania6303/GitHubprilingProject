@@ -677,22 +677,28 @@ function checkImportExists(importFiles) {
 
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
-    const docPattern = /^25\d{6}$/;
+    const docPattern = /^25\d{6}$/;          // DOCNO pattern
+    const booknumPattern = /^108\d{6}$/;     // BOOKNUM pattern
 
     if (unidentified.length > 0) {
         if (typeof unidentified[0] === 'object' && unidentified[0].value) {
-            if (unidentified.some(item => docPattern.test(item.value))) {
+            // בדיקה של שני הדפוסים - DOCNO או BOOKNUM
+            if (unidentified.some(item => docPattern.test(item.value) || booknumPattern.test(item.value))) {
                 return true;
             }
         } else {
-            if (unidentified.some(num => docPattern.test(num))) {
+            // בדיקה של שני הדפוסים - DOCNO או BOOKNUM
+            if (unidentified.some(num => docPattern.test(num) || booknumPattern.test(num))) {
                 return true;
             }
         }
     }
 
-    if (azureText && azureText.match(/25\d{6}/g)) {
-        return true;
+    // בדיקה גם ב-AZURE_TEXT - שני הדפוסים
+    if (azureText) {
+        if (azureText.match(/25\d{6}/g) || azureText.match(/108\d{6}/g)) {
+            return true;
+        }
     }
 
     return false;
