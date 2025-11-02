@@ -610,7 +610,101 @@ function searchDocuments(ocrFields, azureText, patterns, docsList) {
         }
     }
 
+    // ✨ חדש! Fallback 2: התאמה לפי כמויות כשהOCR לא מצא תעודות
+    if (foundDocs.length === 0 && ocrFields.Items && ocrFields.Items.length > 0) {
+        const totalOcrQuantity = ocrFields.Items.reduce((sum, item) => sum + (item.Quantity || 0), 0);
+
+        if (totalOcrQuantity > 0) {
+            // פונקציית עזר להשוואת כמויות עם סובלנות
+            const isQuantityMatch = (qty1, qty2) => {
+                if (qty1 === qty2) return true;
+                const tolerance = Math.min(Math.abs(qty1 * 0.005), 10);
+                return Math.abs(qty1 - qty2) <= tolerance;
+            };
+
+            // נסה למצוא תעודה בודדת שמתאימה (עם סובלנות)
+            const singleMatch = availableDocs.find(doc => isQuantityMatch(doc.TOTQUANT, totalOcrQuantity));
+            if (singleMatch) {
+                foundDocs.push({
+                    DOCNO: singleMatch.DOCNO,
+                    BOOKNUM: singleMatch.BOOKNUM,
+                    TOTQUANT: singleMatch.TOTQUANT || null
+                });
+            }
+            // אם לא נמצא תעודה בודדת, נסה לחפש קומבינציה של מספר תעודות
+            else {
+                const matchedDocs = findDocCombinationByQuantity(totalOcrQuantity, availableDocs);
+                if (matchedDocs.length > 0) {
+                    foundDocs.push(...matchedDocs);
+                }
+            }
+        }
+    }
+
     return foundDocs;
+}
+
+// ============================================================================
+// ✨ חדש! פונקציה למציאת קומבינציה של תעודות לפי כמות
+// ============================================================================
+
+function findDocCombinationByQuantity(targetQuantity, availableDocs) {
+    // אם אין תעודות או כמות יעד לא תקינה
+    if (!availableDocs || availableDocs.length === 0 || targetQuantity <= 0) {
+        return [];
+    }
+
+    // פונקציית עזר להשוואת כמויות עם סובלנות קטנה
+    const isQuantityMatch = (qty1, qty2) => {
+        // התאמה מדויקת
+        if (qty1 === qty2) return true;
+
+        // סובלנות של 0.5% או 10 יחידות (הקטן מביניהם)
+        const tolerance = Math.min(Math.abs(qty1 * 0.005), 10);
+        return Math.abs(qty1 - qty2) <= tolerance;
+    };
+
+    // נסה כל קומבינציה אפשרית (עד 4 תעודות מקסימום)
+    const maxCombinationSize = Math.min(4, availableDocs.length);
+
+    for (let size = 2; size <= maxCombinationSize; size++) {
+        const combinations = getCombinations(availableDocs, size);
+
+        for (const combo of combinations) {
+            const comboTotal = combo.reduce((sum, doc) => sum + (doc.TOTQUANT || 0), 0);
+
+            if (isQuantityMatch(comboTotal, targetQuantity)) {
+                // נמצאה קומבינציה מתאימה!
+                return combo.map(doc => ({
+                    DOCNO: doc.DOCNO,
+                    BOOKNUM: doc.BOOKNUM,
+                    TOTQUANT: doc.TOTQUANT || null
+                }));
+            }
+        }
+    }
+
+    return [];
+}
+
+// פונקציית עזר לחישוב קומבינציות
+function getCombinations(array, size) {
+    if (size === 1) {
+        return array.map(item => [item]);
+    }
+
+    const combinations = [];
+
+    for (let i = 0; i < array.length - size + 1; i++) {
+        const head = array[i];
+        const tailCombos = getCombinations(array.slice(i + 1), size - 1);
+
+        for (const combo of tailCombos) {
+            combinations.push([head, ...combo]);
+        }
+    }
+
+    return combinations;
 }
 
 // ============================================================================
