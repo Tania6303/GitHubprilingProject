@@ -72,11 +72,13 @@ function processInvoiceComplete(input) {
         // א. בדיקת יבוא
         const hasImport = checkImportExists(input.import_files);
 
-        // ב. בדיקת תעודות - ב-OCR!
-        const hasDocs = checkDocsInOCR(
+        // ב. בדיקת תעודות - ב-OCR או ב-docs_list!
+        const hasDocsInOCR = checkDocsInOCR(
             input.AZURE_RESULT.data.fields,
             input.AZURE_TEXT
         );
+        const hasDocsInList = checkDocsExist(input.docs_list);
+        const hasDocs = hasDocsInOCR || hasDocsInList;
 
         // ג. זיהוי חיוב/זיכוי
         const debitType = identifyDebitType(input.AZURE_RESULT.data.fields);
@@ -311,18 +313,19 @@ function checkDocsExist(docsList) {
 
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
-    const docPattern = /^25\d{6}$/;
+    const docPattern = /^25\d{6}$/;          // DOCNO pattern
+    const booknumPattern = /^108\d{6}$/;     // BOOKNUM pattern
 
     let foundInUnidentified = false;
 
     if (unidentified.length > 0) {
         if (typeof unidentified[0] === 'object' && unidentified[0].value) {
             foundInUnidentified = unidentified.some(item =>
-                docPattern.test(item.value)
+                docPattern.test(item.value) || booknumPattern.test(item.value)
             );
         } else {
             foundInUnidentified = unidentified.some(num =>
-                docPattern.test(num)
+                docPattern.test(num) || booknumPattern.test(num)
             );
         }
     }
@@ -330,8 +333,12 @@ function checkDocsInOCR(ocrFields, azureText) {
     if (foundInUnidentified) return true;
 
     if (azureText) {
-        const matches = azureText.match(/25\d{6}/g);
-        if (matches && matches.length > 0) return true;
+        // Search for both DOCNO and BOOKNUM patterns
+        const docMatches = azureText.match(/25\d{6}/g);
+        const booknumMatches = azureText.match(/108\d{6}/g);
+        if ((docMatches && docMatches.length > 0) || (booknumMatches && booknumMatches.length > 0)) {
+            return true;
+        }
     }
 
     return false;
