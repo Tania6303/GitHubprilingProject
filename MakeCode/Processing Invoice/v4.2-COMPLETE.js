@@ -1415,19 +1415,57 @@ function generateLLMPrompt(config, ocrFields, searchResults, executionReport) {
         });
     }
 
+    // חילוץ document_type אמיתי מהקונפיג
+    const documentType = config.document_types?.[0]?.type || "חשבונית רגילה";
+
+    // בניית overview דינמי לפי מבנה התבנית
+    const structure = config.structure?.[0] || {};
+    let overview = `חשבונית מספק ${supplierName}.`;
+
+    if (structure.has_import && structure.has_doc) {
+        overview += " תבנית: יבוא + תעודות. הספק מספק מוצרי מצאי ויבוא.";
+    } else if (structure.has_import) {
+        overview += " תבנית: יבוא. הספק מספק מוצרים מיובאים.";
+    } else if (structure.has_doc) {
+        overview += " תבנית: תעודות. הספק מספק מוצרים על בסיס תעודות אספקה.";
+    } else if (vehicleRules && Object.keys(vehicleRules.vehicle_account_mapping || {}).length > 0) {
+        overview += " תבנית: שירותי רכב ומוסך.";
+    } else {
+        overview += " תבנית: חשבונית רגילה עם פירוט.";
+    }
+
+    // בניית processing_steps דינמי לפי מבנה התבנית
+    const processingSteps = [];
+    processingSteps.push("1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId");
+    processingSteps.push("2. חלץ תאריך חשבונית (IVDATE) מתוך InvoiceDate");
+
+    if (structure.has_import) {
+        processingSteps.push("3. זהה מספר יבוא (IMPFNUM) מתוך import_files");
+    }
+
+    if (structure.has_doc) {
+        processingSteps.push(`${processingSteps.length + 1}. זהה תעודות (DOCNO/BOOKNUM) - חפש מספרים בפורמט 25XXXXXX או 108XXXXXX`);
+    }
+
+    if (structure.has_purchase_orders) {
+        processingSteps.push(`${processingSteps.length + 1}. זהה הזמנת רכש (ORDNAME) אם קיימת`);
+    }
+
+    if (vehicleRules && Object.keys(vehicleRules.vehicle_account_mapping || {}).length > 0) {
+        processingSteps.push(`${processingSteps.length + 1}. חלץ מספרי רכבים מ-UnidentifiedNumbers (פורמט XXX-XX-XXX)`);
+        processingSteps.push(`${processingSteps.length + 1}. מפה כל רכב לחשבון הנכון לפי vehicle_mapping`);
+        processingSteps.push(`${processingSteps.length + 1}. צור תיאור קצר של השירות מהפריט הראשון`);
+    } else {
+        processingSteps.push(`${processingSteps.length + 1}. חשב את המחיר הכולל לפני מע"מ: InvoiceTotal - TotalTax`);
+    }
+
     return {
         supplier_code: supplierCode,
         supplier_name: supplierName,
-        document_type: "חשבונית שירותי רכב",
+        document_type: documentType,
         instructions: {
-            overview: `חשבונית מספק ${supplierName}. הספק מספק שירותי רכב ומוסך.`,
-            processing_steps: [
-                "1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId",
-                "2. חשב את המחיר הכולל לפני מע\"מ: InvoiceTotal - TotalTax",
-                "3. חלץ מספרי רכבים מ-UnidentifiedNumbers (פורמט XXX-XX-XXX)",
-                "4. מפה כל רכב לחשבון הנכון לפי vehicle_mapping",
-                "5. צור תיאור קצר של השירות מהפריט הראשון"
-            ],
+            overview: overview,
+            processing_steps: processingSteps,
             fields: fieldInstructions,
             vehicle_mapping: vehicleMapping
         }
