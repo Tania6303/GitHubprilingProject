@@ -1908,8 +1908,7 @@ if (typeof input !== 'undefined') {
 
     const result = processInvoiceComplete(processInput);
 
-    // Return result for Azure Functions
-    result;
+    console.log(JSON.stringify(result));
 }
 
 // ============================================================================
