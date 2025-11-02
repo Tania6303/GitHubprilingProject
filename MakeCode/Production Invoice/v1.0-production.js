@@ -725,9 +725,9 @@ function checkDocsInOCR(ocrFields, azureText) {
         }
     }
 
-    // בדיקה גם ב-AZURE_TEXT - שני הדפוסים
+    // בדיקה גם ב-AZURE_TEXT - שני הדפוסים עם word boundaries
     if (azureText) {
-        if (azureText.match(/25\d{6}/g) || azureText.match(/108\d{6}/g)) {
+        if (azureText.match(/\b25\d{6}\b/g) || azureText.match(/\b108\d{6}\b/g)) {
             return true;
         }
     }

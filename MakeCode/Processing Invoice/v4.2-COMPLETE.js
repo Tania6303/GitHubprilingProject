@@ -334,9 +334,9 @@ function checkDocsInOCR(ocrFields, azureText) {
     if (foundInUnidentified) return true;
 
     if (azureText) {
-        // Search for both DOCNO and BOOKNUM patterns
-        const docMatches = azureText.match(/25\d{6}/g);
-        const booknumMatches = azureText.match(/108\d{6}/g);
+        // Search for both DOCNO and BOOKNUM patterns with word boundaries
+        const docMatches = azureText.match(/\b25\d{6}\b/g);
+        const booknumMatches = azureText.match(/\b108\d{6}\b/g);
         if ((docMatches && docMatches.length > 0) || (booknumMatches && booknumMatches.length > 0)) {
             return true;
         }
