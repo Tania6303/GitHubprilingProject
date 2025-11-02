@@ -1415,8 +1415,21 @@ function generateLLMPrompt(config, ocrFields, searchResults, executionReport, te
         });
     }
 
-    // חילוץ document_type אמיתי לפי התבנית שנבחרה
-    const documentType = config.document_types?.[templateIndex]?.type || "חשבונית רגילה";
+    // בניית document_type דינמית לפי מבנה התבנית שנבחרה
+    let documentType = "";
+    if (structure.has_import && structure.has_doc) {
+        documentType = "חשבונית עם תיק יבוא עם תעודות";
+    } else if (structure.has_import) {
+        documentType = "חשבונית יבוא";
+    } else if (structure.has_doc) {
+        documentType = "חשבונית עם תעודות";
+    } else if (structure.debit_type === "C") {
+        documentType = "זיכוי רגיל עם פירוט";
+    } else if (vehicleRules && Object.keys(vehicleRules.vehicle_account_mapping || {}).length > 0) {
+        documentType = "חשבונית שירותי רכב ומוסך";
+    } else {
+        documentType = "חשבונית רגילה עם פירוט";
+    }
 
     // בניית overview דינמי לפי מבנה התבנית שנבחרה
     let overview = `חשבונית מספק ${supplierName}.`;
