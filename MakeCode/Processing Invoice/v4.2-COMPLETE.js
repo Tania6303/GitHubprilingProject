@@ -248,10 +248,10 @@ function processInvoiceComplete(input) {
         // ============================================================================
 
         // פלט 1: הנחיות ל-LLM (פרומפט בשפה טבעית)
-        const llmPrompt = generateLLMPrompt(config, ocrFields, searchResults, executionReport);
+        const llmPrompt = generateLLMPrompt(config, ocrFields, searchResults, executionReport, templateIndex, structure);
 
         // פלט 2: קונפיג טכני למערכת
-        const technicalConfig = generateTechnicalConfig(config, ocrFields, searchResults, executionReport);
+        const technicalConfig = generateTechnicalConfig(config, ocrFields, searchResults, executionReport, templateIndex, structure);
 
         // פלט 3: סצנריו עיבוד - מה MAKE צריך לשלוף מהמערכת
         const hasVehicles = vehicleRules &&
@@ -1339,7 +1339,7 @@ function analyzeLearning(invoice, config) {
 // פונקציות עזר - שלב 7 (יצירת פלטים נוספים)
 // ============================================================================
 
-function generateLLMPrompt(config, ocrFields, searchResults, executionReport) {
+function generateLLMPrompt(config, ocrFields, searchResults, executionReport, templateIndex, structure) {
     const supplierCode = config.supplier_config.supplier_code;
     const supplierName = config.supplier_config.supplier_name;
 
@@ -1415,11 +1415,10 @@ function generateLLMPrompt(config, ocrFields, searchResults, executionReport) {
         });
     }
 
-    // חילוץ document_type אמיתי מהקונפיג
-    const documentType = config.document_types?.[0]?.type || "חשבונית רגילה";
+    // חילוץ document_type אמיתי לפי התבנית שנבחרה
+    const documentType = config.document_types?.[templateIndex]?.type || "חשבונית רגילה";
 
-    // בניית overview דינמי לפי מבנה התבנית
-    const structure = config.structure?.[0] || {};
+    // בניית overview דינמי לפי מבנה התבנית שנבחרה
     let overview = `חשבונית מספק ${supplierName}.`;
 
     if (structure.has_import && structure.has_doc) {
@@ -1472,7 +1471,7 @@ function generateLLMPrompt(config, ocrFields, searchResults, executionReport) {
     };
 }
 
-function generateTechnicalConfig(config, ocrFields, searchResults, executionReport) {
+function generateTechnicalConfig(config, ocrFields, searchResults, executionReport, templateIndex, structure) {
     const supplierCode = config.supplier_config.supplier_code;
     const supplierName = config.supplier_config.supplier_name;
 
@@ -1590,8 +1589,8 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
         };
     }
 
-    // DOCUMENTS (DOCNO + BOOKNUM)
-    if (config.structure && config.structure.some(s => s.has_doc)) {
+    // DOCUMENTS (DOCNO + BOOKNUM) - רק אם התבנית שנבחרה דורשת תעודות
+    if (structure.has_doc) {
         extractionRules.documents = {
             search_in: [
                 {
@@ -1711,11 +1710,26 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
         ]
     };
 
+    // קביעת document_type דינמי לפי התבנית שנבחרה
+    let documentTypeKey = "regular_invoice";
+    if (structure.has_import && structure.has_doc) {
+        documentTypeKey = "import_with_docs_invoice";
+    } else if (structure.has_import) {
+        documentTypeKey = "import_invoice";
+    } else if (structure.has_doc) {
+        documentTypeKey = "docs_invoice";
+    } else if (structure.debit_type === "C") {
+        documentTypeKey = "credit_note";
+    } else if (config.rules?.critical_patterns?.vehicle_rules?.vehicle_account_mapping &&
+               Object.keys(config.rules.critical_patterns.vehicle_rules.vehicle_account_mapping).length > 0) {
+        documentTypeKey = "vehicle_service_invoice";
+    }
+
     return {
         supplier_code: supplierCode,
         supplier_name: supplierName,
         version: "4.2",
-        document_type: "vehicle_service_invoice",
+        document_type: documentTypeKey,
         extraction_rules: extractionRules,
         vehicle_mapping: vehicleMapping,
         template: template,
