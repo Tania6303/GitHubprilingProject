@@ -1,0 +1,220 @@
+{
+  "description": "תבנית JSON מלאה לתוצאת עיבוד חשבונית עם תמיכה במספר תבניות",
+  "version": "4.2",
+  "schema": {
+    "status": {
+      "type": "string",
+      "values": ["success", "error"],
+      "description": "סטטוס העיבוד"
+    },
+    "invoice_data": {
+      "type": "object",
+      "description": "JSON לפריוריטי - מכיל חשבוניות לכל התבניות",
+      "properties": {
+        "PINVOICES": {
+          "type": "array",
+          "length": "מספר התבניות (3 בדוגמה)",
+          "description": "מערך של חשבוניות - אחת לכל תבנית",
+          "items": {
+            "template_0": {
+              "description": "חשבונית רגילה עם פירוט",
+              "required_fields": ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"],
+              "optional_fields": ["ORDNAME", "IMPFNUM", "DETAILS", "DOCNO"],
+              "subforms": ["PINVOICEITEMS_SUBFORM"]
+            },
+            "template_1": {
+              "description": "חשבונית עם תיק יבוא עם תעודות",
+              "required_fields": ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"],
+              "optional_fields": ["ORDNAME", "IMPFNUM", "DETAILS", "DOCNO"],
+              "subforms": ["PINVOICEITEMS_SUBFORM", "PIVDOC_SUBFORM"]
+            },
+            "template_2": {
+              "description": "זיכוי רגיל עם פירוט",
+              "required_fields": ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"],
+              "optional_fields": ["ORDNAME", "DETAILS"],
+              "subforms": ["PINVOICEITEMS_SUBFORM", "PINVOICESCONT_SUBFORM"]
+            }
+          }
+        }
+      }
+    },
+    "llm_prompt": {
+      "type": "object",
+      "description": "הנחיות ל-LLM - של התבנית שנבחרה + כל התבניות",
+      "properties": {
+        "supplier_code": {
+          "type": "string",
+          "example": "279992"
+        },
+        "supplier_name": {
+          "type": "string",
+          "example": "מודגל מתכת (99) בע\"מ"
+        },
+        "document_type": {
+          "type": "string",
+          "description": "סוג המסמך של התבנית שנבחרה",
+          "examples": [
+            "חשבונית רגילה עם פירוט",
+            "חשבונית עם תיק יבוא עם תעודות",
+            "זיכוי רגיל עם פירוט"
+          ]
+        },
+        "instructions": {
+          "type": "object",
+          "description": "הוראות מפורטות ל-LLM",
+          "properties": {
+            "overview": "string - תיאור כללי",
+            "processing_steps": "array - שלבי עיבוד",
+            "fields": "object - הסבר לכל שדה",
+            "validation": "object - כללי ולידציה",
+            "special_notes": "array - הערות מיוחדות"
+          }
+        },
+        "all_templates": {
+          "type": "array",
+          "length": "מספר התבניות (3 בדוגמה)",
+          "description": "מערך של הנחיות LLM לכל התבניות",
+          "items": {
+            "type": "object",
+            "properties": "זהה למבנה llm_prompt הראשי"
+          }
+        }
+      }
+    },
+    "technical_config": {
+      "type": "object",
+      "description": "קונפיגורציה טכנית - של התבנית שנבחרה + כל התבניות",
+      "properties": {
+        "supplier_code": {
+          "type": "string",
+          "example": "279992"
+        },
+        "supplier_name": {
+          "type": "string",
+          "example": "מודגל מתכת (99) בע\"מ"
+        },
+        "version": {
+          "type": "string",
+          "example": "4.2"
+        },
+        "document_type": {
+          "type": "string",
+          "description": "סוג המסמך באנגלית",
+          "examples": [
+            "regular_invoice",
+            "import_with_docs_invoice",
+            "credit_note"
+          ]
+        },
+        "extraction_rules": {
+          "type": "object",
+          "description": "כללי חילוץ נתונים",
+          "properties": {
+            "booknum": "object - כללים למספר חשבונית",
+            "ivdate": "object - כללים לתאריך",
+            "price": "object - כללים למחיר",
+            "items": "object - כללים לפריטים"
+          }
+        },
+        "vehicle_mapping": {
+          "type": "object",
+          "description": "מיפוי רכבים אם קיים"
+        },
+        "template": {
+          "type": "object",
+          "description": "תבנית המבנה המצופה"
+        },
+        "validation_rules": {
+          "type": "object",
+          "description": "כללי ולידציה"
+        },
+        "all_templates": {
+          "type": "array",
+          "length": "מספר התבניות (3 בדוגמה)",
+          "description": "מערך של קונפיגים טכניים לכל התבניות",
+          "items": {
+            "type": "object",
+            "properties": "זהה למבנה technical_config הראשי"
+          }
+        }
+      }
+    },
+    "processing_scenario": {
+      "type": "object",
+      "description": "סצנריו עיבוד - של התבנית שנבחרה + כל התבניות",
+      "properties": {
+        "check_docs": {
+          "type": "boolean",
+          "description": "האם צריך לבדוק תעודות"
+        },
+        "check_import": {
+          "type": "boolean",
+          "description": "האם צריך לבדוק תיק יבוא"
+        },
+        "check_vehicles": {
+          "type": "boolean",
+          "description": "האם צריך לבדוק רכבים"
+        },
+        "all_templates": {
+          "type": "array",
+          "length": "מספר התבניות (3 בדוגמה)",
+          "description": "מערך של סצנריות לכל התבניות",
+          "items": {
+            "type": "object",
+            "properties": {
+              "check_docs": "boolean",
+              "check_import": "boolean",
+              "check_vehicles": "boolean"
+            }
+          }
+        }
+      }
+    }
+  },
+  "example_structure": {
+    "status": "success",
+    "invoice_data": {
+      "PINVOICES": [
+        "{ invoice for template 0 }",
+        "{ invoice for template 1 }",
+        "{ invoice for template 2 }"
+      ]
+    },
+    "llm_prompt": {
+      "supplier_code": "279992",
+      "document_type": "חשבונית רגילה עם פירוט",
+      "instructions": "{ ... }",
+      "all_templates": [
+        "{ llm_prompt for template 0 }",
+        "{ llm_prompt for template 1 }",
+        "{ llm_prompt for template 2 }"
+      ]
+    },
+    "technical_config": {
+      "supplier_code": "279992",
+      "document_type": "regular_invoice",
+      "extraction_rules": "{ ... }",
+      "all_templates": [
+        "{ config for template 0 }",
+        "{ config for template 1 }",
+        "{ config for template 2 }"
+      ]
+    },
+    "processing_scenario": {
+      "check_docs": false,
+      "check_import": false,
+      "check_vehicles": false,
+      "all_templates": [
+        "{ scenario for template 0 }",
+        "{ scenario for template 1 }",
+        "{ scenario for template 2 }"
+      ]
+    }
+  },
+  "notes": [
+    "המבנה כולל 5 שדות ברמה עליונה בלבד",
+    "כל all_templates מכיל מערך באורך מספר התבניות של הספק",
+    "השדות ברמה הראשונה של כל אובייקט (llm_prompt, technical_config, processing_scenario) מתייחסים לתבנית שנבחרה",
+    "all_templates מכיל את אותו מבנה לכל התבניות"
+  ]
+}
