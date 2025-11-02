@@ -533,10 +533,32 @@ function processInvoiceComplete(input) {
 
         console.log("DEBUG: azureResult type:", typeof azureResult, "has data?", !!azureResult.data);
 
-        // וידוא שיש data.fields
+        // וידוא שיש data.fields - תמיכה ב-Azure v3.0 format (analyzeResult)
         if (!azureResult.data) {
-            console.log("DEBUG: Creating azureResult.data");
-            azureResult.data = { fields: {}, documents: [] };
+            // בדוק אם יש analyzeResult (Azure v3.0)
+            if (azureResult.analyzeResult) {
+                console.log("DEBUG: Converting analyzeResult to data.fields format");
+                const analyzeResult = azureResult.analyzeResult;
+                const documents = analyzeResult.documents || [];
+
+                if (documents.length > 0) {
+                    // המר שדות Azure v3.0 לפורמט פשוט
+                    const rawFields = documents[0].fields || {};
+                    const normalizedFields = normalizeAzureFields(rawFields);
+
+                    azureResult.data = {
+                        fields: normalizedFields,
+                        documents: documents
+                    };
+                } else {
+                    // אם אין documents, צור data ריק
+                    console.log("DEBUG: No documents in analyzeResult, creating empty data");
+                    azureResult.data = { fields: {}, documents: [] };
+                }
+            } else {
+                console.log("DEBUG: Creating azureResult.data");
+                azureResult.data = { fields: {}, documents: [] };
+            }
         }
         if (!azureResult.data.fields) {
             console.log("DEBUG: Creating azureResult.data.fields");
@@ -553,7 +575,8 @@ function processInvoiceComplete(input) {
 
         executionReport.found.push(`סוג: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);
 
-        const config = learnedConfig.config || {};
+        // תמיכה בשני מבנים: config/template או technical_config/invoice_data
+        const config = learnedConfig.config || learnedConfig.technical_config || {};
         const structure = config.structure?.[0] || {
             has_import: false,
             has_doc: false,
@@ -562,11 +585,19 @@ function processInvoiceComplete(input) {
             inventory_management: "not_managed_inventory"
         };
 
-        const template = learnedConfig.template?.PINVOICES?.[0] || {
-            SUPNAME: config.supplier_config?.supplier_code || "",
-            CODE: "ש\"ח",
-            DEBIT: "D"
-        };
+        // תמיכה בשני מבנים של template
+        let template;
+        if (learnedConfig.template?.PINVOICES?.[0]) {
+            template = learnedConfig.template.PINVOICES[0];
+        } else if (learnedConfig.invoice_data?.PINVOICES?.[0]) {
+            template = learnedConfig.invoice_data.PINVOICES[0];
+        } else {
+            template = {
+                SUPNAME: config.supplier_config?.supplier_code || "",
+                CODE: "ש\"ח",
+                DEBIT: "D"
+            };
+        }
 
         executionReport.found.push(`תבנית: נמצאה`);
 
@@ -1079,8 +1110,11 @@ let result;
 if (inputData.AZURE && inputData.SUPNAME) {
     // מבנה חדש - Production Invoice
     result = processProductionInvoice(inputData);
+} else if (inputData.input && Array.isArray(inputData.input)) {
+    // מבנה Processing Invoice עם input array
+    result = processInvoiceComplete(inputData);
 } else {
-    // מבנה ישן - Processing Invoice
+    // מבנה ישן - Processing Invoice (fallback)
     const processInput = {
         learned_config: input.learned_config || {},
         docs_list: input.docs_list || { DOC_YES_NO: "N", list_of_docs: [] },
