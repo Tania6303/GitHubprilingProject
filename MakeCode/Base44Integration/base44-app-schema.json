@@ -1,0 +1,366 @@
+{
+  "app_name": "Invoice Management System",
+  "description": "מערכת ניהול חשבוניות משולבת עם Azure Form Recognizer",
+  "version": "1.0.0",
+
+  "entities": {
+    "Invoice": {
+      "display_name": "חשבונית",
+      "fields": [
+        {
+          "name": "invoice_id",
+          "type": "text",
+          "required": true,
+          "unique": true,
+          "label": "מספר חשבונית",
+          "description": "מזהה ייחודי של החשבונית"
+        },
+        {
+          "name": "file_url",
+          "type": "file",
+          "required": true,
+          "label": "קובץ חשבונית",
+          "allowed_types": ["pdf", "jpg", "png"],
+          "max_size_mb": 10
+        },
+        {
+          "name": "supplier_name",
+          "type": "text",
+          "required": true,
+          "label": "שם ספק",
+          "description": "שם הספק מהחשבונית"
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "default": "pending",
+          "label": "סטטוס",
+          "options": [
+            {"value": "pending", "label": "ממתין"},
+            {"value": "processing", "label": "בעיבוד"},
+            {"value": "completed", "label": "הושלם"},
+            {"value": "error", "label": "שגיאה"}
+          ]
+        },
+        {
+          "name": "ocr_provider",
+          "type": "select",
+          "required": true,
+          "default": "azure",
+          "label": "ספק OCR",
+          "options": [
+            {"value": "azure", "label": "Azure Form Recognizer"},
+            {"value": "digiparser", "label": "DigiParser"},
+            {"value": "openai", "label": "OpenAI Vision"}
+          ]
+        },
+        {
+          "name": "extracted_data",
+          "type": "json",
+          "label": "נתונים שחולצו",
+          "description": "JSON של כל הנתונים שחולצו מהחשבונית"
+        },
+        {
+          "name": "invoice_number",
+          "type": "text",
+          "label": "מספר חשבונית (OCR)",
+          "description": "מספר החשבונית שחולץ מה-OCR"
+        },
+        {
+          "name": "invoice_date",
+          "type": "date",
+          "label": "תאריך חשבונית",
+          "description": "תאריך החשבונית שחולץ מה-OCR"
+        },
+        {
+          "name": "total_amount",
+          "type": "number",
+          "label": "סכום כולל",
+          "description": "הסכום הכולל של החשבונית"
+        },
+        {
+          "name": "processed_at",
+          "type": "datetime",
+          "label": "תאריך עיבוד",
+          "auto_now": true
+        },
+        {
+          "name": "error_message",
+          "type": "text_long",
+          "label": "הודעת שגיאה",
+          "description": "פרטי השגיאה במידה וישנה"
+        },
+        {
+          "name": "priority_sync_status",
+          "type": "select",
+          "label": "סטטוס סנכרון Priority",
+          "options": [
+            {"value": "not_synced", "label": "לא סונכרן"},
+            {"value": "syncing", "label": "מסנכרן"},
+            {"value": "synced", "label": "סונכרן"},
+            {"value": "sync_error", "label": "שגיאת סנכרון"}
+          ]
+        }
+      ]
+    },
+
+    "Supplier": {
+      "display_name": "ספק",
+      "fields": [
+        {
+          "name": "supplier_id",
+          "type": "text",
+          "required": true,
+          "unique": true,
+          "label": "קוד ספק"
+        },
+        {
+          "name": "supplier_name",
+          "type": "text",
+          "required": true,
+          "label": "שם ספק"
+        },
+        {
+          "name": "contact_email",
+          "type": "email",
+          "label": "אימייל"
+        },
+        {
+          "name": "contact_phone",
+          "type": "text",
+          "label": "טלפון"
+        },
+        {
+          "name": "default_ocr_provider",
+          "type": "select",
+          "label": "ספק OCR ברירת מחדל",
+          "options": [
+            {"value": "azure", "label": "Azure"},
+            {"value": "digiparser", "label": "DigiParser"},
+            {"value": "openai", "label": "OpenAI"}
+          ]
+        },
+        {
+          "name": "total_invoices",
+          "type": "number",
+          "label": "סה\"כ חשבוניות",
+          "computed": true
+        }
+      ]
+    },
+
+    "ProcessingLog": {
+      "display_name": "לוג עיבוד",
+      "fields": [
+        {
+          "name": "log_id",
+          "type": "text",
+          "required": true,
+          "unique": true
+        },
+        {
+          "name": "invoice_id",
+          "type": "relation",
+          "related_entity": "Invoice",
+          "label": "חשבונית"
+        },
+        {
+          "name": "stage",
+          "type": "text",
+          "label": "שלב"
+        },
+        {
+          "name": "message",
+          "type": "text_long",
+          "label": "הודעה"
+        },
+        {
+          "name": "log_type",
+          "type": "select",
+          "label": "סוג לוג",
+          "options": [
+            {"value": "info", "label": "מידע"},
+            {"value": "warning", "label": "אזהרה"},
+            {"value": "error", "label": "שגיאה"}
+          ]
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "auto_now": true
+        }
+      ]
+    }
+  },
+
+  "workflows": [
+    {
+      "name": "Process New Invoice",
+      "trigger": {
+        "type": "entity_created",
+        "entity": "Invoice"
+      },
+      "actions": [
+        {
+          "type": "update_field",
+          "field": "status",
+          "value": "processing"
+        },
+        {
+          "type": "webhook",
+          "method": "POST",
+          "url": "{{WEBHOOK_URL}}/webhook/base44",
+          "body": {
+            "action": "process_invoice_{{ocr_provider}}",
+            "data": {
+              "invoice_id": "{{invoice_id}}",
+              "file_url": "{{file_url}}",
+              "supplier_name": "{{supplier_name}}",
+              "ocr_provider": "{{ocr_provider}}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Update Invoice Status on Success",
+      "trigger": {
+        "type": "api_call",
+        "endpoint": "/api/invoice/update_success"
+      },
+      "actions": [
+        {
+          "type": "update_entity",
+          "entity": "Invoice",
+          "updates": {
+            "status": "completed",
+            "extracted_data": "{{response.extracted_data}}",
+            "invoice_number": "{{response.extracted_data.InvoiceId}}",
+            "invoice_date": "{{response.extracted_data.InvoiceDate}}",
+            "total_amount": "{{response.extracted_data.InvoiceTotal}}"
+          }
+        },
+        {
+          "type": "send_email",
+          "to": "{{user.email}}",
+          "subject": "חשבונית {{invoice_id}} עובדה בהצלחה",
+          "body": "החשבונית עובדה בהצלחה. מספר חשבונית: {{invoice_number}}"
+        }
+      ]
+    },
+
+    {
+      "name": "Handle Invoice Error",
+      "trigger": {
+        "type": "api_call",
+        "endpoint": "/api/invoice/update_error"
+      },
+      "actions": [
+        {
+          "type": "update_entity",
+          "entity": "Invoice",
+          "updates": {
+            "status": "error",
+            "error_message": "{{response.error}}"
+          }
+        },
+        {
+          "type": "create_log",
+          "entity": "ProcessingLog",
+          "data": {
+            "invoice_id": "{{invoice_id}}",
+            "stage": "processing",
+            "message": "{{response.error}}",
+            "log_type": "error"
+          }
+        },
+        {
+          "type": "send_email",
+          "to": "{{admin.email}}",
+          "subject": "שגיאה בעיבוד חשבונית {{invoice_id}}",
+          "body": "אירעה שגיאה: {{response.error}}"
+        }
+      ]
+    }
+  ],
+
+  "views": [
+    {
+      "name": "Invoice Dashboard",
+      "type": "dashboard",
+      "widgets": [
+        {
+          "type": "stats",
+          "title": "סטטיסטיקות",
+          "stats": [
+            {
+              "label": "סה\"כ חשבוניות",
+              "value": "{{Invoice.count}}"
+            },
+            {
+              "label": "ממתינות",
+              "value": "{{Invoice.count(status='pending')}}"
+            },
+            {
+              "label": "בעיבוד",
+              "value": "{{Invoice.count(status='processing')}}"
+            },
+            {
+              "label": "הושלמו",
+              "value": "{{Invoice.count(status='completed')}}"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "title": "חשבוניות לפי ספק",
+          "chart_type": "bar",
+          "data_source": "Invoice",
+          "group_by": "supplier_name",
+          "aggregate": "count"
+        },
+        {
+          "type": "table",
+          "title": "חשבוניות אחרונות",
+          "data_source": "Invoice",
+          "columns": ["invoice_id", "supplier_name", "total_amount", "status", "processed_at"],
+          "sort_by": "processed_at",
+          "sort_order": "desc",
+          "limit": 10
+        }
+      ]
+    },
+
+    {
+      "name": "Invoice Form",
+      "type": "form",
+      "entity": "Invoice",
+      "fields": [
+        "invoice_id",
+        "file_url",
+        "supplier_name",
+        "ocr_provider"
+      ],
+      "submit_text": "העלה והעבד חשבונית"
+    }
+  ],
+
+  "permissions": {
+    "roles": [
+      {
+        "name": "admin",
+        "permissions": ["create", "read", "update", "delete"]
+      },
+      {
+        "name": "processor",
+        "permissions": ["create", "read", "update"]
+      },
+      {
+        "name": "viewer",
+        "permissions": ["read"]
+      }
+    ]
+  }
+}
