@@ -1,6 +1,8 @@
-// Production Invoice v1.6.6 (21:45 05.11.25) - 49KB ✅ NO IIFE
-// תיקון קריטי: הסרת IIFE | result כמשתנה גלובלי | Make.com יקרא אוטומטית
+// Production Invoice v1.6.6 IIFE (21:56 05.11.25) - 49KB ✅ FINAL
+// תיקון קריטי: IIFE מלא + return result בתוך if block (כמו v4.2!)
 // קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-05-*.js (מיין לפי שעה אחרונה)
+
+(function() {
 
 function removeUndefinedValues(obj) {
     if (Array.isArray(obj)) {
@@ -1124,7 +1126,7 @@ if (typeof input !== 'undefined') {
     console.log("v1.6.6: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
     console.log("v1.6.6: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
     console.log("==========================================");
+    return result;  // ✅ CRITICAL: return INSIDE if block like v4.2!
 }
 
-// Make.com should read 'result' variable automatically
-result;
+})();  // End of IIFE - Make.com will get the return value
