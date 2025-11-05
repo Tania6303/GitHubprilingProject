@@ -1,8 +1,6 @@
-// Production Invoice v1.6.6 (21:40 05.11.25) - 49KB ✅ IIFE FIX
-// תיקון קריטי: עטיפה ב-IIFE להחזרת result ישירות ל-Make.com
+// Production Invoice v1.6.6 (21:45 05.11.25) - 49KB ✅ NO IIFE
+// תיקון קריטי: הסרת IIFE | result כמשתנה גלובלי | Make.com יקרא אוטומטית
 // קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-05-*.js (מיין לפי שעה אחרונה)
-
-(function() {
 
 function removeUndefinedValues(obj) {
     if (Array.isArray(obj)) {
@@ -1128,6 +1126,5 @@ if (typeof input !== 'undefined') {
     console.log("==========================================");
 }
 
-return result;
-
-})();  // IIFE - Make.com will return this value
+// Make.com should read 'result' variable automatically
+result;
