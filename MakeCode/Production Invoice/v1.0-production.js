@@ -1,10 +1,15 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.5 - 05.11.25.23:00)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.6 - 05.11.25.23:40)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
+// ✨ גרסה 1.6 v23:40 - תיקון קריטי: העברת AZURE_TEXT_CLEAN ל-ocrFields:
+// - 🐛 תיקון באג: AZURE_TEXT_CLEAN לא הועבר ל-ocrFields → חיפוש רכבים לא עבד
+// - ➕ הוספת ocrFields.AZURE_TEXT_CLEAN = azureTextClean בשורה 748
+// - ✅ עכשיו חיפוש רכבים בטקסט נקי יעבוד כראוי!
 //
 // ✨ גרסה 1.5 v23:00 - חיפוש רכבים מטקסט נקי + ACCNAME ריק:
 // - 🚗 חיפוש רכבים ב-AZURE_TEXT_CLEAN אם OCR לא זיהה
@@ -743,6 +748,9 @@ function processInvoiceComplete(input) {
         executionReport.stage = "שלב 3: חיפוש נתונים";
 
         const ocrFields = azureResult.data.fields || {};
+
+        // 🚗 הוספת AZURE_TEXT_CLEAN ל-ocrFields כדי שיהיה זמין לחיפוש רכבים
+        ocrFields.AZURE_TEXT_CLEAN = azureTextClean;
 
         // חיפוש נתונים לפי התבנית שנבחרה
         const searchResults = searchAllData(
