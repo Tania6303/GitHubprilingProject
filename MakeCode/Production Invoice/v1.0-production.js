@@ -1,10 +1,15 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.6 - 05.11.25.23:40)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.6.1 - 05.11.25.23:50)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
+// ✨ גרסה 1.6.1 v23:50 - הוספת לוגים מפורטים לדיבוג:
+// - 🔍 לוגים ב-extractVehiclesAdvanced: האם vehicleRules קיים, האם AZURE_TEXT_CLEAN קיים
+// - 📝 לוג אם textToSearch כולל את הרכב 419-29-702
+// - 🚗 לוג foundVehicles.length לפני בדיקת החיפוש בטקסט
 //
 // ✨ גרסה 1.6 v23:40 - תיקון קריטי: העברת AZURE_TEXT_CLEAN ל-ocrFields:
 // - 🐛 תיקון באג: AZURE_TEXT_CLEAN לא הועבר ל-ocrFields → חיפוש רכבים לא עבד
@@ -1010,7 +1015,16 @@ function searchDetails(ocrFields, azureText) {
 }
 
 function extractVehiclesAdvanced(ocrFields, vehicleRules) {
-    if (!vehicleRules || !vehicleRules.vehicle_account_mapping) return [];
+    console.log('🔍 extractVehiclesAdvanced called');
+    console.log('vehicleRules exists:', !!vehicleRules);
+    console.log('vehicle_account_mapping exists:', !!vehicleRules?.vehicle_account_mapping);
+    console.log('ocrFields.AZURE_TEXT_CLEAN exists:', !!ocrFields.AZURE_TEXT_CLEAN);
+    console.log('ocrFields.AZURE_TEXT_CLEAN length:', ocrFields.AZURE_TEXT_CLEAN?.length || 0);
+
+    if (!vehicleRules || !vehicleRules.vehicle_account_mapping) {
+        console.log('❌ Returning empty - no vehicleRules or mapping');
+        return [];
+    }
 
     const foundVehicles = [];
     const vehiclePattern = /\d{3}-\d{2}-\d{3}/g;
@@ -1061,9 +1075,14 @@ function extractVehiclesAdvanced(ocrFields, vehicleRules) {
     }
 
     // 🚗 אם לא נמצאו רכבים - חפש בטקסט הגולמי (AZURE_TEXT_CLEAN או content)
+    console.log(`🚗 foundVehicles.length = ${foundVehicles.length}`);
+
     if (foundVehicles.length === 0) {
         // קודם נסה AZURE_TEXT_CLEAN (טקסט מנורמל)
         let textToSearch = ocrFields.AZURE_TEXT_CLEAN || ocrFields._rawContent || '';
+
+        console.log(`📝 textToSearch length: ${textToSearch.length}`);
+        console.log(`📝 textToSearch includes 419-29-702: ${textToSearch.includes('419-29-702')}`);
 
         if (textToSearch) {
             console.log(`🔍 לא נמצאו רכבים ב-OCR - מחפש בטקסט גולמי (${ocrFields.AZURE_TEXT_CLEAN ? 'CLEAN' : 'RAW'})`);
