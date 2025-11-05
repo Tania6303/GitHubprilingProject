@@ -83,9 +83,44 @@ function normalizeAzureFields(rawFields) {
 }
 
 function convertProductionInputToProcessingInput(productionInput) {
+    // אם יש input array, אני צריך לחלץ vehicles ולבנות learned_config!
+    let carsData = productionInput.CARS;
+    let supTemp = productionInput.SUP_TEMP;
+    let supname = productionInput.SUPNAME;
+    let azureTextClean = productionInput.AZURE_TEXT_CLEAN || "";
+    let existingLearnedConfig = null;
+
     if (productionInput.input && Array.isArray(productionInput.input)) {
-        return productionInput;
+        // חילוץ מה-input array
+        for (const item of productionInput.input) {
+            if (item.name === 'vehicles') {
+                carsData = item.value;
+                console.log('🔍 Found vehicles in input:', typeof carsData, carsData ? carsData.substring(0, 100) : 'empty');
+            }
+            if (item.name === 'supplier_template') supTemp = item.value;
+            if (item.name === 'supplier_code') supname = item.value;
+            if (item.name === 'AZURE_TEXT_CLEAN') azureTextClean = item.value;
+            if (item.name === 'learned_config') existingLearnedConfig = item.value;
+        }
+
+        // אם יש learned_config קיים ויש בו config עם vehicleRules טוב - נשתמש בו
+        const hasVehicleRules = existingLearnedConfig &&
+                               existingLearnedConfig.config &&
+                               existingLearnedConfig.config.rules &&
+                               existingLearnedConfig.config.rules.critical_patterns &&
+                               existingLearnedConfig.config.rules.critical_patterns.vehicle_rules &&
+                               existingLearnedConfig.config.rules.critical_patterns.vehicle_rules.vehicle_account_mapping &&
+                               Object.keys(existingLearnedConfig.config.rules.critical_patterns.vehicle_rules.vehicle_account_mapping).length > 0;
+
+        if (hasVehicleRules) {
+            console.log('✅ Using existing learned_config with vehicleRules');
+            return productionInput;
+        }
+
+        // אין learned_config טוב - נבנה חדש מ-vehicles
+        console.log('🔧 Building new learned_config from vehicles, carsData=' + (carsData ? 'exists' : 'null'));
     }
+
     let azureData;
     if (!productionInput.AZURE) {
         azureData = {};
@@ -98,10 +133,13 @@ function convertProductionInputToProcessingInput(productionInput) {
     } else {
         azureData = productionInput.AZURE || {};
     }
+
+    // בניית learned_config מ-vehicles/CARS
+    console.log('🔧 Building learned_config: supname=' + supname + ', carsData type=' + typeof carsData);
     const learnedConfig = buildLearnedConfigFromProduction(
-        productionInput.SUPNAME,
-        productionInput.CARS,
-        productionInput.SUP_TEMP
+        supname,
+        carsData,
+        supTemp
     );
     let documents = [];
     let fields = {};
@@ -125,7 +163,7 @@ function convertProductionInputToProcessingInput(productionInput) {
             { name: "docs_list", value: { DOC_YES_NO: "N", list_of_docs: [] } },
             { name: "import_files", value: { IMPFILES: [] } },
             { name: "AZURE_RESULT", value: { data: { fields: fields, documents: documents } } },
-            { name: "AZURE_TEXT_CLEAN", value: productionInput.AZURE_TEXT_CLEAN || "" },
+            { name: "AZURE_TEXT_CLEAN", value: azureTextClean },
             { name: "AZURE_TEXT", value: content }
         ]
     };
@@ -1041,13 +1079,28 @@ module.exports = {
 };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.2: input type =", typeof input);
-    const inputData = input[0] || input;
+    console.log("v1.6.2: input type =", typeof input, "isArray =", Array.isArray(input));
+    // אם input הוא array, ניקח את הפריט הראשון
+    let inputData = Array.isArray(input) ? input[0] : input;
+    // אם inputData הוא array, ניקח את הפריט הראשון שלו
+    if (Array.isArray(inputData)) {
+        console.log("🔍 inputData is array, taking inputData[0]");
+        inputData = inputData[0];
+    }
+    // אם inputData ריק או אין לו keys, ננסה input ישירות
+    if (!inputData || (typeof inputData === 'object' && Object.keys(inputData).length === 0)) {
+        console.log("🔍 inputData empty, using input directly");
+        inputData = input;
+    }
+    console.log("🔍 inputData keys:", typeof inputData === 'object' ? Object.keys(inputData).slice(0, 10).join(', ') : 'not object');
+    console.log("🔍 inputData.input exists?", !!inputData.input);
+    console.log("🔍 inputData.AZURE exists?", !!inputData.AZURE);
+    console.log("🔍 inputData.SUPNAME exists?", !!inputData.SUPNAME);
     let result;
-    if (inputData.AZURE && inputData.SUPNAME) {
+    // **תמיד** נקרא ל-processProductionInvoice - זה יעביר ל-processInvoiceComplete אם צריך
+    if (inputData.AZURE || inputData.SUPNAME || (inputData.input && Array.isArray(inputData.input))) {
+        console.log("✅ Calling processProductionInvoice");
         result = processProductionInvoice(inputData);
-    } else if (inputData.input && Array.isArray(inputData.input)) {
-        result = processInvoiceComplete(inputData);
     } else {
         const processInput = {
             learned_config: input.learned_config || {},
@@ -1069,5 +1122,7 @@ if (typeof input !== 'undefined') {
     console.log(JSON.stringify(result, null, 2));
     console.log("v1.6.2: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
     console.log("v1.6.2: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    return result;
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = result;
+    }
 }
