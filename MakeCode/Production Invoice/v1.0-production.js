@@ -1,5 +1,5 @@
-// Production Invoice v1.6.4 (23:17 05.11.25) - 46KB
-// תיקונים: זיהוי רכב מטקסט נקי | ACCNAME ריק כשרכב לא במיפוי | חילוץ CARS מ-Make.com
+// Production Invoice v1.6.5 (21:34 05.11.25) - 49KB ✅ FINAL FIX
+// תיקון קריטי: הסרת module.exports | result מחוץ ל-if block | החזרה תקינה ל-Make.com
 // קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-05-*.js (מיין לפי שעה אחרונה)
 
 function removeUndefinedValues(obj) {
@@ -314,8 +314,8 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 }
 
 function processProductionInvoice(productionInput) {
-    console.log('🚀 PRODUCTION INVOICE v1.6.4 (23:17 05.11.25) - ' + new Date().toISOString());
-    console.log('📦 קוד: 46KB | 🔍 זיהוי רכב מטקסט נקי: ✅');
+    console.log('🚀 PRODUCTION INVOICE v1.6.5 FINAL (21:34 05.11.25) - ' + new Date().toISOString());
+    console.log('📦 קוד: 49KB | 🔍 זיהוי רכב מטקסט נקי: ✅ | 🎯 החזרת result: תוקנה!');
     console.log('==========================================');
     const executionReport = {
         stage: "",
@@ -1077,13 +1077,11 @@ function analyzeLearning(invoice, config) {
     };
 }
 
-module.exports = {
-    processProductionInvoice,
-    processInvoiceComplete
-};
+// Main execution - Make.com runs this automatically
+let result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.4: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.6.5: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1100,7 +1098,6 @@ if (typeof input !== 'undefined') {
     console.log("🔍 inputData.input exists?", !!inputData.input);
     console.log("🔍 inputData.AZURE exists?", !!inputData.AZURE);
     console.log("🔍 inputData.SUPNAME exists?", !!inputData.SUPNAME);
-    let result;
     // **תמיד** נקרא ל-processProductionInvoice - זה יעביר ל-processInvoiceComplete אם צריך
     if (inputData.AZURE || inputData.SUPNAME || (inputData.input && Array.isArray(inputData.input))) {
         console.log("✅ Calling processProductionInvoice");
@@ -1124,8 +1121,10 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.6.4: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.6.4: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.6.5: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.6.5: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
     console.log("==========================================");
-    return result;
 }
+
+// Return result - Make.com will use this as output
+result;
