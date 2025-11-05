@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:55)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:00)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
@@ -1210,23 +1210,15 @@ module.exports = {
 // נקודת כניסה - רק אם מריצים ישירות (לא כמודול)
 // ============================================================================
 
-// ✨ משתנה גלובלי לשמירת התוצאה
-let finalResult;
-
-// ✨ IIFE - החזרת התוצאה לסביבת ההרצה
-(function() {
-    if (typeof input === 'undefined') {
-        finalResult = JSON.stringify({});
-        return;
-    }
-
+// ✨ גישה פשוטה כמו ב-Processing Invoice - return ישיר
+if (typeof input !== 'undefined') {
     // DEBUG: לוג את סוג input
-    console.log("DEBUG: typeof input =", typeof input, "isArray =", Array.isArray(input));
+    console.log("DEBUG-v15:00: typeof input =", typeof input, "isArray =", Array.isArray(input));
 
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
 
-    console.log("DEBUG: inputData keys =", Object.keys(inputData));
+    console.log("DEBUG-v15:00: inputData keys =", Object.keys(inputData));
 
     let result;
 
@@ -1255,11 +1247,8 @@ let finalResult;
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG: result type =", typeof result, "is defined?", result !== undefined);
+    console.log("DEBUG-v15:00: RETURNING result");
 
-    // ✨ שמירה למשתנה הגלובלי
-    finalResult = JSON.stringify(result);
-})();
-
-// ✨ החזרת התוצאה - הערך האחרון של הקובץ
-finalResult;
+    // ✨ return כמו ב-Processing Invoice
+    return result;
+}
