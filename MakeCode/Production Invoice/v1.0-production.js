@@ -309,6 +309,10 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
         });
     }
 
+    console.log('🚗 buildLearnedConfigFromProduction: vehicleMapping built');
+    console.log('🚗 Number of vehicles in mapping:', Object.keys(vehicleMapping).length);
+    console.log('🚗 Vehicle numbers:', Object.keys(vehicleMapping).join(', '));
+
     // parse SUP_TEMP אם קיים
     let supplierTemplate = null;
     let parsedTemplate = null;
@@ -761,8 +765,14 @@ function processInvoiceComplete(input) {
         executionReport.found.push(`דפוסים: נמצאו`);
 
         const vehicleRules = config.rules?.critical_patterns?.vehicle_rules || null;
+        console.log('🚗 vehicleRules exists:', !!vehicleRules);
+        console.log('🚗 vehicle_account_mapping exists:', !!vehicleRules?.vehicle_account_mapping);
+        console.log('🚗 vehicle_account_mapping length:', Object.keys(vehicleRules?.vehicle_account_mapping || {}).length);
+
         if (vehicleRules && vehicleRules.vehicle_account_mapping) {
             executionReport.found.push(`חוקי רכבים: פעילים (${Object.keys(vehicleRules.vehicle_account_mapping).length} רכבים)`);
+        } else {
+            console.log('❌ vehicleRules או vehicle_account_mapping לא קיימים!');
         }
 
         executionReport.stage = "שלב 3: חיפוש נתונים";
