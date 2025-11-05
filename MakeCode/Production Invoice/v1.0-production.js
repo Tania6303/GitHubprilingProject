@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.6.1 - 05.11.25.23:50)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.6.2 - 05.11.25.24:10)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
@@ -466,6 +466,10 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 // ============================================================================
 
 function processProductionInvoice(productionInput) {
+    console.log('🚀🚀🚀 PRODUCTION INVOICE v1.6.2 LOADED! 🚀🚀🚀');
+    console.log('⏰ Code timestamp:', new Date().toISOString());
+    console.log('✅ This is the NEW CODE with vehicle search in AZURE_TEXT_CLEAN!');
+
     const executionReport = {
         stage: "",
         found: [],
