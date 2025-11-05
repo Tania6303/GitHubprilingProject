@@ -1,10 +1,15 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.2 - 05.11.25.19:30)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.3 - 05.11.25.20:00)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
+// ✨ גרסה 1.3 v20:00 - הוספת מספר רכב ל-PDES + תמיכה ב-2 bundles:
+// - 🚗 PDES כולל מספר רכב: "419-29-702 עבודות רכב"
+// - תמיכה במקרה של 2 bundles לרכב (ליסינג + אחזקה) - לוקח bundle ראשון
+// - לוג: "רכב XXX: נמצאו 2 bundles, לוקח bundle ראשון"
 //
 // ✨ גרסה 1.2 v19:30 - תמיכה ב-Azure OCR ישירות:
 // - תמיכה ב-AZURE_RESULT ישירות מ-Azure OCR (בלי analyzeResult wrapper)
@@ -1240,27 +1245,37 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
 
         const shortDesc = extractShortDescription(ocrFields, vehicleNum);
 
+        // 🚗 הוסף מספר רכב לתיאור - קריטי לזיהוי בפריוריטי!
+        const pdesWithVehicle = `${vehicleNum} ${shortDesc}`;
+
+        // אם mapping הוא array (2 bundles) - קח את הראשון
+        let actualMapping = mapping;
+        if (Array.isArray(mapping) && mapping.length > 0) {
+            console.log(`🚗 רכב ${vehicleNum}: נמצאו ${mapping.length} bundles, לוקח bundle ראשון`);
+            actualMapping = mapping[0];
+        }
+
         const item = {
             PARTNAME: vehicleRules.output_format?.partname || "car",
-            PDES: shortDesc,
+            PDES: pdesWithVehicle,
             TQUANT: relatedItem?.Quantity || 1,
             TUNITNAME: relatedItem?.Unit || "יח'",
             PRICE: pricePerVehicle,
-            VATFLAG: mapping?.vat_pattern?.VATFLAG || "Y",
-            ACCNAME: mapping?.accname || vehicleRules.default_values?.accname || ""
+            VATFLAG: actualMapping?.vat_pattern?.VATFLAG || "Y",
+            ACCNAME: actualMapping?.accname || vehicleRules.default_values?.accname || ""
         };
 
-        if (mapping?.budcode) {
-            item.BUDCODE = mapping.budcode;
+        if (actualMapping?.budcode) {
+            item.BUDCODE = actualMapping.budcode;
         } else if (vehicleRules.default_values?.budcode) {
             item.BUDCODE = vehicleRules.default_values.budcode;
         }
 
-        if (mapping?.vat_pattern?.SPECIALVATFLAG === "Y") {
+        if (actualMapping?.vat_pattern?.SPECIALVATFLAG === "Y") {
             item.SPECIALVATFLAG = "Y";
         }
 
-        if (!mapping) {
+        if (!actualMapping) {
             item._learningNote = "רכב חדש - נדרש מיפוי";
         }
 
@@ -1349,12 +1364,12 @@ module.exports = {
 // ✨ גישה פשוטה כמו ב-Processing Invoice - return ישיר
 if (typeof input !== 'undefined') {
     // DEBUG: לוג את סוג input
-    console.log("DEBUG-v19:30: typeof input =", typeof input, "isArray =", Array.isArray(input));
+    console.log("DEBUG-v20:00: typeof input =", typeof input, "isArray =", Array.isArray(input));
 
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
 
-    console.log("DEBUG-v19:30: inputData keys =", Object.keys(inputData));
+    console.log("DEBUG-v20:00: inputData keys =", Object.keys(inputData));
 
     let result;
 
@@ -1385,9 +1400,9 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v19:30: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
-    console.log("DEBUG-v19:30: items count =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("DEBUG-v19:30: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("DEBUG-v20:00: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
+    console.log("DEBUG-v20:00: items count =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("DEBUG-v20:00: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
 
     // ✨ return object - כמו Processing Invoice!
     return result;
