@@ -1,5 +1,34 @@
 # ⚠️ כללי עבודה קריטיים - חובה לקרוא לפני כל שינוי!
 
+## 🔴 כלל מספר 0: מיקום קבצי בדיקה
+
+**📁 קבצי בדיקה (input/output) תמיד נמצאים בספריית EXEMPTS/**
+
+- Processing Invoice: `MakeCode/Processing Invoice/EXEMPTS/`
+- Production Invoice: `MakeCode/Production Invoice/EXEMPTS/`
+- SupplierDataLearning: `MakeCode/SupplierDataLearning/EXEMPTS/`
+
+**למציאת הקובץ העדכני:**
+```bash
+ls -lt "MakeCode/[MODULE]/EXEMPTS" | head -5
+```
+
+**חשוב:** מיקום זה **חייב** להיות רשום בכותרת כל קובץ קוד (מייד אחרי שורת הגרסה)!
+
+**דוגמה לכותרת נכונה:**
+```javascript
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:40)
+// מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
+// מחזיר: JSON לפריוריטי + דוח ביצוע
+//
+// 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
+// לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+```
+
+זה מבטיח שבכל שיחה חדשה, מיקום קבצי הבדיקה יהיה זמין!
+
+---
+
 ## 🔴 כלל מספר 1: שרשרת תלות בין מודולים
 
 ```

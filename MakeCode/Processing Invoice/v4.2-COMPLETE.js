@@ -3,6 +3,9 @@
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
+// 📁 קבצי בדיקה: MakeCode/Processing Invoice/EXEMPTS/
+// לקיחת הקובץ העדכני: ls -lt "MakeCode/Processing Invoice/EXEMPTS" | head -5
+//
 // ✨ חדש בגרסה 4.2:
 // - תיקון חישוב מחיר: InvoiceTotal - TotalTax = סה"כ לפני מע"מ (עבודות + חלקים)
 //

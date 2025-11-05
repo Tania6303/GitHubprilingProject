@@ -3,6 +3,9 @@
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
+// 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
+// לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
 // ✨ גרסה 1.0 - התאמה למבנה Production Invoice:
 // - תמיכה ב-AZURE כ-JSON string (parse אוטומטי)
 // - תמיכה ב-CARS (מיפוי רכבים מוכן)
