@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:25)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:30)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
@@ -1207,37 +1207,39 @@ module.exports = {
 // נקודת כניסה - רק אם מריצים ישירות (לא כמודול)
 // ============================================================================
 
+// ✨ הגדרת result מחוץ ל-if כדי שיהיה זמין בסוף הקובץ
+let result;
+
 if (typeof input !== 'undefined') {
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
 
-let result;
-if (inputData.AZURE && inputData.SUPNAME) {
-    // מבנה חדש - Production Invoice
-    result = processProductionInvoice(inputData);
-} else if (inputData.input && Array.isArray(inputData.input)) {
-    // מבנה Processing Invoice עם input array
-    result = processInvoiceComplete(inputData);
-} else {
-    // מבנה ישן - Processing Invoice (fallback)
-    const processInput = {
-        learned_config: input.learned_config || {},
-        docs_list: input.docs_list || { DOC_YES_NO: "N", list_of_docs: [] },
-        import_files: input.import_files || { IMPFILES: [] },
-        AZURE_RESULT: input.AZURE_RESULT || { data: { fields: {} } },
-        AZURE_TEXT: input.AZURE_TEXT || ""
-    };
-    result = processInvoiceComplete({ input: [
-        { name: "learned_config", value: processInput.learned_config },
-        { name: "docs_list", value: processInput.docs_list },
-        { name: "import_files", value: processInput.import_files },
-        { name: "AZURE_RESULT", value: processInput.AZURE_RESULT },
-        { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
-    ]});
-}
+    if (inputData.AZURE && inputData.SUPNAME) {
+        // מבנה חדש - Production Invoice
+        result = processProductionInvoice(inputData);
+    } else if (inputData.input && Array.isArray(inputData.input)) {
+        // מבנה Processing Invoice עם input array
+        result = processInvoiceComplete(inputData);
+    } else {
+        // מבנה ישן - Processing Invoice (fallback)
+        const processInput = {
+            learned_config: input.learned_config || {},
+            docs_list: input.docs_list || { DOC_YES_NO: "N", list_of_docs: [] },
+            import_files: input.import_files || { IMPFILES: [] },
+            AZURE_RESULT: input.AZURE_RESULT || { data: { fields: {} } },
+            AZURE_TEXT: input.AZURE_TEXT || ""
+        };
+        result = processInvoiceComplete({ input: [
+            { name: "learned_config", value: processInput.learned_config },
+            { name: "docs_list", value: processInput.docs_list },
+            { name: "import_files", value: processInput.import_files },
+            { name: "AZURE_RESULT", value: processInput.AZURE_RESULT },
+            { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
+        ]});
+    }
 
     console.log(JSON.stringify(result, null, 2));
-
-    // ✨ החזרת התוצאה - הערך האחרון מוחזר לסביבת ההרצה
-    result;
 }  // סוף ה-if של input check
+
+// ✨ החזרת התוצאה - הערך האחרון של הקובץ מוחזר לסביבת ההרצה
+result;
