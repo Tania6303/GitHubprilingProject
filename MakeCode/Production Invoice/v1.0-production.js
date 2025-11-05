@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:35)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:40)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
@@ -1211,8 +1211,13 @@ module.exports = {
 let result;
 
 if (typeof input !== 'undefined') {
+    // DEBUG: לוג את סוג input
+    console.log("DEBUG: typeof input =", typeof input, "isArray =", Array.isArray(input));
+
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
+
+    console.log("DEBUG: inputData keys =", Object.keys(inputData));
 
     if (inputData.AZURE && inputData.SUPNAME) {
         // מבנה חדש - Production Invoice
@@ -1239,7 +1244,10 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
+    console.log("DEBUG: result type =", typeof result, "is defined?", result !== undefined);
 }  // סוף ה-if של input check
+
+console.log("DEBUG: BEFORE RETURN - result type =", typeof result, "is defined?", result !== undefined);
 
 // ✨ החזרת התוצאה כ-JSON string - הערך האחרון של הקובץ
 JSON.stringify(result || {});
