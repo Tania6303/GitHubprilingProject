@@ -1,4 +1,6 @@
-// Production Invoice v1.6.2 - 05.11.25
+// Production Invoice v1.6.4 (23:17 05.11.25) - 46KB
+// תיקונים: זיהוי רכב מטקסט נקי | ACCNAME ריק כשרכב לא במיפוי | חילוץ CARS מ-Make.com
+// קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-05-*.js (מיין לפי שעה אחרונה)
 
 function removeUndefinedValues(obj) {
     if (Array.isArray(obj)) {
@@ -312,7 +314,9 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 }
 
 function processProductionInvoice(productionInput) {
-    console.log('🚀 PRODUCTION INVOICE v1.6.2 - ' + new Date().toISOString());
+    console.log('🚀 PRODUCTION INVOICE v1.6.4 (23:17 05.11.25) - ' + new Date().toISOString());
+    console.log('📦 קוד: 46KB | 🔍 זיהוי רכב מטקסט נקי: ✅');
+    console.log('==========================================');
     const executionReport = {
         stage: "",
         found: [],
@@ -1079,7 +1083,7 @@ module.exports = {
 };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.2: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.6.4: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1120,8 +1124,9 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.6.2: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.6.2: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.6.4: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.6.4: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("==========================================");
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = result;
     }
