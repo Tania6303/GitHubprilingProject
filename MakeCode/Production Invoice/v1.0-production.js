@@ -588,7 +588,7 @@ function processInvoiceComplete(input) {
         // תמיכה בשני מבנים: config/template או technical_config/invoice_data
         const config = learnedConfig.config || learnedConfig.technical_config || {};
 
-        // ✨ תמיכה במספר תבניות - נבנה חשבונית לכל תבנית!
+        // קריאת כל המבנים והתבניות
         const allStructures = config.structure || [{
             has_import: false,
             has_doc: false,
@@ -611,7 +611,18 @@ function processInvoiceComplete(input) {
             }];
         }
 
-        executionReport.found.push(`תבניות: נמצאו ${allStructures.length} תבניות`);
+        // ✨ תיקון! מציאת התבנית המתאימה במקום עיבוד כל התבניות
+        const templateIndex = findMatchingTemplate(allStructures, hasImport, hasDocs, debitType);
+
+        if (templateIndex === -1) {
+            executionReport.errors.push("לא נמצאה תבנית מתאימה!");
+            throw new Error("לא נמצאה תבנית מתאימה");
+        }
+
+        const structure = allStructures[templateIndex];
+        const template = allTemplates[templateIndex] || allTemplates[0];
+
+        executionReport.found.push(`תבנית: נמצאה התאמה (index=${templateIndex})`);
 
         executionReport.stage = "שלב 2: הבנת דפוסים";
 
@@ -627,63 +638,54 @@ function processInvoiceComplete(input) {
 
         const ocrFields = azureResult.data.fields || {};
 
-        // ✨ בניית חשבונית לכל תבנית!
-        const allInvoices = [];
-        const allValidations = [];
-        const allLearningAnalyses = [];
+        // חיפוש נתונים לפי התבנית שנבחרה
+        const searchResults = searchAllData(
+            ocrFields,
+            azureText,
+            patterns,
+            structure,
+            importFiles,
+            docsList,
+            vehicleRules
+        );
 
-        for (let i = 0; i < allStructures.length; i++) {
-            const structure = allStructures[i];
-            const template = allTemplates[i] || allTemplates[0];
-
-            // חיפוש נתונים לפי התבנית הנוכחית
-            const searchResults = searchAllData(
-                ocrFields,
-                azureText,
-                patterns,
-                structure,
-                importFiles,
-                docsList,
-                vehicleRules
-            );
-
-            if (i === 0) {
-                // רק בפעם הראשונה - הדפס את התוצאות
-                Object.keys(searchResults).forEach(key => {
-                    if (key === 'vehicles' && searchResults.vehicles) {
-                        if (searchResults.vehicles.length > 0) {
-                            executionReport.found.push(`רכבים: ${searchResults.vehicles.length} - ${searchResults.vehicles.join(', ')}`);
-                        }
-                    } else if (searchResults[key]) {
-                        executionReport.found.push(`${key}: נמצא`);
-                    }
-                });
+        // הדפסת תוצאות החיפוש
+        Object.keys(searchResults).forEach(key => {
+            if (key === 'vehicles' && searchResults.vehicles) {
+                if (searchResults.vehicles.length > 0) {
+                    executionReport.found.push(`רכבים: ${searchResults.vehicles.length} - ${searchResults.vehicles.join(', ')}`);
+                }
+            } else if (searchResults[key]) {
+                executionReport.found.push(`${key}: נמצא`);
             }
+        });
 
-            // בניית חשבונית לתבנית זו
-            const invoice = buildInvoiceFromTemplate(
-                template,
-                structure,
-                config,
-                searchResults,
-                learnedConfig,
-                ocrFields
-            );
+        executionReport.stage = "שלב 4: בניית חשבונית";
 
-            // בקרות
-            const validation = performValidation(invoice, ocrFields, config, docsList, patterns);
-            allValidations.push(validation);
+        // בניית חשבונית לתבנית שנבחרה
+        const invoice = buildInvoiceFromTemplate(
+            template,
+            structure,
+            config,
+            searchResults,
+            learnedConfig,
+            ocrFields
+        );
 
-            // ניתוח למידה
-            const learningAnalysis = analyzeLearning(invoice, config);
-            allLearningAnalyses.push(learningAnalysis);
+        executionReport.stage = "שלב 5: בקרות";
 
-            // ניקוי
-            const cleanedInvoice = cleanInvoiceForPriority(invoice);
-            allInvoices.push(cleanedInvoice);
-        }
+        // בקרות
+        const validation = performValidation(invoice, ocrFields, config, docsList, patterns);
 
-        executionReport.stage = "שלב 4-6: בנייה, בקרות וניתוח למידה - הושלם לכל התבניות";
+        executionReport.stage = "שלב 6: ניתוח למידה";
+
+        // ניתוח למידה
+        const learningAnalysis = analyzeLearning(invoice, config);
+
+        executionReport.stage = "שלב 7: ניקוי והכנה לפריוריטי";
+
+        // ניקוי
+        const cleanedInvoice = cleanInvoiceForPriority(invoice);
 
         const result = {
             status: "success",
@@ -694,12 +696,10 @@ function processInvoiceComplete(input) {
                 confidence: "high"
             },
             invoice_data: {
-                PINVOICES: allInvoices  // ✨ כל החשבוניות - אחת לכל תבנית!
+                PINVOICES: [cleanedInvoice]  // ✨ תיקון! רק החשבונית התואמת
             },
-            validation: allValidations[0],  // החזר את הולידציה הראשונה (לתאימות לאחור)
-            learning_analysis: allLearningAnalyses[0],  // החזר את הניתוח הראשון (לתאימות לאחור)
-            all_validations: allValidations,  // כל הולידציות
-            all_learning_analyses: allLearningAnalyses,  // כל הניתוחים
+            validation: validation,
+            learning_analysis: learningAnalysis,
             execution_report: executionReport,
             metadata: {
                 ocr_invoice_id: ocrFields.InvoiceId || "",
@@ -707,7 +707,11 @@ function processInvoiceComplete(input) {
                 ocr_total_amount: ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || 0,
                 processing_timestamp: new Date().toISOString(),
                 version: "1.0-production",
-                templates_count: allInvoices.length  // ✨ מספר התבניות שנוצרו
+                template_index: templateIndex,  // ✨ התבנית שנבחרה
+                template_type: structure.has_import && structure.has_doc ? "import_with_docs" :
+                              structure.has_import ? "import_only" :
+                              structure.has_doc ? "docs_only" :
+                              structure.debit_type === "C" ? "credit_note" : "regular"
             }
         };
 
@@ -771,6 +775,15 @@ function checkDocsInOCR(ocrFields, azureText) {
 function identifyDebitType(ocrFields) {
     const total = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || 0;
     return total >= 0 ? "D" : "C";
+}
+
+// ✨ חדש! מציאת תבנית מתאימה לפי מאפייני החשבונית
+function findMatchingTemplate(structures, hasImport, hasDocs, debitType) {
+    return structures.findIndex(s =>
+        s.has_import === hasImport &&
+        s.has_doc === hasDocs &&
+        s.debit_type === debitType
+    );
 }
 
 function extractPatterns(recommendedSamples, docsList) {
