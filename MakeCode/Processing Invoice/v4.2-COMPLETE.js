@@ -314,29 +314,48 @@ function processInvoiceComplete(input) {
 
         const selectedProcessingScenario = allProcessingScenarios[templateIndex];
 
+        // ✨ מבנה חדש: supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
+        const supplierCode = config.supplier_config.supplier_code;
+        const supplierName = config.supplier_config.supplier_name;
+
+        // בניית all_templates עבור llm_prompt - עם invoice_data!
+        const llmTemplates = allLlmPrompts.map((prompt, idx) => {
+            const { supplier_code, supplier_name, ...rest } = prompt;
+            return {
+                ...rest,
+                invoice_data: {
+                    PINVOICES: [allInvoices[idx]]
+                }
+            };
+        });
+
+        // בניית all_templates עבור technical_config
+        const technicalTemplates = allTechnicalConfigs.map(cfg => {
+            const { supplier_code, supplier_name, ...rest } = cfg;
+            return rest;
+        });
+
         return {
             status: "success",
 
-            // 1. JSON לפריוריטי (הפלט העיקרי) - כל התבניות!
-            invoice_data: {
-                PINVOICES: allInvoices
-            },
-
-            // 2. הנחיות ל-LLM - עם כל התבניות בפנים
+            // 1. הנחיות ל-LLM - supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
             llm_prompt: {
-                ...selectedLlmPrompt,
-                all_templates: allLlmPrompts
+                supplier_code: supplierCode,
+                supplier_name: supplierName,
+                all_templates: llmTemplates
             },
 
-            // 3. קונפיג טכני - עם כל התבניות בפנים
+            // 2. קונפיג טכני - supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
             technical_config: {
-                ...selectedTechnicalConfig,
-                all_templates: allTechnicalConfigs
+                supplier_code: supplierCode,
+                supplier_name: supplierName,
+                all_templates: technicalTemplates
             },
 
-            // 4. סצנריו עיבוד - מה צריך לשלוף מהמערכת - עם כל התבניות בפנים
+            // 3. סצנריו עיבוד - supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
             processing_scenario: {
-                ...selectedProcessingScenario,
+                supplier_code: supplierCode,
+                supplier_name: supplierName,
                 all_templates: allProcessingScenarios
             }
         };
@@ -886,7 +905,7 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
         // תיקון: תיאור קצר בלבד
         const shortDesc = extractShortDescription(ocrFields, vehicleNum);
 
-        // בניית פריט - רק שדות שPriority מכיר!
+        // ✨ בניית פריט - רק שדות שPriority מכיר!
         const item = {
             PARTNAME: vehicleRules.output_format?.partname || "car",
             PDES: shortDesc,
@@ -897,14 +916,9 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
             ACCNAME: mapping?.accname || vehicleRules.default_values?.accname || ""
         };
 
-        // BUDCODE - חובה לפי התבנית!
-        if (mapping?.budcode) {
-            item.BUDCODE = mapping.budcode;
-        } else if (vehicleRules.default_values?.budcode) {
-            item.BUDCODE = vehicleRules.default_values.budcode;
-        }
+        // ✨ BUDCODE - בינתיים ריק (לוגיקה לא מאופיינת)
 
-        // SPECIALVATFLAG - רק אם זה Y (לא שדות אחרים!)
+        // ✨ SPECIALVATFLAG - רק אם זה Y (לא שדות אחרים!)
         if (mapping?.vat_pattern?.SPECIALVATFLAG === "Y") {
             item.SPECIALVATFLAG = "Y";
         }
@@ -1139,92 +1153,36 @@ function shouldAddItems(structure, documents, docsList) {
 }
 
 function buildItems(ocrItems, config, structure, template, learnedConfig) {
-    let defaultAccname = "";
-
-    if (template.PINVOICEITEMS_SUBFORM && template.PINVOICEITEMS_SUBFORM.length > 0) {
-        defaultAccname = template.PINVOICEITEMS_SUBFORM[0].ACCNAME || "";
-    }
-
-    if (!defaultAccname && config.document_types && config.document_types.length > 0) {
-        const docType = config.document_types[0];
-        if (docType.accnames && docType.accnames.length > 0) {
-            defaultAccname = docType.accnames[0];
-        }
-    }
-
-    let defaultBudcode = "";
-    if (template.PINVOICEITEMS_SUBFORM && template.PINVOICEITEMS_SUBFORM.length > 0) {
-        defaultBudcode = template.PINVOICEITEMS_SUBFORM[0].BUDCODE || "";
-    }
+    // ✨ תיקון: קח את הפריט הראשון מהתבנית כבסיס
+    const templateItem = template.PINVOICEITEMS_SUBFORM?.[0] || {};
 
     return ocrItems.map(ocrItem => {
+        // ✨ התחל עם השדות מהתבנית (קבועים ללמידה)
         const item = {
-            PARTNAME: extractPartname(ocrItem.ProductCode),
-            PDES: ocrItem.Description || "",
-            TQUANT: ocrItem.Quantity || 1,
-            TUNITNAME: ocrItem.Unit || "יח'",
-            PRICE: ocrItem.UnitPrice || ocrItem.UnitPrice_amount || 0,
-            VATFLAG: "Y",
-            ACCNAME: defaultAccname
+            PARTNAME: templateItem.PARTNAME || "",          // מהתבנית ✅
+            TUNITNAME: templateItem.TUNITNAME || "יח'",     // מהתבנית ✅
+            VATFLAG: templateItem.VATFLAG || "Y",           // מהתבנית ✅
+            ACCNAME: templateItem.ACCNAME || "",            // מהתבנית ✅
+
+            // ✨ דרוס עם נתונים דינמיים מ-OCR
+            PDES: ocrItem.Description || "",                // מ-OCR ✅
+            TQUANT: ocrItem.Quantity || 1,                  // מ-OCR ✅
+            PRICE: ocrItem.UnitPrice || ocrItem.UnitPrice_amount || 0  // מ-OCR ✅
         };
 
-        if (item.PARTNAME === "car" && config.rules.critical_patterns.vehicle_rules) {
-            applyVehicleRules(item, ocrItem.Description, config.rules.critical_patterns.vehicle_rules);
+        // ✨ הוסף SPECIALVATFLAG רק אם זה "Y" בתבנית
+        if (templateItem.SPECIALVATFLAG === "Y") {
+            item.SPECIALVATFLAG = "Y";
         }
 
-        if (config.rules.critical_patterns.partname_rules) {
-            applyPartnameRules(item, config.rules.critical_patterns.partname_rules);
-        }
-
-        if (structure.has_budcode && defaultBudcode) {
-            item.BUDCODE = defaultBudcode;
-        }
+        // ✨ BUDCODE - בינתיים ריק (לוגיקה לא מאופיינת)
 
         return item;
     });
 }
 
-function extractPartname(productCode) {
-    if (!productCode) return "";
-
-    const codes = String(productCode).split('\n');
-    const priorityCode = codes.find(c => /^[A-Z]/.test(c) || /^\d+$/.test(c));
-
-    return priorityCode || codes[0] || "";
-}
-
-function applyVehicleRules(item, description, vehicleRules) {
-    if (!vehicleRules.vehicle_account_mapping) return;
-
-    const vehicleMatch = description.match(/\d{3}-\d{2}-\d{3}/);
-    if (!vehicleMatch) return;
-
-    const vehicleNum = vehicleMatch[0];
-    const mapping = vehicleRules.vehicle_account_mapping[vehicleNum];
-
-    if (mapping) {
-        item.ACCNAME = mapping.accname;
-        item.VATFLAG = mapping.vat_pattern?.VATFLAG || mapping.vatflag || item.VATFLAG;
-
-        if (mapping.vat_pattern?.SPECIALVATFLAG && mapping.vat_pattern.SPECIALVATFLAG !== "varies") {
-            item.SPECIALVATFLAG = mapping.vat_pattern.SPECIALVATFLAG;
-        }
-
-        if (mapping.budcode) {
-            item.BUDCODE = mapping.budcode;
-        }
-    }
-}
-
-function applyPartnameRules(item, partnameRules) {
-    const rule = partnameRules[item.PARTNAME];
-
-    if (rule) {
-        if (rule.accname) item.ACCNAME = rule.accname;
-        if (rule.vatflag) item.VATFLAG = rule.vatflag;
-        if (rule.specialvatflag) item.SPECIALVATFLAG = rule.specialvatflag;
-    }
-}
+// ✨ פונקציות applyVehicleRules() ו-applyPartnameRules() הוסרו
+// הלוגיקה עברה ל-createVehicleItems() ול-buildItems() בהתאמה
 
 // ============================================================================
 // פונקציות עזר - שלב 5 (בקרות)

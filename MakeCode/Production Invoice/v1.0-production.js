@@ -285,16 +285,30 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
             const templateData = JSON.parse(templateStr);
 
             // ✨ חלץ את כל ה-PINVOICES ואת ה-technical_config
-            if (templateData.invoice_data && templateData.invoice_data.PINVOICES) {
+            // ✨ תיקון: invoice_data עבר לתוך llm_prompt.all_templates
+            if (templateData.llm_prompt && templateData.llm_prompt.all_templates) {
+                // חלץ את כל ה-PINVOICES מכל התבניות
+                const allPinvoices = templateData.llm_prompt.all_templates.map(template => {
+                    return template.invoice_data?.PINVOICES?.[0] || {};
+                });
+
                 parsedTemplate = {
-                    PINVOICES: templateData.invoice_data.PINVOICES,  // ✨ כל התבניות!
-                    document_types_count: templateData.invoice_data.PINVOICES.length
+                    PINVOICES: allPinvoices,
+                    document_types_count: allPinvoices.length
                 };
             }
 
             // חלץ גם את ה-technical_config אם קיים
-            if (templateData.technical_config) {
-                parsedConfig = templateData.technical_config;
+            // ✨ תיקון: technical_config.all_templates
+            if (templateData.technical_config && templateData.technical_config.all_templates) {
+                // קח את הקונפיג הראשון (או מרג'ת כולם - תלוי בלוגיקה)
+                parsedConfig = {
+                    ...templateData.technical_config.all_templates[0],
+                    supplier_config: {
+                        supplier_code: templateData.technical_config.supplier_code,
+                        supplier_name: templateData.technical_config.supplier_name
+                    }
+                };
             }
         } catch (e) {
             parsedTemplate = null;
@@ -482,26 +496,41 @@ function processInvoiceComplete(input) {
 
                 console.log("DEBUG: TEMPLETE parsed, has technical_config?", !!templateData.technical_config);
 
-                // אם יש technical_config - השתמש בו
-                if (templateData.technical_config) {
-                    learnedConfig = {
-                        status: "success",
-                        supplier_id: learnedConfig.SUPNAME,
-                        supplier_name: learnedConfig.SDES || "",
-                        vendor_tax_id_reference: learnedConfig.VATNUM || "",
-                        config: templateData.technical_config,
-                        template: templateData.invoice_data || { PINVOICES: [{}] }
-                    };
-                } else {
-                    // fallback למבנה פשוט
-                    learnedConfig = {
-                        status: "success",
-                        supplier_id: learnedConfig.SUPNAME,
-                        supplier_name: learnedConfig.SDES || "",
-                        config: {},
-                        template: templateData.invoice_data || { PINVOICES: [{}] }
+                // ✨ תיקון: חלץ מהמבנה החדש
+                let parsedConfig = {};
+                let parsedTemplate = { PINVOICES: [{}] };
+
+                // חלץ technical_config
+                if (templateData.technical_config && templateData.technical_config.all_templates) {
+                    parsedConfig = {
+                        ...templateData.technical_config.all_templates[0],
+                        supplier_config: {
+                            supplier_code: templateData.technical_config.supplier_code,
+                            supplier_name: templateData.technical_config.supplier_name
+                        }
                     };
                 }
+
+                // חלץ invoice_data מכל התבניות
+                if (templateData.llm_prompt && templateData.llm_prompt.all_templates) {
+                    const allPinvoices = templateData.llm_prompt.all_templates.map(template => {
+                        return template.invoice_data?.PINVOICES?.[0] || {};
+                    });
+                    parsedTemplate = {
+                        PINVOICES: allPinvoices,
+                        document_types_count: allPinvoices.length
+                    };
+                }
+
+                // בניית learned_config
+                learnedConfig = {
+                    status: "success",
+                    supplier_id: learnedConfig.SUPNAME,
+                    supplier_name: learnedConfig.SDES || "",
+                    vendor_tax_id_reference: learnedConfig.VATNUM || "",
+                    config: parsedConfig,
+                    template: parsedTemplate
+                };
             } catch (e) {
                 console.log("DEBUG: Failed to parse TEMPLETE:", e.message);
             }
