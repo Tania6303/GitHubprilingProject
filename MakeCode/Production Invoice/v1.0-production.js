@@ -1,10 +1,17 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.4 - 05.11.25.21:30)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.5 - 05.11.25.23:00)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
+// ✨ גרסה 1.5 v23:00 - חיפוש רכבים מטקסט נקי + ACCNAME ריק:
+// - 🚗 חיפוש רכבים ב-AZURE_TEXT_CLEAN אם OCR לא זיהה
+// - 🔍 בדיקת הקשר (רכב/רישוי vs כרטיס/ח.פ) למניעת false positives
+// - 🚨 ACCNAME ריק אם רכב לא נמצא ב-CARS (לא default 66979)
+// - ⚠️ אזהרה בקונסול אם רכב נמצא אבל לא במיפוי
+// - 📊 תיקון בדיקת סכומים: השוואה מול SubTotal (לפני מע"מ)
 //
 // ✨ גרסה 1.4 v21:30 - דוחות משופרים + בדיקת סכומים:
 // - 📊 execution_report.found מציג ערכים בפועל (לא "נמצא")
@@ -1045,16 +1052,43 @@ function extractVehiclesAdvanced(ocrFields, vehicleRules) {
         }
     }
 
-    // אם לא נמצאו רכבים בשדות ספציפיים, חפש רכבים ממופים ב-content כ-fallback
-    if (foundVehicles.length === 0 && ocrFields._rawContent) {
-        const contentMatches = ocrFields._rawContent.match(vehiclePattern);
-        if (contentMatches) {
-            contentMatches.forEach(match => {
-                // בדוק אם הרכב קיים ב-vehicle_account_mapping
-                if (vehicleRules.vehicle_account_mapping[match] && !foundVehicles.includes(match)) {
-                    foundVehicles.push(match);
-                }
-            });
+    // 🚗 אם לא נמצאו רכבים - חפש בטקסט הגולמי (AZURE_TEXT_CLEAN או content)
+    if (foundVehicles.length === 0) {
+        // קודם נסה AZURE_TEXT_CLEAN (טקסט מנורמל)
+        let textToSearch = ocrFields.AZURE_TEXT_CLEAN || ocrFields._rawContent || '';
+
+        if (textToSearch) {
+            console.log(`🔍 לא נמצאו רכבים ב-OCR - מחפש בטקסט גולמי (${ocrFields.AZURE_TEXT_CLEAN ? 'CLEAN' : 'RAW'})`);
+
+            const contentMatches = textToSearch.match(vehiclePattern);
+            if (contentMatches) {
+                console.log(`🚗 נמצאו ${contentMatches.length} מספרי רכב בטקסט: ${[...new Set(contentMatches)].join(', ')}`);
+
+                contentMatches.forEach(match => {
+                    // חפש בהקשר של הרכב - האם זה באמת רכב?
+                    const matchIndex = textToSearch.indexOf(match);
+                    const contextStart = Math.max(0, matchIndex - 50);
+                    const contextEnd = Math.min(textToSearch.length, matchIndex + match.length + 50);
+                    const context = textToSearch.substring(contextStart, contextEnd).toLowerCase();
+
+                    // דחה אם זה כרטיס או מספר זיהוי אחר
+                    const isCard = context.includes('כרטיס') || context.includes('אשראי');
+                    const isTaxId = context.includes('ח.פ') || context.includes('עוסק מורשה');
+
+                    // קבל אם יש מילת מפתח של רכב
+                    const isVehicle = context.includes('רכב') || context.includes('רישוי') ||
+                                     context.includes('משאית') || context.includes('vehicle');
+
+                    if (!isCard && !isTaxId && (isVehicle || vehicleRules.vehicle_account_mapping[match])) {
+                        if (!foundVehicles.includes(match)) {
+                            console.log(`✅ רכב מאושר: ${match}`);
+                            foundVehicles.push(match);
+                        }
+                    } else {
+                        console.log(`❌ נדחה ${match} - לא רכב (isCard:${isCard}, isTaxId:${isTaxId}, isVehicle:${isVehicle})`);
+                    }
+                });
+            }
         }
     }
 
@@ -1289,7 +1323,8 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
             TUNITNAME: relatedItem?.Unit || "יח'",
             PRICE: pricePerVehicle,
             VATFLAG: actualMapping?.vat_pattern?.VATFLAG || "Y",
-            ACCNAME: actualMapping?.accname || vehicleRules.default_values?.accname || ""
+            // 🚨 קריטי: אם רכב לא נמצא ב-CARS - ACCNAME יישאר ריק! (לא default)
+            ACCNAME: actualMapping?.accname || ""
         };
 
         if (actualMapping?.budcode) {
@@ -1304,11 +1339,13 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
 
         if (!actualMapping) {
             item._learningNote = "רכב חדש - נדרש מיפוי";
+            console.log(`⚠️  רכב ${vehicleNum} לא נמצא ב-CARS mapping - ACCNAME ריק!`);
         }
 
         vehicleItems.push(item);
     });
 
+    console.log(`DEBUG-createVehicleItems: נוצרו ${vehicleItems.length} פריטי רכב`);
     return vehicleItems;
 }
 
