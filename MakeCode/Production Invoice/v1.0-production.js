@@ -409,6 +409,17 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
                     vehicle_rules: {
                         partname: "car",
                         vehicle_account_mapping: vehicleMapping,
+                        search_locations: [
+                            {
+                                location: "fields.VehicleNumbers",
+                                priority: 1
+                            },
+                            {
+                                location: "fields.UnidentifiedNumbers",
+                                priority: 2,
+                                filter_by_label: "רכב"
+                            }
+                        ],
                         default_values: {
                             accname: Object.values(vehicleMapping)[0]?.accname || "",
                             budcode: Object.values(vehicleMapping)[0]?.budcode || ""
