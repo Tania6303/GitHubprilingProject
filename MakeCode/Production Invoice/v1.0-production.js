@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:00)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:05)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
@@ -1247,8 +1247,8 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v15:00: RETURNING result");
+    console.log("DEBUG-v15:05: result type before return =", typeof result);
 
-    // ✨ return כמו ב-Processing Invoice
-    return result;
+    // ✨ return JSON string - סביבת ההרצה מצפה ל-string!
+    return JSON.stringify(result);
 }
