@@ -1,7 +1,7 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:15)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:38)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
-// מחזיר: JSON לפריוריטי + דוח ביצוע
+// מחזיר: JSON מסודר (pretty-printed) + דוח ביצוע
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -1259,8 +1259,8 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v15:10: returning JSON string, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
+    console.log("DEBUG-v15:38: returning pretty-printed JSON string, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
 
-    // ✨ return JSON string - סביבת ההרצה מצפה ל-string!
-    return JSON.stringify(result);
+    // ✨ return JSON string מסודר עם indentation - קריא לבדיקה!
+    return JSON.stringify(result, null, 2);
 }
