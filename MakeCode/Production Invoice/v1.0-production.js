@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:10)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:15)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
@@ -634,13 +634,21 @@ function processInvoiceComplete(input) {
             inventory_management: "not_managed_inventory"
         }];
 
-        // תמיכה בשני מבנים של template
+        // תמיכה במבנים שונים של template
         let allTemplates;
         if (learnedConfig.template?.PINVOICES) {
+            // מבנה ישן - template.PINVOICES
             allTemplates = learnedConfig.template.PINVOICES;
+        } else if (learnedConfig.llm_prompt?.all_templates) {
+            // ✨ מבנה חדש v4.2 - llm_prompt.all_templates[].invoice_data.PINVOICES[0]
+            allTemplates = learnedConfig.llm_prompt.all_templates.map(t =>
+                t.invoice_data?.PINVOICES?.[0] || {}
+            );
         } else if (learnedConfig.invoice_data?.PINVOICES) {
+            // מבנה ביניים - invoice_data.PINVOICES
             allTemplates = learnedConfig.invoice_data.PINVOICES;
         } else {
+            // fallback - תבנית ריקה
             allTemplates = [{
                 SUPNAME: config.supplier_config?.supplier_code || "",
                 CODE: "ש\"ח",
