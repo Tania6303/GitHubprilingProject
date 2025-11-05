@@ -1,6 +1,8 @@
-// Production Invoice v1.6.5 (21:34 05.11.25) - 49KB ✅ FINAL FIX
-// תיקון קריטי: הסרת module.exports | result מחוץ ל-if block | החזרה תקינה ל-Make.com
+// Production Invoice v1.6.6 (21:40 05.11.25) - 49KB ✅ IIFE FIX
+// תיקון קריטי: עטיפה ב-IIFE להחזרת result ישירות ל-Make.com
 // קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-05-*.js (מיין לפי שעה אחרונה)
+
+(function() {
 
 function removeUndefinedValues(obj) {
     if (Array.isArray(obj)) {
@@ -314,8 +316,8 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 }
 
 function processProductionInvoice(productionInput) {
-    console.log('🚀 PRODUCTION INVOICE v1.6.5 FINAL (21:34 05.11.25) - ' + new Date().toISOString());
-    console.log('📦 קוד: 49KB | 🔍 זיהוי רכב מטקסט נקי: ✅ | 🎯 החזרת result: תוקנה!');
+    console.log('🚀 PRODUCTION INVOICE v1.6.6 IIFE (21:40 05.11.25) - ' + new Date().toISOString());
+    console.log('📦 קוד: 49KB | 🔧 IIFE wrap: ✅ | 🎯 return במקום expression!');
     console.log('==========================================');
     const executionReport = {
         stage: "",
@@ -1081,7 +1083,7 @@ function analyzeLearning(invoice, config) {
 let result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.5: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.6.6: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1121,10 +1123,11 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.6.5: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.6.5: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.6.6: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.6.6: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
     console.log("==========================================");
 }
 
-// Return result - Make.com will use this as output
-result;
+return result;
+
+})();  // IIFE - Make.com will return this value
