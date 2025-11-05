@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:05)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:10)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
@@ -1031,12 +1031,16 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         const vehicleRules = config.rules?.critical_patterns?.vehicle_rules;
 
         if (searchResults.vehicles && searchResults.vehicles.length > 0 && vehicleRules) {
+            // יצירת פריטים מ-OCR + רכבים
             invoice.PINVOICEITEMS_SUBFORM = createVehicleItems(
                 searchResults.vehicles,
                 searchResults.items,
                 vehicleRules,
                 ocrFields
             );
+        } else if (template.PINVOICEITEMS_SUBFORM) {
+            // ✨ אם אין OCR, העתק פריטים מהתבנית!
+            invoice.PINVOICEITEMS_SUBFORM = JSON.parse(JSON.stringify(template.PINVOICEITEMS_SUBFORM));
         }
     }
 
@@ -1213,12 +1217,12 @@ module.exports = {
 // ✨ גישה פשוטה כמו ב-Processing Invoice - return ישיר
 if (typeof input !== 'undefined') {
     // DEBUG: לוג את סוג input
-    console.log("DEBUG-v15:00: typeof input =", typeof input, "isArray =", Array.isArray(input));
+    console.log("DEBUG-v15:10: typeof input =", typeof input, "isArray =", Array.isArray(input));
 
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
 
-    console.log("DEBUG-v15:00: inputData keys =", Object.keys(inputData));
+    console.log("DEBUG-v15:10: inputData keys =", Object.keys(inputData));
 
     let result;
 
@@ -1247,7 +1251,7 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v15:05: result type before return =", typeof result);
+    console.log("DEBUG-v15:10: returning JSON string, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
 
     // ✨ return JSON string - סביבת ההרצה מצפה ל-string!
     return JSON.stringify(result);
