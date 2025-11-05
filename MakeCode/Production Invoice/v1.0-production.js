@@ -277,12 +277,13 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 
     // parse TEMPLETE (שגיאת כתיב מכוונת - זה השם בפועל)
     let parsedConfig = null;
+    let templateData = null;  // ✨ שמירת templateData המקורי!
     if (supplierTemplate && supplierTemplate.TEMPLETE) {
         try {
             const templateStr = typeof supplierTemplate.TEMPLETE === 'string'
                 ? supplierTemplate.TEMPLETE
                 : JSON.stringify(supplierTemplate.TEMPLETE);
-            const templateData = JSON.parse(templateStr);
+            templateData = JSON.parse(templateStr);  // ✨ שמירה למשתנה חיצוני
 
             // ✨ חלץ את כל ה-PINVOICES ואת ה-technical_config
             // ✨ תיקון: invoice_data עבר לתוך llm_prompt.all_templates
@@ -313,6 +314,7 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
         } catch (e) {
             parsedTemplate = null;
             parsedConfig = null;
+            templateData = null;  // ✨ נקה גם את templateData במקרה של שגיאה
         }
     }
 
@@ -328,6 +330,9 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
         supplier_email: supplierTemplate?.supplier_email || "",
         json_files_analyzed: 1,
         templates_detected: templatesCount,  // ✨ מספר התבניות שנמצאו
+        // ✨ שמירת המבנה המקורי מ-Processing Invoice!
+        llm_prompt: templateData?.llm_prompt || null,
+        technical_config: templateData?.technical_config || null,
         config: parsedConfig || {
             supplier_config: {
                 supplier_code: supname || "",
