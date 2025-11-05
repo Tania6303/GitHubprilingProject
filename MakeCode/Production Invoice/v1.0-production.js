@@ -1,12 +1,14 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.16:02)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.16:30)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
-// מחזיר: JavaScript object + דוח ביצוע + BOOKNUM מנוקה
+// מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
 //
-// ✨ גרסה 1.0 - התאמה למבנה Production Invoice:
+// ✨ גרסה 1.0 v16:30 - תיקונים קריטיים:
+// - יצירת פריטים מ-OCR Items (לא רק רכבים!)
+// - תיקוף סכום כולל מול OCR (אזהרה אם הפרש >5%)
 // - תמיכה ב-AZURE כ-JSON string (parse אוטומטי)
 // - תמיכה ב-CARS (מיפוי רכבים מוכן)
 // - טיפול בשדות חסרים (learned_config, docs_list, import_files)
@@ -1053,15 +1055,22 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         const vehicleRules = config.rules?.critical_patterns?.vehicle_rules;
 
         if (searchResults.vehicles && searchResults.vehicles.length > 0 && vehicleRules) {
-            // יצירת פריטים מ-OCR + רכבים
+            // 1️⃣ יצירת פריטים מרכבים + OCR
             invoice.PINVOICEITEMS_SUBFORM = createVehicleItems(
                 searchResults.vehicles,
                 searchResults.items,
                 vehicleRules,
                 ocrFields
             );
+        } else if (searchResults.items && searchResults.items.length > 0) {
+            // 2️⃣ יצירת פריטים מ-OCR Items (בלי רכבים)
+            invoice.PINVOICEITEMS_SUBFORM = createItemsFromOCR(
+                searchResults.items,
+                template,
+                ocrFields
+            );
         } else if (template.PINVOICEITEMS_SUBFORM) {
-            // ✨ אם אין OCR, העתק פריטים מהתבנית!
+            // 3️⃣ fallback - העתק מהתבנית רק אם אין OCR כלל
             invoice.PINVOICEITEMS_SUBFORM = JSON.parse(JSON.stringify(template.PINVOICEITEMS_SUBFORM));
         }
     }
@@ -1111,6 +1120,66 @@ function extractShortDescription(ocrFields, vehicleNum) {
     }
 
     return 'טיפול';
+}
+
+function createItemsFromOCR(ocrItems, template, ocrFields) {
+    if (!ocrItems || ocrItems.length === 0) return [];
+
+    const items = [];
+
+    // שדות קבועים מהתבנית (אם יש פריט ראשון בתבנית)
+    const templateItem = template.PINVOICEITEMS_SUBFORM?.[0] || {};
+
+    ocrItems.forEach((ocrItem, index) => {
+        // חישוב מחיר - נסה UnitPrice, ואם לא קיים - חלק Amount ב-Quantity
+        let price = 0;
+        if (ocrItem.UnitPrice) {
+            price = ocrItem.UnitPrice;
+        } else if (ocrItem.Amount && ocrItem.Quantity) {
+            price = ocrItem.Amount / (ocrItem.Quantity || 1);
+        } else if (ocrItem.Amount) {
+            price = ocrItem.Amount;
+        }
+
+        const item = {
+            // שדות קבועים מהתבנית
+            PARTNAME: templateItem.PARTNAME || "item",
+            TUNITNAME: ocrItem.Unit || templateItem.TUNITNAME || "יח'",
+            VATFLAG: templateItem.VATFLAG || "Y",
+            ACCNAME: templateItem.ACCNAME || "",
+            SPECIALVATFLAG: templateItem.SPECIALVATFLAG || "Y",
+
+            // שדות דינמיים מ-OCR
+            PDES: ocrItem.Description || templateItem.PDES || "",
+            TQUANT: ocrItem.Quantity || 1,
+            PRICE: price
+        };
+
+        // BUDCODE אם קיים בתבנית
+        if (templateItem.BUDCODE) {
+            item.BUDCODE = templateItem.BUDCODE;
+        }
+
+        items.push(item);
+    });
+
+    // בדיקת סכום כולל מול OCR
+    const calculatedTotal = items.reduce((sum, item) => sum + (item.TQUANT * item.PRICE), 0);
+    const ocrTotal = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || ocrFields.SubTotal_amount || 0;
+
+    if (calculatedTotal > 0 && ocrTotal > 0) {
+        const difference = Math.abs(calculatedTotal - ocrTotal);
+        const percentDiff = (difference / ocrTotal) * 100;
+
+        if (percentDiff > 5) {  // הפרש של יותר מ-5%
+            console.log(`⚠️  WARNING: הפרש סכומים! OCR=${ocrTotal}, חישוב=${calculatedTotal.toFixed(2)}, הפרש=${difference.toFixed(2)} (${percentDiff.toFixed(1)}%)`);
+        } else {
+            console.log(`✅ סכום תואם: OCR=${ocrTotal}, חישוב=${calculatedTotal.toFixed(2)}`);
+        }
+    }
+
+    console.log(`DEBUG-createItemsFromOCR: נוצרו ${items.length} פריטים מ-OCR`);
+    return items;
 }
 
 function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
@@ -1239,12 +1308,12 @@ module.exports = {
 // ✨ גישה פשוטה כמו ב-Processing Invoice - return ישיר
 if (typeof input !== 'undefined') {
     // DEBUG: לוג את סוג input
-    console.log("DEBUG-v15:10: typeof input =", typeof input, "isArray =", Array.isArray(input));
+    console.log("DEBUG-v16:30: typeof input =", typeof input, "isArray =", Array.isArray(input));
 
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
 
-    console.log("DEBUG-v15:10: inputData keys =", Object.keys(inputData));
+    console.log("DEBUG-v16:30: inputData keys =", Object.keys(inputData));
 
     let result;
 
@@ -1273,8 +1342,9 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v16:02: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
-    console.log("DEBUG-v16:02: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("DEBUG-v16:30: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
+    console.log("DEBUG-v16:30: items count =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("DEBUG-v16:30: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
 
     // ✨ return object - כמו Processing Invoice!
     return result;
