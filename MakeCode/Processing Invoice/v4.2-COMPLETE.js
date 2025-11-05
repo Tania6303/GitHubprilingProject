@@ -1,10 +1,15 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.2 - 05.11.25.14:15)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.3 - 05.11.25.16:55)
 // מקבל: OCR + הגדרות + תעודות + יבוא
-// מחזיר: JSON לפריוריטי + דוח ביצוע
+// מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
 // 📁 קבצי בדיקה: MakeCode/Processing Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Processing Invoice/EXEMPTS" | head -5
+//
+// ✨ חדש בגרסה 4.3:
+// - fallback לחיפוש רכבים ב-AZURE_TEXT (כש-Azure לא מזהה אוטומטית)
+// - לוגים מפורטים: "⚠️ לא נמצאו רכבים במקומות המובנים - מחפש ב-AZURE_TEXT..."
+// - מונע זיהוי מספרי כרטיס כרכבים (בדיקת context)
 //
 // ✨ חדש בגרסה 4.2:
 // - תיקון חישוב מחיר: InvoiceTotal - TotalTax = סה"כ לפני מע"מ (עבודות + חלקים)
@@ -522,7 +527,7 @@ function searchAllData(ocrFields, azureText, patterns, structure, importFiles, d
         ordname: structure.has_purchase_orders || structure.has_import ? searchOrdname(ocrFields) : null,
         impfnum: structure.has_import ? searchImpfnum(ocrFields, importFiles) : null,
         documents: structure.has_doc ? searchDocuments(ocrFields, azureText, patterns, docsList) : null,
-        vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules) : [],  // ✨ חדש!
+        vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules, azureText) : [],  // ✨ חדש! + fallback ל-AZURE_TEXT
         items: ocrFields.Items || []
     };
 }
@@ -808,7 +813,7 @@ function getCombinations(array, size) {
 // ✨ חדש! פונקציות חילוץ רכבים מתקדם
 // ============================================================================
 
-function extractVehiclesAdvanced(ocrFields, vehicleRules) {
+function extractVehiclesAdvanced(ocrFields, vehicleRules, azureText) {
     // תיקון: בדוק אם יש vehicle_account_mapping במקום enabled
     if (!vehicleRules || !vehicleRules.vehicle_account_mapping) return [];
 
@@ -894,6 +899,31 @@ function extractVehiclesAdvanced(ocrFields, vehicleRules) {
                 }
             });
         }
+    }
+
+    // ✨ חדש! אם לא נמצאו רכבים, חפש גם ב-AZURE_TEXT
+    if (foundVehicles.length === 0 && azureText) {
+        console.log("⚠️  לא נמצאו רכבים במקומות המובנים - מחפש ב-AZURE_TEXT...");
+        const vehiclePattern = /\d{3}-\d{2}-\d{3}/g;
+        const matches = azureText.match(vehiclePattern) || [];
+
+        matches.forEach(match => {
+            if (!foundVehicles.includes(match)) {
+                // בדוק שזה לא מופיע ליד המילה "כרטיס"
+                const contextStart = Math.max(0, azureText.indexOf(match) - 20);
+                const contextEnd = Math.min(azureText.length, azureText.indexOf(match) + match.length + 20);
+                const context = azureText.substring(contextStart, contextEnd);
+
+                if (!context.includes('כרטיס')) {
+                    foundVehicles.push(match);
+                    console.log(`✅ נמצא רכב ב-AZURE_TEXT: ${match}`);
+                }
+            }
+        });
+    }
+
+    if (foundVehicles.length > 0) {
+        console.log(`🚗 סה"כ נמצאו ${foundVehicles.length} רכבים:`, foundVehicles);
     }
 
     return [...new Set(foundVehicles)]; // ייחודיים בלבד
