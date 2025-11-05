@@ -1,10 +1,16 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.16:30)
-// מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.1 - 05.11.25.18:50)
+// מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
+// ✨ גרסה 1.1 v18:50 - תמיכה בטקסט מנורמל:
+// - תמיכה ב-AZURE_TEXT_CLEAN (טקסט אחרי Text Standardization)
+// - עדיפות לטקסט נקי על פני גולמי לחיפושים ו-regex
+// - backward compatible - עובד עם/בלי AZURE_TEXT_CLEAN
+// - לוג DEBUG מציין מקור הטקסט (CLEAN/RAW)
 //
 // ✨ גרסה 1.0 v16:30 - תיקונים קריטיים:
 // - יצירת פריטים מ-OCR Items (לא רק רכבים!)
@@ -218,6 +224,10 @@ function convertProductionInputToProcessingInput(productionInput) {
                         documents: documents
                     }
                 }
+            },
+            {
+                name: "AZURE_TEXT_CLEAN",
+                value: productionInput.AZURE_TEXT_CLEAN || ""
             },
             {
                 name: "AZURE_TEXT",
@@ -578,8 +588,14 @@ function processInvoiceComplete(input) {
             }
         }
 
-        const azureText = inputData.AZURE_TEXT || "";
+        // ✨ חדש: תמיכה בטקסט מנורמל (AZURE_TEXT_CLEAN)
+        // אם יש טקסט נקי מ-Text Standardization - השתמש בו
+        // אחרת - השתמש בטקסט הגולמי
+        const azureTextClean = inputData.AZURE_TEXT_CLEAN || "";
+        const azureTextRaw = inputData.AZURE_TEXT || "";
+        const azureText = azureTextClean || azureTextRaw;
 
+        console.log("DEBUG: azureText source:", azureTextClean ? "CLEAN" : "RAW", "length:", azureText.length);
         console.log("DEBUG: azureResult type:", typeof azureResult, "has data?", !!azureResult.data);
 
         // וידוא שיש data.fields - תמיכה ב-Azure v3.0 format (analyzeResult)
@@ -1308,12 +1324,12 @@ module.exports = {
 // ✨ גישה פשוטה כמו ב-Processing Invoice - return ישיר
 if (typeof input !== 'undefined') {
     // DEBUG: לוג את סוג input
-    console.log("DEBUG-v16:30: typeof input =", typeof input, "isArray =", Array.isArray(input));
+    console.log("DEBUG-v18:50: typeof input =", typeof input, "isArray =", Array.isArray(input));
 
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
 
-    console.log("DEBUG-v16:30: inputData keys =", Object.keys(inputData));
+    console.log("DEBUG-v18:50: inputData keys =", Object.keys(inputData));
 
     let result;
 
@@ -1330,6 +1346,7 @@ if (typeof input !== 'undefined') {
             docs_list: input.docs_list || { DOC_YES_NO: "N", list_of_docs: [] },
             import_files: input.import_files || { IMPFILES: [] },
             AZURE_RESULT: input.AZURE_RESULT || { data: { fields: {} } },
+            AZURE_TEXT_CLEAN: input.AZURE_TEXT_CLEAN || "",
             AZURE_TEXT: input.AZURE_TEXT || ""
         };
         result = processInvoiceComplete({ input: [
@@ -1337,14 +1354,15 @@ if (typeof input !== 'undefined') {
             { name: "docs_list", value: processInput.docs_list },
             { name: "import_files", value: processInput.import_files },
             { name: "AZURE_RESULT", value: processInput.AZURE_RESULT },
+            { name: "AZURE_TEXT_CLEAN", value: processInput.AZURE_TEXT_CLEAN },
             { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
         ]});
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v16:30: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
-    console.log("DEBUG-v16:30: items count =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("DEBUG-v16:30: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("DEBUG-v18:50: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
+    console.log("DEBUG-v18:50: items count =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("DEBUG-v18:50: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
 
     // ✨ return object - כמו Processing Invoice!
     return result;
