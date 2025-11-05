@@ -1127,7 +1127,5 @@ if (typeof input !== 'undefined') {
     console.log("v1.6.4: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
     console.log("v1.6.4: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
     console.log("==========================================");
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = result;
-    }
+    return result;
 }
