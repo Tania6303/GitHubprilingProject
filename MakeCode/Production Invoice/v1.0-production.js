@@ -1,10 +1,16 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.3 - 05.11.25.20:00)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.4 - 05.11.25.21:30)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
+// ✨ גרסה 1.4 v21:30 - דוחות משופרים + בדיקת סכומים:
+// - 📊 execution_report.found מציג ערכים בפועל (לא "נמצא")
+// - ✅ validation.warnings מציג בדיקת סכומים: חישוב vs OCR
+// - ⚠️ אזהרה אם הפרש >5% בין סכום מחושב לסכום OCR
+// - ℹ️ מידע על כמות פריטים ב-OCR שלא נוצרו
 //
 // ✨ גרסה 1.3 v20:00 - הוספת מספר רכב ל-PDES + תמיכה ב-2 bundles:
 // - 🚗 PDES כולל מספר רכב: "419-29-702 עבודות רכב"
@@ -746,10 +752,22 @@ function processInvoiceComplete(input) {
         Object.keys(searchResults).forEach(key => {
             if (key === 'vehicles' && searchResults.vehicles) {
                 if (searchResults.vehicles.length > 0) {
-                    executionReport.found.push(`רכבים: ${searchResults.vehicles.length} - ${searchResults.vehicles.join(', ')}`);
+                    executionReport.found.push(`רכבים: ${searchResults.vehicles.length} רכבים - ${searchResults.vehicles.join(', ')}`);
                 }
             } else if (searchResults[key]) {
-                executionReport.found.push(`${key}: נמצא`);
+                // הצג ערך בפועל במקום "נמצא"
+                const value = searchResults[key];
+                if (Array.isArray(value)) {
+                    // אם זה array (כמו items)
+                    executionReport.found.push(`${key}: ${value.length} פריטים`);
+                } else if (typeof value === 'string' && value.length > 0) {
+                    // אם זה string
+                    const displayValue = value.length > 50 ? value.substring(0, 50) + '...' : value;
+                    executionReport.found.push(`${key}: "${displayValue}"`);
+                } else if (value !== null) {
+                    // כל ערך אחר
+                    executionReport.found.push(`${key}: ${JSON.stringify(value)}`);
+                }
             }
         });
 
@@ -1289,9 +1307,11 @@ function performValidation(invoice, ocrFields, config, docsList, patterns) {
     const warnings = [];
     const checks = {
         required_fields_check: "passed",
-        invoice_structure_check: "passed"
+        invoice_structure_check: "passed",
+        amount_validation: "not_checked"
     };
 
+    // בדיקת שדות חובה
     const requiredFields = ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"];
     const missingFields = requiredFields.filter(f => !invoice[f]);
 
@@ -1300,8 +1320,41 @@ function performValidation(invoice, ocrFields, config, docsList, patterns) {
         checks.required_fields_check = "failed";
     }
 
+    // ✨ בדיקת סכומים - אם יש פריטים
+    if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
+        const calculatedTotal = invoice.PINVOICEITEMS_SUBFORM.reduce((sum, item) => {
+            return sum + (item.TQUANT || 0) * (item.PRICE || 0);
+        }, 0);
+
+        const ocrTotal = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount ||
+                        ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
+
+        if (calculatedTotal > 0 && ocrTotal > 0) {
+            const difference = Math.abs(calculatedTotal - ocrTotal);
+            const percentDiff = (difference / ocrTotal) * 100;
+
+            if (percentDiff > 5) {
+                warnings.push(`⚠️ הפרש סכומים: חישוב=${calculatedTotal.toFixed(2)} ש"ח, OCR=${ocrTotal.toFixed(2)} ש"ח, הפרש=${percentDiff.toFixed(1)}%`);
+                checks.amount_validation = "warning";
+            } else {
+                warnings.push(`✅ סכום תקין: ${calculatedTotal.toFixed(2)} ש"ח (הפרש ${percentDiff.toFixed(1)}% מ-OCR)`);
+                checks.amount_validation = "passed";
+            }
+        } else {
+            warnings.push(`ℹ️ לא ניתן לבדוק סכומים: חישוב=${calculatedTotal.toFixed(2)}, OCR=${ocrTotal}`);
+            checks.amount_validation = "not_applicable";
+        }
+    } else {
+        // אם אין פריטים - בדיקת כמויות
+        const itemsInOCR = ocrFields.Items ? ocrFields.Items.length : 0;
+        if (itemsInOCR > 0) {
+            warnings.push(`ℹ️ OCR זיהה ${itemsInOCR} פריטים אבל לא נוצרו פריטים בחשבונית`);
+            checks.amount_validation = "no_items";
+        }
+    }
+
     return {
-        all_valid: warnings.length === 0,
+        all_valid: warnings.length === 0 || warnings.every(w => w.startsWith('✅') || w.startsWith('ℹ️')),
         checks: checks,
         warnings: warnings
     };
