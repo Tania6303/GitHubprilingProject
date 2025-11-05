@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:50)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.14:55)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
 // מחזיר: JSON לפריוריטי + דוח ביצוע
 //
@@ -1210,10 +1210,14 @@ module.exports = {
 // נקודת כניסה - רק אם מריצים ישירות (לא כמודול)
 // ============================================================================
 
+// ✨ משתנה גלובלי לשמירת התוצאה
+let finalResult;
+
 // ✨ IIFE - החזרת התוצאה לסביבת ההרצה
 (function() {
     if (typeof input === 'undefined') {
-        return JSON.stringify({});
+        finalResult = JSON.stringify({});
+        return;
     }
 
     // DEBUG: לוג את סוג input
@@ -1253,6 +1257,9 @@ module.exports = {
     console.log(JSON.stringify(result, null, 2));
     console.log("DEBUG: result type =", typeof result, "is defined?", result !== undefined);
 
-    // ✨ החזרה דרך return
-    return JSON.stringify(result);
+    // ✨ שמירה למשתנה הגלובלי
+    finalResult = JSON.stringify(result);
 })();
+
+// ✨ החזרת התוצאה - הערך האחרון של הקובץ
+finalResult;
