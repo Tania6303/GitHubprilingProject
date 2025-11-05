@@ -1,7 +1,7 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.15:42)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.0 - 05.11.25.16:02)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME
-// מחזיר: JavaScript object + דוח ביצוע
+// מחזיר: JavaScript object + דוח ביצוע + BOOKNUM מנוקה
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -874,8 +874,21 @@ function searchAllData(ocrFields, azureText, patterns, structure, importFiles, d
 }
 
 function searchBooknum(ocrFields, patterns) {
-    let booknum = ocrFields.InvoiceId || "";
-    booknum = String(booknum).replace(/^SI/i, '');
+    const original = ocrFields.InvoiceId || "";
+    let booknum = String(original);
+
+    // שלב 1: הסר prefix כמו "SI"
+    booknum = booknum.replace(/^SI/i, '');
+
+    // שלב 2: הסר suffix לא-מספרי (כמו " Ns", " ns", וכו')
+    // חלץ את המספרים מהתחילה, אפשר מספרים וסימנים מיוחדים
+    const match = booknum.match(/^[\d\-\/]+/);
+    if (match) {
+        booknum = match[0];
+    }
+
+    // שלב 3: trim רווחים
+    booknum = booknum.trim();
 
     if (patterns.booknum_pattern) {
         const expectedLength = patterns.booknum_pattern.length;
@@ -884,6 +897,7 @@ function searchBooknum(ocrFields, patterns) {
         }
     }
 
+    console.log(`DEBUG-BOOKNUM: "${original}" → "${booknum}"`);
     return booknum;
 }
 
@@ -1259,7 +1273,8 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v15:42: returning object (not string), has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
+    console.log("DEBUG-v16:02: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
+    console.log("DEBUG-v16:02: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
 
     // ✨ return object - כמו Processing Invoice!
     return result;
