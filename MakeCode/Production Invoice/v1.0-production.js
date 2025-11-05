@@ -719,8 +719,15 @@ function processInvoiceComplete(input) {
         const result = {
             status: "success",
             supplier_identification: {
-                supplier_code: learnedConfig.supplier_id || config.supplier_config?.supplier_code || "",
-                supplier_name: learnedConfig.supplier_name || config.supplier_config?.supplier_name || "",
+                // ✨ תמיכה במבנה חדש: חפש גם ב-llm_prompt ו-technical_config
+                supplier_code: learnedConfig.supplier_id ||
+                              learnedConfig.llm_prompt?.supplier_code ||
+                              learnedConfig.technical_config?.supplier_code ||
+                              config.supplier_config?.supplier_code || "",
+                supplier_name: learnedConfig.supplier_name ||
+                              learnedConfig.llm_prompt?.supplier_name ||
+                              learnedConfig.technical_config?.supplier_name ||
+                              config.supplier_config?.supplier_name || "",
                 identification_method: "vendor_tax_id",
                 confidence: "high"
             },
@@ -959,8 +966,16 @@ function extractVehiclesAdvanced(ocrFields, vehicleRules) {
 }
 
 function buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields) {
+    // ✨ חילוץ supplier_code מכל המקורות האפשריים
+    const supplierCode = template.SUPNAME ||
+                        config.supplier_config?.supplier_code ||
+                        learnedConfig.supplier_id ||
+                        learnedConfig.llm_prompt?.supplier_code ||
+                        learnedConfig.technical_config?.supplier_code ||
+                        "";
+
     const invoice = {
-        SUPNAME: template.SUPNAME,
+        SUPNAME: supplierCode,  // ✨ תיקון!
         CODE: template.CODE || "ש\"ח",
         DEBIT: structure.debit_type || "D",
         IVDATE: searchResults.ivdate,
