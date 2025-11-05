@@ -1,5 +1,5 @@
 // ============================================================================
-// Text Standardization - ניקוי ונרמול טקסט מ-OCR (גרסה 1.0 - 05.11.25)
+// Text Standardization - ניקוי ונרמול טקסט מ-OCR (גרסה 1.1 - 05.11.25 18:30)
 // משימה אחת: ניקוי טקסט מלוכלך מ-Azure OCR
 // מקבל: טקסט גולמי (AZURE_TEXT או כל טקסט אחר)
 // מחזיר: טקסט נקי ומנורמל
@@ -145,15 +145,74 @@ function normalizeHyphens(text) {
  * בעיה נפוצה: "741 - 69 - 103" או "741- 69 -103"
  */
 function fixVehicleNumbers(text) {
-    // מצא דפוס של מספר רכב עם רווחים
+    // תיקון מספרי רכב עם רווחים/מקפים - אבל רק אם יש רווחים או מקפים!
     // תומך ב: "741 - 69 - 103", "741- 69 -103", "741 -69- 103"
-    return text.replace(/(\d{3})\s*-?\s*(\d{2})\s*-?\s*(\d{3})/g, (match, p1, p2, p3) => {
-        // בדוק שזה לא חלק ממספר ארוך יותר
-        const validVehicleNumber = match.match(/^\d{3}\s*-?\s*\d{2}\s*-?\s*\d{3}$/);
-        if (validVehicleNumber) {
-            return `${p1}-${p2}-${p3}`;
+    // ⚠️  לא משנה: 558117016 (9 ספרות רצופות) - זה יכול להיות ח.פ!
+    // ⚠️  לא משנה אם יש הקשר של ח.פ, עוסק מורשה, כרטיס וכו'
+
+    // רגקס: תפוס רק אם יש לפחות רווח או מקף אחד בין הספרות
+    return text.replace(/(\d{3})([\s-]+)(\d{2})([\s-]+)(\d{3})/g, (match, p1, sep1, p2, sep2, p3, offset) => {
+        // אם הרגקס תפס - זה אומר שיש רווחים או מקפים (בגלל ה-+)
+
+        // בדיקה 2: בדוק הקשר
+        const contextStart = Math.max(0, offset - 30);
+        const contextEnd = Math.min(text.length, offset + match.length + 30);
+        const context = text.substring(contextStart, contextEnd).toLowerCase();
+
+        // מילות מפתח שאומרות שזה לא רכב
+        const notVehicleKeywords = [
+            'ח.פ',
+            'ח. פ',
+            'חפ',
+            'עוסק מורשה',
+            'ע.מ',
+            'ע. מ',
+            'עמ',
+            'כרטיס',
+            'אשראי',
+            'ויזה',
+            'מאסטרקארד',
+            'mastercard',
+            'visa',
+            'חשבון',
+            'טלפון',
+            'פקס',
+            'נייד',
+            'fax',
+            'tel',
+            'phone',
+            'tax',
+            'id'
+        ];
+
+        // אם נמצאה מילה שמזהה שזה לא רכב - אל תשנה!
+        for (const keyword of notVehicleKeywords) {
+            if (context.includes(keyword)) {
+                return match;  // ❌ החזר כמו שזה - זה לא רכב!
+            }
         }
-        return match;  // אל תשנה אם זה לא מספר רכב תקין
+
+        // מילות מפתח שאומרות שזה כן רכב
+        const vehicleKeywords = [
+            'רכב',
+            'מספר רכב',
+            'מס רכב',
+            'מס\' רכב',
+            'vehicle',
+            'car',
+            'license'
+        ];
+
+        // אם יש מילה שמאשרת שזה רכב - תקן
+        for (const keyword of vehicleKeywords) {
+            if (context.includes(keyword)) {
+                return `${p1}-${p2}-${p3}`;  // ✅ תקן לפורמט רכב
+            }
+        }
+
+        // במקרה של ספק - אל תשנה את הDATA!
+        // עדיף לא לתקן רכב מאשר לשנות ח.פ בטעות
+        return match;
     });
 }
 
