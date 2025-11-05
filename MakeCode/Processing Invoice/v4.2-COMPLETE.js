@@ -305,7 +305,23 @@ function processInvoiceComplete(input) {
         const allProcessingScenarios = [];
         for (let i = 0; i < config.structure.length; i++) {
             const templateStructure = config.structure[i];
+
+            // ✨ קביעת document_type לפי התבנית
+            let documentTypeKey = "regular_invoice";
+            if (templateStructure.has_import && templateStructure.has_doc) {
+                documentTypeKey = "import_with_docs_invoice";
+            } else if (templateStructure.has_import) {
+                documentTypeKey = "import_invoice";
+            } else if (templateStructure.has_doc) {
+                documentTypeKey = "docs_invoice";
+            } else if (templateStructure.debit_type === "C") {
+                documentTypeKey = "credit_note";
+            } else if (hasVehicles) {
+                documentTypeKey = "vehicle_service_invoice";
+            }
+
             allProcessingScenarios.push({
+                document_type: documentTypeKey,  // ✨ הוספה!
                 check_docs: templateStructure.has_doc || false,
                 check_import: templateStructure.has_import || false,
                 check_vehicles: hasVehicles || false
