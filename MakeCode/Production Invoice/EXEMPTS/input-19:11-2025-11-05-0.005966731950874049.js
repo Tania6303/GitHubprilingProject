@@ -1,1 +1,7619 @@
-'{"logs":{"stdout":["DEBUG-v18:50: typeof input = object isArray = false\n","DEBUG-v18:50: inputData keys = [\n  'learned_config',\n  'docs_list',\n  'import_files',\n  'vehicles',\n  'AZURE_RESULT',\n  'AZURE_TEXT_CLEAN'\n]\n","DEBUG: input structure: {\"input\":[{\"name\":\"learned_config\",\"value\":{\"status\":\"success\",\"llm_prompt\":{\"supplier_code\":\"5014\",\"supplier_name\":\"טכומטר-מכון ספידומטרים\",\"all_templates\":[{\"document_type\":\"חשבונית שירותי רכב ומוסך\n","DEBUG: inputData keys: [\n  'learned_config',\n  'docs_list',\n  'import_files',\n  'AZURE_RESULT',\n  'AZURE_TEXT_CLEAN',\n  'AZURE_TEXT'\n]\n","DEBUG: azureText source: CLEAN length: 1106\n","DEBUG: azureResult type: object has data? false\n","DEBUG: Creating azureResult.data\n","DEBUG: azureResult.data.fields type: object\n","DEBUG-BOOKNUM: \"\" → \"\"\n","{\n  \"status\": \"success\",\n  \"supplier_identification\": {\n    \"supplier_code\": \"5014\",\n    \"supplier_name\": \"טכומטר-מכון ספידומטרים\",\n    \"identification_method\": \"vendor_tax_id\",\n    \"confidence\": \"high\"\n  },\n  \"invoice_data\": {\n    \"PINVOICES\": [\n      {\n        \"SUPNAME\": \"5014\",\n        \"CODE\": \"ש\\\"ח\",\n        \"DEBIT\": \"D\",\n        \"IVDATE\": \"\",\n        \"BOOKNUM\": \"\",\n        \"DETAILS\": \"גשר העץ 20\",\n        \"PINVOICEITEMS_SUBFORM\": [\n          {\n            \"PARTNAME\": \"car\",\n            \"TUNITNAME\": \"יח'\",\n            \"VATFLAG\": \"Y\",\n            \"ACCNAME\": \"66979\",\n            \"PDES\": \"התקנת מצלמה כולל ציוד נלווה\",\n            \"TQUANT\": 1,\n            \"PRICE\": 300,\n            \"SPECIALVATFLAG\": \"Y\"\n          }\n        ],\n        \"PINVOICESCONT_SUBFORM\": []\n      }\n    ]\n  },\n  \"validation\": {\n    \"all_valid\": false,\n    \"checks\": {\n      \"required_fields_check\": \"failed\",\n      \"invoice_structure_check\": \"passed\"\n    },\n    \"warnings\": [\n      \"שדות חובה חסרים: IVDATE, BOOKNUM\"\n    ]\n  },\n  \"learning_analysis\": {\n    \"learning_required\": false,\n    \"new_patterns\": {\n      \"new_partnames\": [],\n      \"new_vehicles\": [],\n      \"unknown_accounts\": []\n    },\n    \"learning_instructions\": [],\n    \"recommendation\": \"אין צורך בלמידה\"\n  },\n  \"execution_report\": {\n    \"stage\": \"שלב 7: ניקוי והכנה לפריוריטי\",\n    \"found\": [\n      \"סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D\",\n      \"תבנית: נמצאה התאמה (index=0)\",\n      \"דפוסים: נמצאו\",\n      \"details: נמצא\",\n      \"items: נמצא\"\n    ],\n    \"not_found\": [],\n    \"warnings\": [],\n    \"errors\": []\n  },\n  \"metadata\": {\n    \"ocr_invoice_id\": \"\",\n    \"ocr_invoice_date\": \"\",\n    \"ocr_total_amount\": 0,\n    \"processing_timestamp\": \"2025-11-05T17:28:23.788Z\",\n    \"version\": \"1.0-production\",\n    \"template_index\": 0,\n    \"template_type\": \"regular\"\n  }\n}\n","DEBUG-v18:50: returning object, has items? true\n","DEBUG-v18:50: items count = 1\n","DEBUG-v18:50: BOOKNUM = \n"],"stderr":[]},"executionTimeMs":898,"result":{"status":"success","supplier_identification":{"supplier_code":"5014","supplier_name":"טכומטר-מכון ספידומטרים","identification_method":"vendor_tax_id","confidence":"high"},"invoice_data":{"PINVOICES":[{"SUPNAME":"5014","CODE":"ש\"ח","DEBIT":"D","IVDATE":"","BOOKNUM":"","DETAILS":"גשר העץ 20","PINVOICEITEMS_SUBFORM":[{"PARTNAME":"car","TUNITNAME":"יח'","VATFLAG":"Y","ACCNAME":"66979","PDES":"התקנת מצלמה כולל ציוד נלווה","TQUANT":1,"PRICE":300,"SPECIALVATFLAG":"Y"}],"PINVOICESCONT_SUBFORM":[]}]},"validation":{"all_valid":false,"checks":{"required_fields_check":"failed","invoice_structure_check":"passed"},"warnings":["שדות חובה חסרים: IVDATE, BOOKNUM"]},"learning_analysis":{"learning_required":false,"new_patterns":{"new_partnames":[],"new_vehicles":[],"unknown_accounts":[]},"learning_instructions":[],"recommendation":"אין צורך בלמידה"},"execution_report":{"stage":"שלב 7: ניקוי והכנה לפריוריטי","found":["סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D","תבנית: נמצאה התאמה (index=0)","דפוסים: נמצאו","details: נמצא","items: נמצא"],"not_found":[],"warnings":[],"errors":[]},"metadata":{"ocr_invoice_id":"","ocr_invoice_date":"","ocr_total_amount":0,"processing_timestamp":"2025-11-05T17:28:23.788Z","version":"1.0-production","template_index":0,"template_type":"regular"}}}'
+[
+    {
+        "input": [
+            {
+                "name": "learned_config",
+                "value": {
+                    "status": "success",
+                    "llm_prompt": {
+                        "supplier_code": "5014",
+                        "supplier_name": "טכומטר-מכון ספידומטרים",
+                        "all_templates": [
+                            {
+                                "document_type": "חשבונית שירותי רכב ומוסך",
+                                "instructions": {
+                                    "overview": "חשבונית מספק טכומטר-מכון ספידומטרים. תבנית: שירותי רכב ומוסך.",
+                                    "processing_steps": [
+                                        "1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId",
+                                        "2. חלץ תאריך חשבונית (IVDATE) מתוך InvoiceDate",
+                                        "3. חלץ מספרי רכבים מ-UnidentifiedNumbers (פורמט XXX-XX-XXX)",
+                                        "4. מפה כל רכב לחשבון הנכון לפי vehicle_mapping",
+                                        "5. צור תיאור קצר של השירות מהפריט הראשון"
+                                    ],
+                                    "fields": {
+                                        "booknum": {
+                                            "field_name": "BOOKNUM",
+                                            "description": "מספר חשבונית",
+                                            "how_to_find": "חפש בשדה InvoiceId ב-OCR. הסר קידומת SI אם קיימת. קח את מספר התווים האחרונים לפי הדפוס הנלמד.",
+                                            "example": "756 Ns",
+                                            "ocr_source": "ocrFields.InvoiceId"
+                                        },
+                                        "ivdate": {
+                                            "field_name": "IVDATE",
+                                            "description": "תאריך חשבונית",
+                                            "how_to_find": "קח את InvoiceDate מה-OCR והמר לפורמט DD/MM/YY",
+                                            "example": "22/10/25",
+                                            "ocr_source": "ocrFields.InvoiceDate"
+                                        },
+                                        "price": {
+                                            "field_name": "PRICE",
+                                            "description": "מחיר לפני מע\"מ (עבודות + חלקים)",
+                                            "how_to_calculate": "חשב: InvoiceTotal_amount - TotalTax_amount. זה נותן את סה\"כ החשבונית לפני מע\"מ.",
+                                            "formula": "InvoiceTotal_amount - TotalTax_amount",
+                                            "example": "354 - 54 = 300",
+                                            "fallback": "אם אין TotalTax_amount, קח SubTotal_amount. אם גם זה לא קיים, קח InvoiceTotal_amount.",
+                                            "ocr_source": "ocrFields.InvoiceTotal_amount, ocrFields.TotalTax_amount"
+                                        },
+                                        "vehicles": {
+                                            "field_name": "VEHICLES",
+                                            "description": "מספרי רכבים",
+                                            "how_to_find": "חפש פורמט XXX-XX-XXX ב-UnidentifiedNumbers עם label='רכב'. בדוק שזה לא מספר כרטיס (context לא מכיל 'כרטיס').",
+                                            "pattern": "d{3}-d{2}-d{3}",
+                                            "example": "459-06-303",
+                                            "ocr_source": "ocrFields.UnidentifiedNumbers (with label filter)"
+                                        },
+                                        "details": {
+                                            "field_name": "DETAILS",
+                                            "description": "תיאור החשבונית",
+                                            "how_to_find": "אם יש רכבים: חלץ תיאור קצר של השירות (3-4 מילים, מקסימום 50 תווים) מהפריט הראשון ב-Items. אם יש גם ק\"מ נוכחי (CustomerId), הוסף אותו בפורמט: 'תיאור-XXXXXק\"מ'",
+                                            "example": "טיפול 75000 ק\"מ-76256",
+                                            "ocr_source": "ocrFields.Items[0].Description, ocrFields.CustomerId"
+                                        }
+                                    },
+                                    "vehicle_mapping": {
+                                        "741-69-103": {
+                                            "account": "66979",
+                                            "vat_flag": "Y",
+                                            "description": "741-69-103 ליסינג והוצאות יוניון ירין לוזון"
+                                        }
+                                    }
+                                },
+                                "invoice_data": {
+                                    "PINVOICES": [
+                                        {
+                                            "SUPNAME": "5014",
+                                            "CODE": "ש\"ח",
+                                            "DEBIT": "D",
+                                            "IVDATE": "22/10/25",
+                                            "BOOKNUM": "756 Ns",
+                                            "PINVOICEITEMS_SUBFORM": [
+                                                {
+                                                    "PARTNAME": "car",
+                                                    "TUNITNAME": "יח'",
+                                                    "VATFLAG": "Y",
+                                                    "ACCNAME": "66979",
+                                                    "PDES": "התקנת מצלמה כולל ציוד נלווה",
+                                                    "TQUANT": 1,
+                                                    "PRICE": 300,
+                                                    "SPECIALVATFLAG": "Y"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "technical_config": {
+                        "supplier_code": "5014",
+                        "supplier_name": "טכומטר-מכון ספידומטרים",
+                        "all_templates": [
+                            {
+                                "version": "4.2",
+                                "document_type": "vehicle_service_invoice",
+                                "extraction_rules": {
+                                    "booknum": {
+                                        "source": "ocrFields.InvoiceId",
+                                        "transformations": [
+                                            {
+                                                "action": "remove_prefix",
+                                                "pattern": "^SI",
+                                                "case_insensitive": true,
+                                                "description": "הסר קידומת SI אם קיימת"
+                                            },
+                                            {
+                                                "action": "take_last_n_chars",
+                                                "count": 7,
+                                                "description": "קח 7 תווים אחרונים"
+                                            }
+                                        ],
+                                        "validation": {
+                                            "length": 7,
+                                            "pattern": "^d{7}$",
+                                            "required": true
+                                        },
+                                        "example": "756 Ns"
+                                    },
+                                    "ivdate": {
+                                        "source": "ocrFields.InvoiceDate",
+                                        "format": "DD/MM/YY",
+                                        "transformation": {
+                                            "from": "ISO8601",
+                                            "to": "DD/MM/YY",
+                                            "description": "המר מפורמט ISO (YYYY-MM-DD) לפורמט DD/MM/YY"
+                                        },
+                                        "validation": {
+                                            "pattern": "^d{2}/d{2}/d{2}$",
+                                            "required": true
+                                        },
+                                        "example": "22/10/25"
+                                    },
+                                    "price": {
+                                        "calculation": {
+                                            "method": "subtract",
+                                            "primary": {
+                                                "formula": "ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount",
+                                                "fields_required": [
+                                                    "InvoiceTotal_amount",
+                                                    "TotalTax_amount"
+                                                ],
+                                                "description": "סה\"כ לפני מע\"מ = סה\"כ כולל מע\"מ - מע\"מ"
+                                            },
+                                            "fallback": {
+                                                "formula": "ocrFields.SubTotal_amount || ocrFields.InvoiceTotal_amount",
+                                                "fields_required": [
+                                                    "SubTotal_amount"
+                                                ],
+                                                "description": "אם אין TotalTax_amount, קח SubTotal_amount"
+                                            },
+                                            "division_by_vehicles": {
+                                                "enabled": true,
+                                                "formula": "totalPrice / vehicles.length",
+                                                "description": "אם יש מספר רכבים, חלק את המחיר הכולל באופן שווה"
+                                            }
+                                        },
+                                        "description": "מחיר לפני מע\"מ (עבודות + חלקים)",
+                                        "example_calculation": {
+                                            "invoice_total": 354,
+                                            "total_tax": 54,
+                                            "calculated_price": 300,
+                                            "formula_used": "InvoiceTotal_amount - TotalTax_amount"
+                                        }
+                                    },
+                                    "vehicles": {
+                                        "search_locations": [
+                                            {
+                                                "field": "ocrFields.UnidentifiedNumbers",
+                                                "priority": 1,
+                                                "filter": {
+                                                    "label": "רכב",
+                                                    "description": "רק פריטים עם תווית 'רכב'"
+                                                },
+                                                "pattern": "d{3}-d{2}-d{3}",
+                                                "validation": {
+                                                    "must_match_pattern": true,
+                                                    "exclude_if_context_contains": [
+                                                        "כרטיס"
+                                                    ],
+                                                    "description": "בדוק שזה לא מספר כרטיס"
+                                                }
+                                            },
+                                            {
+                                                "field": "ocrFields.VehicleNumbers",
+                                                "priority": 2,
+                                                "pattern": "d{3}-d{2}-d{3}"
+                                            },
+                                            {
+                                                "field": "ocrFields.Items[].Description",
+                                                "priority": 3,
+                                                "pattern": "d{3}-d{2}-d{3}",
+                                                "description": "חפש בתיאור הפריטים"
+                                            }
+                                        ],
+                                        "example": []
+                                    },
+                                    "description": {
+                                        "source": "ocrFields.Items[0].Description",
+                                        "extraction": {
+                                            "method": "pattern_match",
+                                            "patterns": [
+                                                {
+                                                    "name": "service_with_km",
+                                                    "pattern": "טיפולs+[d,]+s*ק[״\"]?מ",
+                                                    "priority": 1,
+                                                    "description": "טיפול XXX ק\"מ"
+                                                },
+                                                {
+                                                    "name": "general_service",
+                                                    "pattern": "(החלפת|תיקון|בדיקת)s+[\\u0590-\\u05FFs]+",
+                                                    "priority": 2,
+                                                    "description": "תיאור כללי של שירות"
+                                                }
+                                            ],
+                                            "max_words": 4,
+                                            "max_length": 50,
+                                            "append_mileage": {
+                                                "enabled": true,
+                                                "source": "ocrFields.CustomerId",
+                                                "format": "{description}-{mileage}",
+                                                "description": "אם יש ק\"מ נוכחי, הוסף בפורמט: 'תיאור-XXXXXק\"מ'"
+                                            }
+                                        },
+                                        "fallback": "טיפול",
+                                        "example": "טיפול 75000 ק\"מ"
+                                    }
+                                },
+                                "vehicle_mapping": {
+                                    "741-69-103": {
+                                        "accname": "66979",
+                                        "accdes": "741-69-103 ליסינג והוצאות יוניון ירין לוזון",
+                                        "vat_pattern": {
+                                            "VATFLAG": "Y",
+                                            "SPECIALVATFLAG": "Y"
+                                        },
+                                        "date_range_pattern": "never",
+                                        "pdaccname_pattern": "never"
+                                    }
+                                },
+                                "template": {
+                                    "SUPNAME": "5014",
+                                    "CODE": "ש\"ח",
+                                    "DEBIT": "D",
+                                    "TUNITNAME": "יח'",
+                                    "TQUANT": 1,
+                                    "PINVOICESCONT_SUBFORM": [
+                                        {
+                                            "FNCPATNAME": "2323"
+                                        }
+                                    ]
+                                },
+                                "validation_rules": {
+                                    "required_fields": [
+                                        "SUPNAME",
+                                        "CODE",
+                                        "DEBIT",
+                                        "IVDATE",
+                                        "BOOKNUM"
+                                    ],
+                                    "booknum_length": 7,
+                                    "totquant_check": {
+                                        "enabled": true,
+                                        "compare_with_docs": true,
+                                        "learned_reference": 1
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "processing_scenario": {
+                        "supplier_code": "5014",
+                        "supplier_name": "טכומטר-מכון ספידומטרים",
+                        "all_templates": [
+                            {
+                                "document_type": "vehicle_service_invoice",
+                                "check_docs": false,
+                                "check_import": false,
+                                "check_vehicles": true
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "docs_list",
+                "value": "{[{\"DOCNO\":null,\"BOOKNUM\":null,\"TOTQUANT\":null}]}"
+            },
+            {
+                "name": "import_files",
+                "value": "{}"
+            },
+            {
+                "name": "vehicles",
+                "value": "{[{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"627-57-003 הוצאות יונדאי יהודה\",\"ACCNAME\":\"661000\",\"CAR_NUMBER\":\"627-57-003\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"627-57-103 הוצאות יונדאי זוהר\",\"ACCNAME\":\"661001\",\"CAR_NUMBER\":\"627-57-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"627-57-403 הוצאות יונדאי בר יוסף\",\"ACCNAME\":\"661002\",\"CAR_NUMBER\":\"627-57-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"627-57-503 הוצאות יונדאי ערן ליבוביץ\",\"ACCNAME\":\"661003\",\"CAR_NUMBER\":\"627-57-503\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"627-57-803 הוצאות יונדאי עותבה\",\"ACCNAME\":\"661004\",\"CAR_NUMBER\":\"627-57-803\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"627-56-603 הוצאות יונדאי מוחמד (חמודי)\",\"ACCNAME\":\"661005\",\"CAR_NUMBER\":\"627-56-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"627-56-703 הוצאות יונדאי ארנולד\",\"ACCNAME\":\"661006\",\"CAR_NUMBER\":\"627-56-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"627-56-903 הוצאות יונדאי שאוקי\",\"ACCNAME\":\"661007\",\"CAR_NUMBER\":\"627-56-903\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"627-57-903 הוצאות יונדאי רון\",\"ACCNAME\":\"661008\",\"CAR_NUMBER\":\"627-57-903\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"217-22-902 טויטה קורלה עברה למוטי 5/24\",\"ACCNAME\":\"661009\",\"CAR_NUMBER\":\"217-22-902\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"787-28-503 הוצאות  מיצובישי אלדר\",\"ACCNAME\":\"661010\",\"CAR_NUMBER\":\"787-28-503\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"747-54-403 ליסינג והוצאות יוניון מובלטי ירין הרנ\",\"ACCNAME\":\"661011\",\"CAR_NUMBER\":\"747-54-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"471-06-703 רכב שכור סלבק\",\"ACCNAME\":\"661012\",\"CAR_NUMBER\":\"471-06-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"856-50-602 רכב שכור נמרוד רשתות\",\"ACCNAME\":\"661013\",\"CAR_NUMBER\":\"856-50-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"864-95-303 רכב טויטה סיטי מחסן\",\"ACCNAME\":\"661014\",\"CAR_NUMBER\":\"864-95-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"לא פעיל 149-35-603 רכב שכור לאופיר מרשתות\",\"ACCNAME\":\"661015\",\"CAR_NUMBER\":\"149-35-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"784-61-703 מצובישי ליסינג אלעד 12/24\",\"ACCNAME\":\"661016\",\"CAR_NUMBER\":\"784-61-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"784-59-703 מצובישי ליסינג חן   12/24\",\"ACCNAME\":\"661017\",\"CAR_NUMBER\":\"784-59-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"869-84-803 רכב חשמלי ליהודה הלפרין\",\"ACCNAME\":\"661018\",\"CAR_NUMBER\":\"869-84-803\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"783-95-603 ג'אקו סין ליסינג רונן 12/24\",\"ACCNAME\":\"661019\",\"CAR_NUMBER\":\"783-95-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"784-45-803 ג'אקו סין ליסינג יניב 12/24\",\"ACCNAME\":\"661020\",\"CAR_NUMBER\":\"784-45-803\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"428-65-103 רכב לאופיר רשתות\",\"ACCNAME\":\"661021\",\"CAR_NUMBER\":\"428-65-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"220-17-904 טויטה פרו אייס\",\"ACCNAME\":\"661022\",\"CAR_NUMBER\":\"220-17-904\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"412-85-603 רכב חלופי ליאור זלצמן\",\"ACCNAME\":\"661023\",\"CAR_NUMBER\":\"412-85-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"149-18-204 רכב שכור לדודו מאור רשתות\",\"ACCNAME\":\"661024\",\"CAR_NUMBER\":\"149-18-204\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שירות לקוחות\",\"ASSDES\":\"339-52-404 טויטה פרו אייס צפריר רוזנברג\",\"ACCNAME\":\"661025\",\"CAR_NUMBER\":\"339-52-404\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שירות לקוחות\",\"ASSDES\":\"339-52-504 טויטה פרו אייס יצחק כהן\",\"ACCNAME\":\"661026\",\"CAR_NUMBER\":\"339-52-504\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שירות לקוחות\",\"ASSDES\":\"339-54-204 טויטה פרו אייס ניר חלמיש\",\"ACCNAME\":\"661027\",\"CAR_NUMBER\":\"339-54-204\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"339-52-204 טויטה פרו אייס סתיו רשתות\",\"ACCNAME\":\"661028\",\"CAR_NUMBER\":\"339-52-204\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שירות לקוחות\",\"ASSDES\":\"339-52-704 טויטה פרו אייס יצחק מקונן\",\"ACCNAME\":\"661029\",\"CAR_NUMBER\":\"339-52-704\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"119-10-104 מידן גרמה ג'קו ליסניג אלבר\",\"ACCNAME\":\"661031\",\"CAR_NUMBER\":\"119-10-104\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"119-12-004 נועה יוסף ג'קו ליסינג אלבר\",\"ACCNAME\":\"661033\",\"CAR_NUMBER\":\"119-12-004\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"127-36-404  לאנטרה ליסינג אלבר\",\"ACCNAME\":\"661038\",\"CAR_NUMBER\":\"127-36-404\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"126-70-204 סלבה קפלון לאנטרה ליסינג אלבר\",\"ACCNAME\":\"661039\",\"CAR_NUMBER\":\"126-70-204\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"127-36-304 מאי אביטל  לאנטרה ליסינג אלבר\",\"ACCNAME\":\"661040\",\"CAR_NUMBER\":\"127-36-304\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"237-03-704 שי חן לאנטרה ליסינג אלבר\",\"ACCNAME\":\"661041\",\"CAR_NUMBER\":\"237-03-704\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"273-12-004 שי כהן לאנטרה ליסינג אלבר\",\"ACCNAME\":\"661042\",\"CAR_NUMBER\":\"273-12-004\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"237-11-704 דודי שמיר לאנטרה ליסינג אלבר\",\"ACCNAME\":\"661043\",\"CAR_NUMBER\":\"237-11-704\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"236-76-904 ליאור ולצמן לאנטרה ליסינג אלבר\",\"ACCNAME\":\"661044\",\"CAR_NUMBER\":\"236-76-904\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"119-12-304 ששון אשר גקו  ליסינג אלבר\",\"ACCNAME\":\"661045\",\"CAR_NUMBER\":\"119-12-304\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"841-08-703 רכב שכור שי\",\"ACCNAME\":\"661050\",\"CAR_NUMBER\":\"841-08-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"232-19-664 רכב שוכר  שי יוסף\",\"ACCNAME\":\"661051\",\"CAR_NUMBER\":\"232-19-664\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"237-12-004 שי כהן\",\"ACCNAME\":\"661052\",\"CAR_NUMBER\":\"237-12-004\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"236-77-004 ליסינג דודו מאור\",\"ACCNAME\":\"661053\",\"CAR_NUMBER\":\"236-77-004\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"419-42-402 אמיל משאית שכורה\",\"ACCNAME\":\"661054\",\"CAR_NUMBER\":\"419-42-402\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"428-62-903 רכב שכור אורן אוחנה\",\"ACCNAME\":\"661055\",\"CAR_NUMBER\":\"428-62-903\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"204-33-204 וולו שי יוסף מ 18/8/25\",\"ACCNAME\":\"661056\",\"CAR_NUMBER\":\"204-33-204\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"308-73-004 משאית איסוזו ליסינג\",\"ACCNAME\":\"661057\",\"CAR_NUMBER\":\"308-73-004\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"308-73-004 משאית אחזקה\",\"ACCNAME\":\"661058\",\"CAR_NUMBER\":\"308-73-004\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"668-76-903 ליסינג טויטה מאור חדקביץ 9/25\",\"ACCNAME\":\"661059\",\"CAR_NUMBER\":\"668-76-903\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"430-34-004 לקסוס רכב חדש עידו\",\"ACCNAME\":\"661060\",\"CAR_NUMBER\":\"430-34-004\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-75-201 ליסינג תפעולי משאית איסוזו מ 2/20\",\"ACCNAME\":\"66528\",\"CAR_NUMBER\":\"651-75-201\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-75-201 אחזקת משאית איסוזו מ 2/20\",\"ACCNAME\":\"66529\",\"CAR_NUMBER\":\"651-75-201\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"718-52-002 רכב חלופי סוכן שלמה הס צ'ופי\",\"ACCNAME\":\"66563\",\"CAR_NUMBER\":\"718-52-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"367-49-101 ליסינג תפעולי משאית 12 טון מ 1/3\",\"ACCNAME\":\"66627\",\"CAR_NUMBER\":\"367-49-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"367-49-101 אחזקת משאית איסוזו\",\"ACCNAME\":\"66628\",\"CAR_NUMBER\":\"367-49-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"368-14-001 ליסינג תפעולי משאית איסוזו 9/18\",\"ACCNAME\":\"66629\",\"CAR_NUMBER\":\"368-14-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"368-14-001 אחזקת משאית איסוזו 9/18\",\"ACCNAME\":\"66630\",\"CAR_NUMBER\":\"368-14-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-57-101 אחזקת משאית איסוזו 7/19\",\"ACCNAME\":\"66631\",\"CAR_NUMBER\":\"651-57-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-57-101 ליסינג תפעולי משאית איסוזו 7/19\",\"ACCNAME\":\"66632\",\"CAR_NUMBER\":\"651-57-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-73-701 ליסינג תפעולי משאית איסוזו 11/19\",\"ACCNAME\":\"66633\",\"CAR_NUMBER\":\"651-73-701\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-73-701 אחזקת משאית איסוזו\",\"ACCNAME\":\"66634\",\"CAR_NUMBER\":\"651-73-701\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-84-401 ליסינג תפעולי משאית איסוזו מ 11/19\",\"ACCNAME\":\"66635\",\"CAR_NUMBER\":\"651-84-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-84-401 אחזקת משאית איסוזו מ 11/19\",\"ACCNAME\":\"66636\",\"CAR_NUMBER\":\"651-84-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"652-13-001 אחזקת משאית איסוזו 23/6/20 זיו היזמי\",\"ACCNAME\":\"66637\",\"CAR_NUMBER\":\"652-13-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"652-13-001 ליסינג תפעולי משאית איסוזו 23/6/20\",\"ACCNAME\":\"66638\",\"CAR_NUMBER\":\"652-13-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"217-22-902 טויטה קורולה 7/20 ערן ליבוביץ\",\"ACCNAME\":\"66639\",\"CAR_NUMBER\":\"217-22-902\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"82-588-86 רכב שכור אור (359-92-001)\",\"ACCNAME\":\"66640\",\"CAR_NUMBER\":\"359-92-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"761-37-701 טויטה לוגסי החל מ 4/2020\",\"ACCNAME\":\"66641\",\"CAR_NUMBER\":\"761-37-701\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"761-37-601 טויטה יהודה אביסרור\",\"ACCNAME\":\"66642\",\"CAR_NUMBER\":\"761-37-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"283-41-802 סקודה אוקטביה יוחנן 8/2020\",\"ACCNAME\":\"66643\",\"CAR_NUMBER\":\"283-41-802\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"108-54-402 סיטרואן ברלינגו אבנר מ 8/20\",\"ACCNAME\":\"66645\",\"CAR_NUMBER\":\"108-54-402\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"304-16-802 מאזדה שכורה לשי יוסף\",\"ACCNAME\":\"66646\",\"CAR_NUMBER\":\"304-16-802\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"323-76-902 טויטה רינת לוזון מ 10/20\",\"ACCNAME\":\"66647\",\"CAR_NUMBER\":\"323-76-902\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"סגור 239-44-902 רנו מאיר ישי מ 26/10/20\",\"ACCNAME\":\"66650\",\"CAR_NUMBER\":\"239-44-902\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"331-90-602 טויטה אלון מצקין מ 1/20\",\"ACCNAME\":\"66652\",\"CAR_NUMBER\":\"331-90-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-58-001 ליסינג תפעולי משאית הוחזרה\",\"ACCNAME\":\"66655\",\"CAR_NUMBER\":\"651-58-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"780-13-702 אחזקת משאית דאף איגו יסייב\",\"ACCNAME\":\"66656\",\"CAR_NUMBER\":\"780-13-702\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"400-88-603 ליסינג משאית תפעול איסוזו מ 4/23\",\"ACCNAME\":\"66657\",\"CAR_NUMBER\":\"400-88-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"400-88-603 אחזקת משאית איסוזו מ 4/23 דוראני אבי\",\"ACCNAME\":\"66658\",\"CAR_NUMBER\":\"400-88-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"337-07-303 מצובישי נדב\",\"ACCNAME\":\"66700\",\"CAR_NUMBER\":\"337-07-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"לא פעיל 460-96-203 רכב אבנר נמכר\",\"ACCNAME\":\"66800\",\"CAR_NUMBER\":\"460-96-203\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"לא פעיל 365-46-901 סקודה אוקטביה עד 10/22 שאוקי\",\"ACCNAME\":\"66836\",\"CAR_NUMBER\":\"365-46-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"120-17-101 אחזקת טויטה קורולה מ 4/1/18 לוגסי\",\"ACCNAME\":\"66837\",\"CAR_NUMBER\":\"120-17-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"365-02-501 אוקטביה ליסינג נעה מ4/1/18 ח 23/5\",\"ACCNAME\":\"66838\",\"CAR_NUMBER\":\"365-02-501\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"158-02-601 יטמין מלקו שכור מ 1/18 הוחזר 16/5\",\"ACCNAME\":\"66839\",\"CAR_NUMBER\":\"158-02-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"158-02-101 ארנולד אשר שכור מ 1/18 הוחזר16/5\",\"ACCNAME\":\"66840\",\"CAR_NUMBER\":\"158-02-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"205-72-901 אחזקת רנו קנגו משלוחים מ 17/5/18\",\"ACCNAME\":\"66842\",\"CAR_NUMBER\":\"205-72-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"447-42-801 טויטה ליסינג *מתן רק ליסינג\",\"ACCNAME\":\"66844\",\"CAR_NUMBER\":\"447-42-801\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"451-20-301 אחזקת טויטה  אלדר לוי  סגור\",\"ACCNAME\":\"66845\",\"CAR_NUMBER\":\"451-20-301\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"סגור 469-28-001 אחזקת טויטה 4/19  רועי אלתרמן\",\"ACCNAME\":\"66851\",\"CAR_NUMBER\":\"469-28-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"469-42-301 אחזקת טויטה 4/19  אלון סלטו\",\"ACCNAME\":\"66852\",\"CAR_NUMBER\":\"469-42-301\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"125-42-701 רכב שכור אבי מקרו\",\"ACCNAME\":\"66853\",\"CAR_NUMBER\":\"125-42-701\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"642-15-901 אחזקת סיטרואן 7/5/19 -תיקונים\",\"ACCNAME\":\"66855\",\"CAR_NUMBER\":\"642-15-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"599-97-801 מאזדה ליסינג יניב מ8/5/19\",\"ACCNAME\":\"66856\",\"CAR_NUMBER\":\"599-97-801\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"לא פעיל 761-37-701 אחזקת טויטה ארנולד מ 16/5/19\",\"ACCNAME\":\"66857\",\"CAR_NUMBER\":\"761-37-701\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"לא פעיל 761-37-601 אחזקת טויטה מלקו מ 16/5/19\",\"ACCNAME\":\"66858\",\"CAR_NUMBER\":\"761-37-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"סגור 761-38-001 אחזקת טויטה עאדל\",\"ACCNAME\":\"66859\",\"CAR_NUMBER\":\"761-38-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"761-37-401 אחזקת טויטה עותבה מ 16/5/19\",\"ACCNAME\":\"66860\",\"CAR_NUMBER\":\"761-37-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"597-06-801 מאזדה ליסינג אלעד מ 8/5/19\",\"ACCNAME\":\"66861\",\"CAR_NUMBER\":\"597-06-801\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"600-16-101 מאזדה ליסינג חן   מ 3/6/19\",\"ACCNAME\":\"66862\",\"CAR_NUMBER\":\"600-16-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"סגור 759-44-201 טויטה ליסינג אור מ 7/22\",\"ACCNAME\":\"66863\",\"CAR_NUMBER\":\"759-44-201\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"759-44-001 טויטה ליסינג מידן 6/19\",\"ACCNAME\":\"66864\",\"CAR_NUMBER\":\"759-44-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"סגור 759-43-401 טויטה ליסינג אורנה 6/19\",\"ACCNAME\":\"66865\",\"CAR_NUMBER\":\"759-43-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"סגור 808-39-301 טויטה ליסינג רון -סגור\",\"ACCNAME\":\"66871\",\"CAR_NUMBER\":\"808-39-301\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"603-37-601 מאזדה ליסינג רונן 8/19\",\"ACCNAME\":\"66872\",\"CAR_NUMBER\":\"603-37-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"368-27-901 רכב גישור אסוזו מ 21/8/19\",\"ACCNAME\":\"66873\",\"CAR_NUMBER\":\"368-27-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"830-35-401 ניסאן מקסימה 20/8/19\",\"ACCNAME\":\"66874\",\"CAR_NUMBER\":\"830-35-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-51-101 משאית שכורה/חלופית\",\"ACCNAME\":\"66878\",\"CAR_NUMBER\":\"651-51-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"879-06-301 אחזקת מרצדס מ 5/12/19\",\"ACCNAME\":\"66879\",\"CAR_NUMBER\":\"879-06-301\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"176-51-701 טויטה אוריס שכורה אור צברי 12/19\",\"ACCNAME\":\"66880\",\"CAR_NUMBER\":\"176-51-701\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"164-72-502 עידו יוסף לקסוס ליסינג\",\"ACCNAME\":\"66882\",\"CAR_NUMBER\":\"164-72-502\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"680-77-601 יהודה רכב שכור מ 2/20\",\"ACCNAME\":\"66883\",\"CAR_NUMBER\":\"680-77-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"453-49-901 רכב חלופי לוגסי\",\"ACCNAME\":\"66884\",\"CAR_NUMBER\":\"453-49-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"751-83-901 רכב חלופי לוגסי\",\"ACCNAME\":\"66885\",\"CAR_NUMBER\":\"751-83-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"368-28-401 משאית גישור מ 14/3/20\",\"ACCNAME\":\"66886\",\"CAR_NUMBER\":\"368-28-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"870-78-401 סיטרואן 6/2020\",\"ACCNAME\":\"66887\",\"CAR_NUMBER\":\"870-78-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"145-84-601 אור החלופי של מתן 44242801\",\"ACCNAME\":\"66890\",\"CAR_NUMBER\":\"145-84-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"329-26-002 טויטה ליסינג מידן 12/20\",\"ACCNAME\":\"66891\",\"CAR_NUMBER\":\"329-26-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"299-43-302 שברולט שי יוסף מ 1/2/21\",\"ACCNAME\":\"66892\",\"CAR_NUMBER\":\"299-43-302\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-58-001 משאית רכב גישור 1/21 -החוזר 4/21\",\"ACCNAME\":\"66893\",\"CAR_NUMBER\":\"651-58-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"סגור -433-74-702 טויטה ליסינג אור 3/21\",\"ACCNAME\":\"66894\",\"CAR_NUMBER\":\"433-74-702\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"569-25-102 סקודה אוטקיבה נעה 19/5/21\",\"ACCNAME\":\"66895\",\"CAR_NUMBER\":\"569-25-102\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"418-76-002 ליסינג משאית איסוזו מ 4/21\",\"ACCNAME\":\"66896\",\"CAR_NUMBER\":\"418-76-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"684-42-901 רכב חלופי אלדר לוי 6/21\",\"ACCNAME\":\"66897\",\"CAR_NUMBER\":\"684-42-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"רכב שכור גון 797-39-601\",\"ACCNAME\":\"66898\",\"CAR_NUMBER\":\"797-39-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"לא פעיל 418-76-002 תפעול משאית איסוזו מ 4/21\",\"ACCNAME\":\"66899\",\"CAR_NUMBER\":\"418-76-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"418-76-002 אחזקת משאית איסוזו מ 4/21 מלקו יטמין\",\"ACCNAME\":\"66900\",\"CAR_NUMBER\":\"418-76-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"663-78-002 ליסינג טויטה רון מ 8/21\",\"ACCNAME\":\"66901\",\"CAR_NUMBER\":\"663-78-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"596-96-101 רכב שכור מתן יוסף הוחזר 23/9\",\"ACCNAME\":\"66902\",\"CAR_NUMBER\":\"596-96-101\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"808-39-301 טויטה ליסינג בר 4/22\",\"ACCNAME\":\"66903\",\"CAR_NUMBER\":\"808-39-301\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"663-50-702 טויטה חיים הרוש מ 8/21\",\"ACCNAME\":\"66904\",\"CAR_NUMBER\":\"663-50-702\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"576-53-402 ברלינגו עומר 7/22\",\"ACCNAME\":\"66905\",\"CAR_NUMBER\":\"576-53-402\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"590-41-602 מאזדה רכב שכור מתן מ 23/9\",\"ACCNAME\":\"66906\",\"CAR_NUMBER\":\"590-41-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"419-29-602 ליסינג תפעולי משאית איסוזו 9/21\",\"ACCNAME\":\"66907\",\"CAR_NUMBER\":\"419-29-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"419-29-602 אחזקת משאית איסוזו משה בושארי\",\"ACCNAME\":\"66908\",\"CAR_NUMBER\":\"419-29-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"419-29-702 ליסינג תפעולי משאית איסוזו 9/21\",\"ACCNAME\":\"66909\",\"CAR_NUMBER\":\"419-29-702\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"419-29-702 אחזקת משאית איסוזו מאיר כהן סבן\",\"ACCNAME\":\"66910\",\"CAR_NUMBER\":\"419-29-702\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"680-53-802 נעה יוסף סיטרואן C5\",\"ACCNAME\":\"66911\",\"CAR_NUMBER\":\"680-53-802\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"714-68-302 יהודה הלפרין\",\"ACCNAME\":\"66912\",\"CAR_NUMBER\":\"714-68-302\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"873-34-202 אחזקת טויטה פאיד ראס\",\"ACCNAME\":\"66913\",\"CAR_NUMBER\":\"873-34-202\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"סגור 897-75-602 מאזדה 2 ליסינג הוחזר 6/6/23\",\"ACCNAME\":\"66914\",\"CAR_NUMBER\":\"897-75-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"152-16-003 חן לוי\",\"ACCNAME\":\"66915\",\"CAR_NUMBER\":\"152-16-003\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"152-16-103 יניב פרבדה\",\"ACCNAME\":\"66916\",\"CAR_NUMBER\":\"152-16-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"152-16-203 רונן הלפרין\",\"ACCNAME\":\"66917\",\"CAR_NUMBER\":\"152-16-203\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"152-16-303 אלעד הרשטיק\",\"ACCNAME\":\"66918\",\"CAR_NUMBER\":\"152-16-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"789-30-502 מרצדס ספרינט מיקי זיידא\",\"ACCNAME\":\"66919\",\"CAR_NUMBER\":\"789-30-502\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"363-34-502 רכב שכור אשר טלה\",\"ACCNAME\":\"66920\",\"CAR_NUMBER\":\"363-34-502\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"148-24-003 טויטה אייגו מ 7/22 רועי בר נתן\",\"ACCNAME\":\"66921\",\"CAR_NUMBER\":\"148-24-003\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"148-23-703 טויטה אייגו מ 7/22 אשר טלה\",\"ACCNAME\":\"66922\",\"CAR_NUMBER\":\"148-23-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"148-23-903 טויטה אייגו מ 7/22 ולנטין רושצין\",\"ACCNAME\":\"66923\",\"CAR_NUMBER\":\"148-23-903\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"148-23-803 טויטה אייגו מ 7/22 רובל\",\"ACCNAME\":\"66924\",\"CAR_NUMBER\":\"148-23-803\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"363-26-602 רכב שכור\",\"ACCNAME\":\"66925\",\"CAR_NUMBER\":\"363-26-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"171-60-403 קיה מאור חדקביץ\",\"ACCNAME\":\"66926\",\"CAR_NUMBER\":\"171-60-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-10-002 אחזקת משאית איסוזו מ9/22 אילן חואטו\",\"ACCNAME\":\"66927\",\"CAR_NUMBER\":\"893-10-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-10-002 ליסינג משאית איזוסו 9/22\",\"ACCNAME\":\"66928\",\"CAR_NUMBER\":\"893-10-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"219-61-203 טויטה סלבה קפלון 8/24\",\"ACCNAME\":\"66929\",\"CAR_NUMBER\":\"219-61-203\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"419-43-502 אחזקת משאית איסוזו\",\"ACCNAME\":\"66930\",\"CAR_NUMBER\":\"419-43-502\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"419-43-502 השכרה משאית איסוזו\",\"ACCNAME\":\"66931\",\"CAR_NUMBER\":\"419-43-502\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"סגור 234-08-103 סקודה אוקטביה שאוקי מ 10/22\",\"ACCNAME\":\"66932\",\"CAR_NUMBER\":\"234-08-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-11-002 ליסינג משאית איסוזו 10/22\",\"ACCNAME\":\"66933\",\"CAR_NUMBER\":\"893-11-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-11-002 אחזקת משאית איסוזו 10/22 שרון גינצלר\",\"ACCNAME\":\"66934\",\"CAR_NUMBER\":\"893-11-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"365-46-901 סקודה אוקטביה עברה למתן 1/11\",\"ACCNAME\":\"66935\",\"CAR_NUMBER\":\"365-46-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-10-102 אחזקת משאית איסוזו 10/22 אמיל שלמייב\",\"ACCNAME\":\"66936\",\"CAR_NUMBER\":\"893-10-102\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-10-102 ליסינג משאית איסוזו 10/22\",\"ACCNAME\":\"66937\",\"CAR_NUMBER\":\"893-10-102\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-17-602 ליסינג משאית איסוזו 12/22\",\"ACCNAME\":\"66939\",\"CAR_NUMBER\":\"893-17-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-17-602 אחזקת משאית איסוזו 12/22 דקל כתר\",\"ACCNAME\":\"66940\",\"CAR_NUMBER\":\"893-17-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-17-702 אחזקת משאית איסוזו 12/22 אדיר דמרי\",\"ACCNAME\":\"66941\",\"CAR_NUMBER\":\"893-17-702\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-17-702 ליסינג משאית איסוזו 12/22\",\"ACCNAME\":\"66942\",\"CAR_NUMBER\":\"893-17-702\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-17-802 ליסינג משאית איסוזו 12/22\",\"ACCNAME\":\"66943\",\"CAR_NUMBER\":\"893-17-802\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"893-17-802 אחזקת משאית איסוזו 12/22 שמעון זנבה\",\"ACCNAME\":\"66944\",\"CAR_NUMBER\":\"893-17-802\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"224-45-003 טויטה קורולה מ 12/22 אלון סלטו\",\"ACCNAME\":\"66945\",\"CAR_NUMBER\":\"224-45-003\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"222-43-303 עידו יוסף לקסוס מ 12/22\",\"ACCNAME\":\"66946\",\"CAR_NUMBER\":\"222-43-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"365-46-901 סקודה אוקטביה עברה לרועי אלתרמן 12/22\",\"ACCNAME\":\"66947\",\"CAR_NUMBER\":\"365-46-901\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"סגור 469-28-001 אחזקת טויטה 12/22 עבר לרשתות\",\"ACCNAME\":\"66948\",\"CAR_NUMBER\":\"469-28-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"סגור 759-44-201 הועבר לשירה ב 31/1/23\",\"ACCNAME\":\"66949\",\"CAR_NUMBER\":\"759-44-201\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"469-28-001 רכב אור צברי 31/1/23\",\"ACCNAME\":\"66950\",\"CAR_NUMBER\":\"469-28-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"341-14-703 אחזקת מרצדס 28/2/23 חזי דעבול\",\"ACCNAME\":\"66951\",\"CAR_NUMBER\":\"341-14-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"431-74-802 אחזקת משאית שכורה\",\"ACCNAME\":\"66952\",\"CAR_NUMBER\":\"431-74-802\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"858-23-602 רכב שכור רועי בן נתן רשתות\",\"ACCNAME\":\"66953\",\"CAR_NUMBER\":\"858-23-602\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"464-29-102 חלופי לאבנר\",\"ACCNAME\":\"66954\",\"CAR_NUMBER\":\"464-29-102\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"651-22-601 משאית שכורה\",\"ACCNAME\":\"66955\",\"CAR_NUMBER\":\"651-22-601\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"292-49-603 אחזקת  משאית דאף\",\"ACCNAME\":\"66956\",\"CAR_NUMBER\":\"292-49-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"761-38-001 ארנולד אשר רשתות 1/5/23\",\"ACCNAME\":\"66957\",\"CAR_NUMBER\":\"761-38-001\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"856-49-402 סתיו רכב שכור רשתות\",\"ACCNAME\":\"66958\",\"CAR_NUMBER\":\"856-49-402\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"458-39-503 ליסינג והוצאות  יוניון מובלטי אורנה\",\"ACCNAME\":\"66959\",\"CAR_NUMBER\":\"458-39-503\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"458-39-603 ליסינג והוצאות יוניון מובלטי שירה\",\"ACCNAME\":\"66960\",\"CAR_NUMBER\":\"458-39-603\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"459-06-303 אי גו ארביב\",\"ACCNAME\":\"66961\",\"CAR_NUMBER\":\"459-06-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"227-32-103 רכב שכור ליאור ולצמן\",\"ACCNAME\":\"66962\",\"CAR_NUMBER\":\"227-32-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"234-08-103 מאיר ישי סקודה מ 31/5/23\",\"ACCNAME\":\"66963\",\"CAR_NUMBER\":\"234-08-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"234-08-103 ליאור זלצמן סקודה מ 5/24\",\"ACCNAME\":\"669633\",\"CAR_NUMBER\":\"234-08-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"239-44-902 שאוקי רנו מ 31/5/23\",\"ACCNAME\":\"66964\",\"CAR_NUMBER\":\"239-44-902\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"460-96-203 טויטה פרואייס אבנר 21/6/23\",\"ACCNAME\":\"66965\",\"CAR_NUMBER\":\"460-96-203\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"759-43-401 בר יוסף מ 6/6/23 במקום מאזדה\",\"ACCNAME\":\"66966\",\"CAR_NUMBER\":\"759-43-401\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"585-73-403 סקודה מ 10/23 רועי אלתרמן\",\"ACCNAME\":\"66967\",\"CAR_NUMBER\":\"585-73-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"592-35-202 רכב שכור מוחמד סוכן סחר 1/1/24\",\"ACCNAME\":\"66968\",\"CAR_NUMBER\":\"592-35-202\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב הנהלה ומטה\",\"ASSDES\":\"668-76-903  סגור  ליסינג הוצאות יוניון מובילטי\",\"ACCNAME\":\"66969\",\"CAR_NUMBER\":\"668-76-903\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"668-76-803 ליסינג והוצאות יוניון מובילטי רינת\",\"ACCNAME\":\"66970\",\"CAR_NUMBER\":\"668-76-803\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"402-38-303 ליסינג תפעולי משאית איסוזו 1/24\",\"ACCNAME\":\"66971\",\"CAR_NUMBER\":\"402-38-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"402-38-303 אחזקת משאית 1/24 ברכה יוסף\",\"ACCNAME\":\"66972\",\"CAR_NUMBER\":\"402-38-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"329-26-002 ליסינג זוהר החל מ 1/3/24\",\"ACCNAME\":\"66973\",\"CAR_NUMBER\":\"329-26-002\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"323-76-902 רכב חופשי\",\"ACCNAME\":\"66974\",\"CAR_NUMBER\":\"323-76-902\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"400-94-303 אחזקת משאית איסוזו מ3/24 והאבי מתנאי\",\"ACCNAME\":\"66975\",\"CAR_NUMBER\":\"400-94-303\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"813-88-902 רכב שכור נימרוד 2/24\",\"ACCNAME\":\"66976\",\"CAR_NUMBER\":\"813-88-902\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"739-64-403 טויוה פרו רשתות אבינועם\",\"ACCNAME\":\"66977\",\"CAR_NUMBER\":\"739-64-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"147-07-703 רכב שכור עידן רשתות\",\"ACCNAME\":\"66978\",\"CAR_NUMBER\":\"147-07-703\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב מטה לוגיסטיקה\",\"ASSDES\":\"741-69-103 ליסינג והוצאות יוניון ירין לוזון\",\"ACCNAME\":\"66979\",\"CAR_NUMBER\":\"741-69-103\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק רשתות\",\"ASSDES\":\"מבוטל 747-54-403 טויטה ליסינג ירין הרנר\",\"ACCNAME\":\"66980\",\"CAR_NUMBER\":\"747-54-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"402-43-403 השכרת ואחזקת משאית מאיסוזו\",\"ACCNAME\":\"66981\",\"CAR_NUMBER\":\"402-43-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שיווק חנויות פרטיות\",\"ASSDES\":\"871-03-202 רכב שכור ראס פאיד\",\"ACCNAME\":\"66982\",\"CAR_NUMBER\":\"871-03-202\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"890-79-802 משאית שכורה\",\"ACCNAME\":\"66983\",\"CAR_NUMBER\":\"890-79-802\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב לוגיסטיקה\",\"ASSDES\":\"401-39-403 משאית שכורה\",\"ACCNAME\":\"66984\",\"CAR_NUMBER\":\"401-39-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שירות לקוחות\",\"ASSDES\":\"796-40-403 רכב שכור יצחק מקונן\",\"ACCNAME\":\"661046\",\"CAR_NUMBER\":\"796-40-403\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null},{\"key\":null,\"data\":{\"GROUP\":null,\"ASSDES\":null,\"ACCNAME\":null,\"CAR_NUMBER\":null},\"GROUP\":\"הוצאות רכב שירות לקוחות\",\"ASSDES\":\"431-57-204 צפריר רכב חדש\",\"ACCNAME\":\"661063\",\"CAR_NUMBER\":\"431-57-204\",\"__IMTINDEX__\":null,\"__IMTLENGTH__\":null}]}"
+            },
+            {
+                "name": "AZURE_RESULT",
+                "value": {
+                    "apiVersion": "2023-07-31",
+                    "modelId": "prebuilt-invoice",
+                    "stringIndexType": "textElements",
+                    "content": "טכומטר-מכון ספידומטרים\nא.ת עמק חפר ת.ד 12218\nגשר העץ 20\nטלפון: 04-8247760\n387001\nפקס 04-8247761 ת.ד 12218\nכיול ותיקון טכוגרפים וכל סוגי שעוני הרכב ומצלמות\nתאריך\n08/07/25:\nחשבונית מס 286015 NS\n* נאמן למקור *\nדף 1\nתא׳ סיום\n13:12 08/07/25\nתא׳ הפקה 29/07/25\nעוסק מורשה\n558117016\nתא׳ כניסה\n08/07/25 :\n08:27\nמוסך מורשה:\n4204\nלכבוד\nמס׳ לקוח\n3730:\nמס. כרטיס: 100233\nט.פ.י פל ים בע״מ\nסוג הרכב\n: משאית איסוזו\nדגם\n. .\nהקטיף 11\nמספר רישוי\n:\n419-29-702\nמספר שילדה:\nא.ת עמק חפר\n0\nשנת יצור\n:\nמספר מנוע\n:\nהערה\nמסירה\n:\nטל׳ נייד\n0505020057 :\nטל׳ עבודה\n098947633:\nת.זהות / ח.פ: 513327064\nקוד עבודה\nעבודות\nז. תקן\nסה״כ % הנחה סכום ש״ח\nעבודה\n150.00\n-\nקוד פריט\nחלפים\nכמות\n% הנחה יח׳ לצרכן\nסכום ש״ח\nשלט רמפה אלחוטי GALILO\n1.00\n650.00\n650.00\nמכסה סולר איסוזו\n1.00\n350.00\n350.00\n1.00\nסה״כ לעבודה\n150.00\nהערות:\nסה״כ ע. חוץ\n0.00\nסה״כ חלפים\n1,000.00\nסה״כ\n1,150.00\nמ.ע.מ.% 18.00\n207.00\nתנאי תשלום:\nלתשלום\n1,357.00\nאחריות לחלקים 3 חודשם מיום הוצאת החשבונית\nלשירותכם תמיד ..\nבכבוד רב,\nעורך\nלפרעון: 08/07/25\nטכומטר-מכון ספידומטרים\nעובד\nחתימת הלקוח/ה\nחתימת המאשר /ת:\nתכנון ויישום: אייל פתרונות תוכנה בע״מ\nמסמך ממוחשב\nאחראי\nחתום דיגיטלית\nקארדקום בע״מ",
+                    "pages": [
+                        {
+                            "pageNumber": 1,
+                            "angle": 0,
+                            "width": 8.25,
+                            "height": 11.6806,
+                            "unit": "inch",
+                            "words": [
+                                {
+                                    "content": "טכומטר-מכון",
+                                    "polygon": [
+                                        5.6386,
+                                        0.1217,
+                                        7.3423,
+                                        0.1267,
+                                        7.3423,
+                                        0.3701,
+                                        5.6386,
+                                        0.3802
+                                    ],
+                                    "confidence": 0.92,
+                                    "span": {
+                                        "offset": 0,
+                                        "length": 11
+                                    }
+                                },
+                                {
+                                    "content": "ספידומטרים",
+                                    "polygon": [
+                                        4.087,
+                                        0.1166,
+                                        5.593,
+                                        0.1217,
+                                        5.593,
+                                        0.3802,
+                                        4.087,
+                                        0.3752
+                                    ],
+                                    "confidence": 0.959,
+                                    "span": {
+                                        "offset": 12,
+                                        "length": 10
+                                    }
+                                },
+                                {
+                                    "content": "א.ת",
+                                    "polygon": [
+                                        7.1294,
+                                        0.4411,
+                                        7.3221,
+                                        0.436,
+                                        7.317,
+                                        0.583,
+                                        7.1294,
+                                        0.583
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 23,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "עמק",
+                                    "polygon": [
+                                        6.8201,
+                                        0.4411,
+                                        7.0685,
+                                        0.4411,
+                                        7.0685,
+                                        0.583,
+                                        6.8201,
+                                        0.5779
+                                    ],
+                                    "confidence": 0.977,
+                                    "span": {
+                                        "offset": 27,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "חפר",
+                                    "polygon": [
+                                        6.5361,
+                                        0.4411,
+                                        6.7846,
+                                        0.4411,
+                                        6.7846,
+                                        0.5779,
+                                        6.5412,
+                                        0.5779
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 31,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "ת.ד",
+                                    "polygon": [
+                                        6.2826,
+                                        0.4411,
+                                        6.5108,
+                                        0.4411,
+                                        6.5158,
+                                        0.5779,
+                                        6.2876,
+                                        0.5779
+                                    ],
+                                    "confidence": 0.916,
+                                    "span": {
+                                        "offset": 35,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "12218",
+                                    "polygon": [
+                                        5.8921,
+                                        0.4461,
+                                        6.2522,
+                                        0.4411,
+                                        6.2522,
+                                        0.5779,
+                                        5.9023,
+                                        0.5779
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 39,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "גשר",
+                                    "polygon": [
+                                        7.104,
+                                        0.6084,
+                                        7.3322,
+                                        0.6084,
+                                        7.3322,
+                                        0.73,
+                                        7.1091,
+                                        0.73
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 45,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "העץ",
+                                    "polygon": [
+                                        6.7947,
+                                        0.6084,
+                                        7.0685,
+                                        0.6084,
+                                        7.0685,
+                                        0.73,
+                                        6.7947,
+                                        0.73
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 49,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "20",
+                                    "polygon": [
+                                        6.6172,
+                                        0.6134,
+                                        6.7694,
+                                        0.6084,
+                                        6.7694,
+                                        0.73,
+                                        6.6172,
+                                        0.73
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 53,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "טלפון:",
+                                    "polygon": [
+                                        6.9367,
+                                        0.73,
+                                        7.3373,
+                                        0.725,
+                                        7.3423,
+                                        0.8568,
+                                        6.9367,
+                                        0.8568
+                                    ],
+                                    "confidence": 0.962,
+                                    "span": {
+                                        "offset": 56,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "04-8247760",
+                                    "polygon": [
+                                        6.0899,
+                                        0.7351,
+                                        6.7846,
+                                        0.73,
+                                        6.7846,
+                                        0.8568,
+                                        6.0899,
+                                        0.8517
+                                    ],
+                                    "confidence": 0.941,
+                                    "span": {
+                                        "offset": 63,
+                                        "length": 10
+                                    }
+                                },
+                                {
+                                    "content": "387001",
+                                    "polygon": [
+                                        5.527,
+                                        0.6134,
+                                        5.9479,
+                                        0.6084,
+                                        5.9479,
+                                        0.73,
+                                        5.527,
+                                        0.73
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 74,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "פקס",
+                                    "polygon": [
+                                        7.1192,
+                                        1.384,
+                                        7.3373,
+                                        1.3891,
+                                        7.3373,
+                                        1.5209,
+                                        7.1192,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 81,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "04-8247761",
+                                    "polygon": [
+                                        6.4398,
+                                        1.384,
+                                        7.0736,
+                                        1.384,
+                                        7.0736,
+                                        1.5209,
+                                        6.4398,
+                                        1.5158
+                                    ],
+                                    "confidence": 0.959,
+                                    "span": {
+                                        "offset": 85,
+                                        "length": 10
+                                    }
+                                },
+                                {
+                                    "content": "ת.ד",
+                                    "polygon": [
+                                        6.1355,
+                                        1.384,
+                                        6.3485,
+                                        1.384,
+                                        6.3485,
+                                        1.5108,
+                                        6.1406,
+                                        1.5108
+                                    ],
+                                    "confidence": 0.967,
+                                    "span": {
+                                        "offset": 96,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "12218",
+                                    "polygon": [
+                                        5.7755,
+                                        1.384,
+                                        6.1102,
+                                        1.384,
+                                        6.1152,
+                                        1.5108,
+                                        5.7806,
+                                        1.5108
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 100,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "כיול",
+                                    "polygon": [
+                                        4.5383,
+                                        1.3688,
+                                        4.7817,
+                                        1.3688,
+                                        4.7817,
+                                        1.5209,
+                                        4.5383,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 106,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "ותיקון",
+                                    "polygon": [
+                                        4.1427,
+                                        1.3637,
+                                        4.5078,
+                                        1.3637,
+                                        4.5078,
+                                        1.5209,
+                                        4.1427,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.969,
+                                    "span": {
+                                        "offset": 111,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "טכוגרפים",
+                                    "polygon": [
+                                        3.6205,
+                                        1.3637,
+                                        4.1123,
+                                        1.3637,
+                                        4.1123,
+                                        1.5209,
+                                        3.6205,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.955,
+                                    "span": {
+                                        "offset": 118,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "וכל",
+                                    "polygon": [
+                                        3.3771,
+                                        1.3637,
+                                        3.59,
+                                        1.3637,
+                                        3.59,
+                                        1.5209,
+                                        3.3771,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 127,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "סוגי",
+                                    "polygon": [
+                                        3.0931,
+                                        1.3637,
+                                        3.3467,
+                                        1.3637,
+                                        3.3467,
+                                        1.5209,
+                                        3.0931,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 131,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "שעוני",
+                                    "polygon": [
+                                        2.7534,
+                                        1.3688,
+                                        3.0627,
+                                        1.3637,
+                                        3.0627,
+                                        1.5209,
+                                        2.7585,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.935,
+                                    "span": {
+                                        "offset": 136,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "הרכב",
+                                    "polygon": [
+                                        2.4491,
+                                        1.3688,
+                                        2.723,
+                                        1.3688,
+                                        2.728,
+                                        1.5209,
+                                        2.4491,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 142,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "ומצלמות",
+                                    "polygon": [
+                                        1.937,
+                                        1.3688,
+                                        2.4187,
+                                        1.3688,
+                                        2.4187,
+                                        1.5209,
+                                        1.9421,
+                                        1.5209
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 147,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "תאריך",
+                                    "polygon": [
+                                        6.9367,
+                                        1.597,
+                                        7.3271,
+                                        1.5919,
+                                        7.3322,
+                                        1.7643,
+                                        6.9418,
+                                        1.7643
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 155,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "08/07/25:",
+                                    "polygon": [
+                                        6.0899,
+                                        1.5868,
+                                        6.7643,
+                                        1.5868,
+                                        6.7694,
+                                        1.7643,
+                                        6.0899,
+                                        1.7592
+                                    ],
+                                    "confidence": 0.815,
+                                    "span": {
+                                        "offset": 161,
+                                        "length": 9
+                                    }
+                                },
+                                {
+                                    "content": "חשבונית",
+                                    "polygon": [
+                                        4.736,
+                                        1.6527,
+                                        5.3344,
+                                        1.6578,
+                                        5.3344,
+                                        1.8251,
+                                        4.736,
+                                        1.8302
+                                    ],
+                                    "confidence": 0.975,
+                                    "span": {
+                                        "offset": 171,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "מס",
+                                    "polygon": [
+                                        4.447,
+                                        1.6527,
+                                        4.6701,
+                                        1.6527,
+                                        4.6701,
+                                        1.8302,
+                                        4.447,
+                                        1.8302
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 179,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "286015",
+                                    "polygon": [
+                                        3.8486,
+                                        1.6476,
+                                        4.3912,
+                                        1.6527,
+                                        4.3912,
+                                        1.8302,
+                                        3.8486,
+                                        1.8302
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 182,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "NS",
+                                    "polygon": [
+                                        3.59,
+                                        1.6476,
+                                        3.8132,
+                                        1.6476,
+                                        3.8132,
+                                        1.8302,
+                                        3.59,
+                                        1.8302
+                                    ],
+                                    "confidence": 0.773,
+                                    "span": {
+                                        "offset": 189,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "*",
+                                    "polygon": [
+                                        2.6165,
+                                        1.6578,
+                                        2.7077,
+                                        1.6578,
+                                        2.7128,
+                                        1.82,
+                                        2.6215,
+                                        1.8302
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 192,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "נאמן",
+                                    "polygon": [
+                                        2.2412,
+                                        1.6578,
+                                        2.581,
+                                        1.6578,
+                                        2.586,
+                                        1.8302,
+                                        2.2412,
+                                        1.8454
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 194,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "למקור",
+                                    "polygon": [
+                                        1.7747,
+                                        1.6629,
+                                        2.2057,
+                                        1.6578,
+                                        2.2057,
+                                        1.8454,
+                                        1.7697,
+                                        1.8302
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 199,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "*",
+                                    "polygon": [
+                                        1.6683,
+                                        1.6679,
+                                        1.7392,
+                                        1.6629,
+                                        1.7342,
+                                        1.8251,
+                                        1.6683,
+                                        1.82
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 205,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "דף",
+                                    "polygon": [
+                                        1.1358,
+                                        1.6071,
+                                        1.2981,
+                                        1.6071,
+                                        1.2981,
+                                        1.7795,
+                                        1.1358,
+                                        1.7795
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 207,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "1",
+                                    "polygon": [
+                                        1.0446,
+                                        1.6071,
+                                        1.0953,
+                                        1.6071,
+                                        1.0953,
+                                        1.7795,
+                                        1.0446,
+                                        1.7795
+                                    ],
+                                    "confidence": 0.862,
+                                    "span": {
+                                        "offset": 210,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "תא׳",
+                                    "polygon": [
+                                        7.0685,
+                                        1.8859,
+                                        7.3373,
+                                        1.8809,
+                                        7.3373,
+                                        2.0532,
+                                        7.0685,
+                                        2.0532
+                                    ],
+                                    "confidence": 0.866,
+                                    "span": {
+                                        "offset": 212,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "סיום",
+                                    "polygon": [
+                                        6.8049,
+                                        1.8859,
+                                        7.0381,
+                                        1.8859,
+                                        7.033,
+                                        2.0532,
+                                        6.7998,
+                                        2.0532
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 216,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "13:12",
+                                    "polygon": [
+                                        5.3851,
+                                        1.8859,
+                                        5.7603,
+                                        1.8859,
+                                        5.7552,
+                                        2.0583,
+                                        5.38,
+                                        2.0684
+                                    ],
+                                    "confidence": 0.95,
+                                    "span": {
+                                        "offset": 221,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "08/07/25",
+                                    "polygon": [
+                                        5.8465,
+                                        1.8859,
+                                        6.4296,
+                                        1.8859,
+                                        6.4347,
+                                        2.0583,
+                                        5.8465,
+                                        2.0583
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 227,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "תא׳",
+                                    "polygon": [
+                                        4.4318,
+                                        1.8859,
+                                        4.7005,
+                                        1.8859,
+                                        4.7005,
+                                        2.0532,
+                                        4.4318,
+                                        2.0532
+                                    ],
+                                    "confidence": 0.868,
+                                    "span": {
+                                        "offset": 236,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "הפקה",
+                                    "polygon": [
+                                        4.0616,
+                                        1.891,
+                                        4.3963,
+                                        1.8859,
+                                        4.3963,
+                                        2.0532,
+                                        4.0616,
+                                        2.0583
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 240,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "29/07/25",
+                                    "polygon": [
+                                        3.3112,
+                                        1.8859,
+                                        3.8841,
+                                        1.891,
+                                        3.8841,
+                                        2.0583,
+                                        3.3112,
+                                        2.0583
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 245,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "עוסק",
+                                    "polygon": [
+                                        2.3832,
+                                        1.9011,
+                                        2.6469,
+                                        1.9011,
+                                        2.6469,
+                                        2.038,
+                                        2.3883,
+                                        2.0329
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 254,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "מורשה",
+                                    "polygon": [
+                                        1.9928,
+                                        1.9062,
+                                        2.3528,
+                                        1.9011,
+                                        2.3528,
+                                        2.0329,
+                                        1.9978,
+                                        2.038
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 259,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "558117016",
+                                    "polygon": [
+                                        0.9837,
+                                        1.9163,
+                                        1.6328,
+                                        1.9113,
+                                        1.6378,
+                                        2.0329,
+                                        0.9837,
+                                        2.0329
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 265,
+                                        "length": 9
+                                    }
+                                },
+                                {
+                                    "content": "תא׳",
+                                    "polygon": [
+                                        7.0888,
+                                        2.0684,
+                                        7.3322,
+                                        2.0684,
+                                        7.3373,
+                                        2.1952,
+                                        7.0939,
+                                        2.1952
+                                    ],
+                                    "confidence": 0.873,
+                                    "span": {
+                                        "offset": 275,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "כניסה",
+                                    "polygon": [
+                                        6.7389,
+                                        2.0735,
+                                        7.0635,
+                                        2.0684,
+                                        7.0685,
+                                        2.2002,
+                                        6.7389,
+                                        2.2002
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 279,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "08/07/25",
+                                    "polygon": [
+                                        5.8516,
+                                        2.0684,
+                                        6.4093,
+                                        2.0684,
+                                        6.4093,
+                                        2.2104,
+                                        5.8516,
+                                        2.2053
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 285,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        6.4651,
+                                        2.0735,
+                                        6.5463,
+                                        2.0735,
+                                        6.5463,
+                                        2.2104,
+                                        6.4651,
+                                        2.2104
+                                    ],
+                                    "confidence": 0.919,
+                                    "span": {
+                                        "offset": 294,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "08:27",
+                                    "polygon": [
+                                        5.4053,
+                                        2.0634,
+                                        5.74,
+                                        2.0634,
+                                        5.74,
+                                        2.1952,
+                                        5.4053,
+                                        2.1952
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 296,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "מוסך",
+                                    "polygon": [
+                                        2.3883,
+                                        2.0684,
+                                        2.6722,
+                                        2.0684,
+                                        2.6722,
+                                        2.2104,
+                                        2.3934,
+                                        2.2104
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 302,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "מורשה:",
+                                    "polygon": [
+                                        1.9066,
+                                        2.0735,
+                                        2.3477,
+                                        2.0684,
+                                        2.3477,
+                                        2.2104,
+                                        1.9116,
+                                        2.2053
+                                    ],
+                                    "confidence": 0.954,
+                                    "span": {
+                                        "offset": 307,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "4204",
+                                    "polygon": [
+                                        1.3234,
+                                        2.0786,
+                                        1.6125,
+                                        2.0786,
+                                        1.6125,
+                                        2.1952,
+                                        1.3234,
+                                        2.1952
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 314,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "לכבוד",
+                                    "polygon": [
+                                        6.9519,
+                                        2.5653,
+                                        7.2866,
+                                        2.5653,
+                                        7.2916,
+                                        2.692,
+                                        6.9519,
+                                        2.692
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 319,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "מס׳",
+                                    "polygon": [
+                                        4.8932,
+                                        2.5653,
+                                        5.1315,
+                                        2.5602,
+                                        5.1315,
+                                        2.7072,
+                                        4.8983,
+                                        2.7072
+                                    ],
+                                    "confidence": 0.886,
+                                    "span": {
+                                        "offset": 325,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "לקוח",
+                                    "polygon": [
+                                        4.594,
+                                        2.5653,
+                                        4.8679,
+                                        2.5653,
+                                        4.8679,
+                                        2.7072,
+                                        4.5991,
+                                        2.7123
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 329,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "3730:",
+                                    "polygon": [
+                                        4.0058,
+                                        2.5754,
+                                        4.3861,
+                                        2.5754,
+                                        4.3861,
+                                        2.7021,
+                                        4.0058,
+                                        2.7021
+                                    ],
+                                    "confidence": 0.932,
+                                    "span": {
+                                        "offset": 334,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "מס.",
+                                    "polygon": [
+                                        2.8244,
+                                        2.5703,
+                                        3.0576,
+                                        2.5703,
+                                        3.0576,
+                                        2.7021,
+                                        2.8244,
+                                        2.7021
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 340,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "כרטיס:",
+                                    "polygon": [
+                                        2.2565,
+                                        2.5754,
+                                        2.799,
+                                        2.5703,
+                                        2.799,
+                                        2.7021,
+                                        2.2565,
+                                        2.7021
+                                    ],
+                                    "confidence": 0.972,
+                                    "span": {
+                                        "offset": 344,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "100233",
+                                    "polygon": [
+                                        1.7849,
+                                        2.5754,
+                                        2.226,
+                                        2.5754,
+                                        2.226,
+                                        2.7021,
+                                        1.79,
+                                        2.7021
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 351,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "ט.פ.י",
+                                    "polygon": [
+                                        6.9925,
+                                        2.7376,
+                                        7.2916,
+                                        2.7376,
+                                        7.2916,
+                                        2.8644,
+                                        6.9925,
+                                        2.8644
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 358,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "פל",
+                                    "polygon": [
+                                        6.8302,
+                                        2.7376,
+                                        6.9671,
+                                        2.7376,
+                                        6.9722,
+                                        2.8644,
+                                        6.8302,
+                                        2.8644
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 364,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "ים",
+                                    "polygon": [
+                                        6.6781,
+                                        2.7376,
+                                        6.8049,
+                                        2.7376,
+                                        6.8049,
+                                        2.8644,
+                                        6.6781,
+                                        2.8644
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 367,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "בע״מ",
+                                    "polygon": [
+                                        6.3586,
+                                        2.7376,
+                                        6.6426,
+                                        2.7376,
+                                        6.6426,
+                                        2.8644,
+                                        6.3586,
+                                        2.8644
+                                    ],
+                                    "confidence": 0.925,
+                                    "span": {
+                                        "offset": 370,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "סוג",
+                                    "polygon": [
+                                        4.9439,
+                                        2.7478,
+                                        5.1265,
+                                        2.7427,
+                                        5.1265,
+                                        2.8796,
+                                        4.9439,
+                                        2.8745
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 375,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "הרכב",
+                                    "polygon": [
+                                        4.6295,
+                                        2.7478,
+                                        4.9186,
+                                        2.7478,
+                                        4.9186,
+                                        2.8745,
+                                        4.6346,
+                                        2.8796
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 379,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        4.305,
+                                        2.7427,
+                                        4.376,
+                                        2.7427,
+                                        4.3709,
+                                        2.8847,
+                                        4.2999,
+                                        2.8796
+                                    ],
+                                    "confidence": 0.96,
+                                    "span": {
+                                        "offset": 384,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "משאית",
+                                    "polygon": [
+                                        3.9095,
+                                        2.7427,
+                                        4.2746,
+                                        2.7427,
+                                        4.2746,
+                                        2.8796,
+                                        3.9095,
+                                        2.8796
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 386,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "איסוזו",
+                                    "polygon": [
+                                        3.4633,
+                                        2.7478,
+                                        3.8334,
+                                        2.7427,
+                                        3.8334,
+                                        2.8796,
+                                        3.4633,
+                                        2.8796
+                                    ],
+                                    "confidence": 0.935,
+                                    "span": {
+                                        "offset": 392,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "דגם",
+                                    "polygon": [
+                                        2.87,
+                                        2.7478,
+                                        3.0627,
+                                        2.7478,
+                                        3.0627,
+                                        2.8694,
+                                        2.87,
+                                        2.8694
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 399,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": ".",
+                                    "polygon": [
+                                        2.3072,
+                                        2.7934,
+                                        2.3072,
+                                        2.8086,
+                                        2.2717,
+                                        2.8086,
+                                        2.2717,
+                                        2.7934
+                                    ],
+                                    "confidence": 0.65,
+                                    "span": {
+                                        "offset": 403,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": ".",
+                                    "polygon": [
+                                        2.3072,
+                                        2.839,
+                                        2.3072,
+                                        2.8644,
+                                        2.2717,
+                                        2.8644,
+                                        2.2717,
+                                        2.839
+                                    ],
+                                    "confidence": 0.954,
+                                    "span": {
+                                        "offset": 405,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "הקטיף",
+                                    "polygon": [
+                                        6.9468,
+                                        2.9151,
+                                        7.2967,
+                                        2.9049,
+                                        7.3018,
+                                        3.0418,
+                                        6.9468,
+                                        3.0367
+                                    ],
+                                    "confidence": 0.965,
+                                    "span": {
+                                        "offset": 407,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "11",
+                                    "polygon": [
+                                        6.7744,
+                                        2.9151,
+                                        6.8961,
+                                        2.9151,
+                                        6.9012,
+                                        3.0317,
+                                        6.7744,
+                                        3.0317
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 413,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "מספר",
+                                    "polygon": [
+                                        4.8526,
+                                        2.9049,
+                                        5.1417,
+                                        2.91,
+                                        5.1417,
+                                        3.0367,
+                                        4.8526,
+                                        3.0266
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 416,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "רישוי",
+                                    "polygon": [
+                                        4.4926,
+                                        2.91,
+                                        4.8222,
+                                        2.9049,
+                                        4.8222,
+                                        3.0266,
+                                        4.4977,
+                                        3.0266
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 421,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        4.3456,
+                                        2.9201,
+                                        4.3912,
+                                        2.9201,
+                                        4.3912,
+                                        3.0266,
+                                        4.3456,
+                                        3.0266
+                                    ],
+                                    "confidence": 0.939,
+                                    "span": {
+                                        "offset": 427,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "419-29-702",
+                                    "polygon": [
+                                        3.3974,
+                                        2.9151,
+                                        4.0768,
+                                        2.91,
+                                        4.0768,
+                                        3.052,
+                                        3.3974,
+                                        3.0418
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 429,
+                                        "length": 10
+                                    }
+                                },
+                                {
+                                    "content": "מספר",
+                                    "polygon": [
+                                        2.7737,
+                                        2.8999,
+                                        3.0576,
+                                        2.9049,
+                                        3.0576,
+                                        3.0317,
+                                        2.7737,
+                                        3.0317
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 440,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "שילדה:",
+                                    "polygon": [
+                                        2.2767,
+                                        2.9201,
+                                        2.723,
+                                        2.8999,
+                                        2.728,
+                                        3.0317,
+                                        2.2818,
+                                        3.0317
+                                    ],
+                                    "confidence": 0.934,
+                                    "span": {
+                                        "offset": 445,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "א.ת",
+                                    "polygon": [
+                                        7.0939,
+                                        3.0824,
+                                        7.2714,
+                                        3.0824,
+                                        7.2764,
+                                        3.2091,
+                                        7.099,
+                                        3.2091
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 452,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "עמק",
+                                    "polygon": [
+                                        6.8099,
+                                        3.0824,
+                                        7.0381,
+                                        3.0824,
+                                        7.0432,
+                                        3.2091,
+                                        6.815,
+                                        3.2091
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 456,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "חפר",
+                                    "polygon": [
+                                        6.5615,
+                                        3.0874,
+                                        6.7846,
+                                        3.0824,
+                                        6.7896,
+                                        3.2091,
+                                        6.5615,
+                                        3.2091
+                                    ],
+                                    "confidence": 0.979,
+                                    "span": {
+                                        "offset": 460,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "0",
+                                    "polygon": [
+                                        5.8972,
+                                        3.0925,
+                                        5.9581,
+                                        3.0925,
+                                        5.953,
+                                        3.204,
+                                        5.8921,
+                                        3.199
+                                    ],
+                                    "confidence": 0.947,
+                                    "span": {
+                                        "offset": 464,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "שנת",
+                                    "polygon": [
+                                        4.9338,
+                                        3.0824,
+                                        5.1214,
+                                        3.0773,
+                                        5.1315,
+                                        3.2091,
+                                        4.9388,
+                                        3.204
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 466,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "יצור",
+                                    "polygon": [
+                                        4.6498,
+                                        3.0824,
+                                        4.8881,
+                                        3.0824,
+                                        4.8932,
+                                        3.204,
+                                        4.6549,
+                                        3.2091
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 470,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        4.3506,
+                                        3.1026,
+                                        4.4014,
+                                        3.1026,
+                                        4.3963,
+                                        3.2091,
+                                        4.3456,
+                                        3.204
+                                    ],
+                                    "confidence": 0.954,
+                                    "span": {
+                                        "offset": 475,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "מספר",
+                                    "polygon": [
+                                        2.7737,
+                                        3.0773,
+                                        3.0627,
+                                        3.0824,
+                                        3.0627,
+                                        3.2091,
+                                        2.7737,
+                                        3.2091
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 477,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "מנוע",
+                                    "polygon": [
+                                        2.4745,
+                                        3.0824,
+                                        2.7432,
+                                        3.0773,
+                                        2.7432,
+                                        3.2091,
+                                        2.4745,
+                                        3.2091
+                                    ],
+                                    "confidence": 0.966,
+                                    "span": {
+                                        "offset": 482,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        2.2666,
+                                        3.1026,
+                                        2.3173,
+                                        3.1026,
+                                        2.3173,
+                                        3.2091,
+                                        2.2666,
+                                        3.2091
+                                    ],
+                                    "confidence": 0.92,
+                                    "span": {
+                                        "offset": 487,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "הערה",
+                                    "polygon": [
+                                        2.7635,
+                                        3.2699,
+                                        3.0728,
+                                        3.2649,
+                                        3.0779,
+                                        3.3916,
+                                        2.7635,
+                                        3.3967
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 489,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "מסירה",
+                                    "polygon": [
+                                        4.8121,
+                                        3.417,
+                                        5.1265,
+                                        3.417,
+                                        5.1265,
+                                        3.5386,
+                                        4.8121,
+                                        3.5386
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 494,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        4.3304,
+                                        3.4322,
+                                        4.3659,
+                                        3.4322,
+                                        4.3659,
+                                        3.5386,
+                                        4.3304,
+                                        3.5386
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 500,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "טל׳",
+                                    "polygon": [
+                                        2.8396,
+                                        3.4068,
+                                        3.0475,
+                                        3.4068,
+                                        3.0475,
+                                        3.5285,
+                                        2.8396,
+                                        3.5234
+                                    ],
+                                    "confidence": 0.876,
+                                    "span": {
+                                        "offset": 502,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "נייד",
+                                    "polygon": [
+                                        2.6165,
+                                        3.417,
+                                        2.8142,
+                                        3.4068,
+                                        2.8193,
+                                        3.5234,
+                                        2.6215,
+                                        3.5234
+                                    ],
+                                    "confidence": 0.962,
+                                    "span": {
+                                        "offset": 506,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "0505020057",
+                                    "polygon": [
+                                        1.4806,
+                                        3.4271,
+                                        2.2007,
+                                        3.422,
+                                        2.1956,
+                                        3.5437,
+                                        1.4806,
+                                        3.5437
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 511,
+                                        "length": 10
+                                    }
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        2.2514,
+                                        3.4271,
+                                        2.3072,
+                                        3.4271,
+                                        2.3072,
+                                        3.5437,
+                                        2.2514,
+                                        3.5437
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 522,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "טל׳",
+                                    "polygon": [
+                                        7.0635,
+                                        3.5691,
+                                        7.317,
+                                        3.5691,
+                                        7.3221,
+                                        3.7516,
+                                        7.0635,
+                                        3.7516
+                                    ],
+                                    "confidence": 0.849,
+                                    "span": {
+                                        "offset": 524,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "עבודה",
+                                    "polygon": [
+                                        6.7339,
+                                        3.5691,
+                                        7.028,
+                                        3.5691,
+                                        7.028,
+                                        3.7566,
+                                        6.7339,
+                                        3.7566
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 528,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "098947633:",
+                                    "polygon": [
+                                        5.7704,
+                                        3.6045,
+                                        6.5108,
+                                        3.6045,
+                                        6.5108,
+                                        3.7364,
+                                        5.7755,
+                                        3.7364
+                                    ],
+                                    "confidence": 0.832,
+                                    "span": {
+                                        "offset": 534,
+                                        "length": 10
+                                    }
+                                },
+                                {
+                                    "content": "ת.זהות",
+                                    "polygon": [
+                                        4.7766,
+                                        3.5691,
+                                        5.1315,
+                                        3.5691,
+                                        5.1366,
+                                        3.7009,
+                                        4.7817,
+                                        3.7059
+                                    ],
+                                    "confidence": 0.951,
+                                    "span": {
+                                        "offset": 545,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "/",
+                                    "polygon": [
+                                        4.6397,
+                                        3.564,
+                                        4.7259,
+                                        3.564,
+                                        4.7259,
+                                        3.7059,
+                                        4.6447,
+                                        3.7059
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 552,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "ח.פ:",
+                                    "polygon": [
+                                        4.3202,
+                                        3.564,
+                                        4.6143,
+                                        3.564,
+                                        4.6143,
+                                        3.7059,
+                                        4.3253,
+                                        3.711
+                                    ],
+                                    "confidence": 0.92,
+                                    "span": {
+                                        "offset": 554,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "513327064",
+                                    "polygon": [
+                                        3.6458,
+                                        3.5691,
+                                        4.2949,
+                                        3.564,
+                                        4.2949,
+                                        3.711,
+                                        3.6509,
+                                        3.7059
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 559,
+                                        "length": 9
+                                    }
+                                },
+                                {
+                                    "content": "קוד",
+                                    "polygon": [
+                                        7.028,
+                                        4.147,
+                                        7.2409,
+                                        4.1521,
+                                        7.2409,
+                                        4.2991,
+                                        7.028,
+                                        4.294
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 569,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "עבודה",
+                                    "polygon": [
+                                        6.6325,
+                                        4.147,
+                                        6.9925,
+                                        4.147,
+                                        6.9925,
+                                        4.294,
+                                        6.6325,
+                                        4.289
+                                    ],
+                                    "confidence": 0.954,
+                                    "span": {
+                                        "offset": 573,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "עבודות",
+                                    "polygon": [
+                                        4.7056,
+                                        4.1166,
+                                        5.1518,
+                                        4.1166,
+                                        5.1518,
+                                        4.2687,
+                                        4.7107,
+                                        4.2687
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 579,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "ז.",
+                                    "polygon": [
+                                        3.3821,
+                                        4.1724,
+                                        3.4988,
+                                        4.1724,
+                                        3.4988,
+                                        4.2991,
+                                        3.3821,
+                                        4.2991
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 586,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "תקן",
+                                    "polygon": [
+                                        3.1793,
+                                        4.1724,
+                                        3.3568,
+                                        4.1724,
+                                        3.3568,
+                                        4.2991,
+                                        3.1793,
+                                        4.2991
+                                    ],
+                                    "confidence": 0.964,
+                                    "span": {
+                                        "offset": 589,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "סה״כ",
+                                    "polygon": [
+                                        2.5252,
+                                        4.1774,
+                                        2.8345,
+                                        4.1774,
+                                        2.8345,
+                                        4.3092,
+                                        2.5252,
+                                        4.3143
+                                    ],
+                                    "confidence": 0.966,
+                                    "span": {
+                                        "offset": 593,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "%",
+                                    "polygon": [
+                                        2.1753,
+                                        4.1774,
+                                        2.2565,
+                                        4.1774,
+                                        2.2565,
+                                        4.3143,
+                                        2.1753,
+                                        4.3194
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 598,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "הנחה",
+                                    "polygon": [
+                                        1.8052,
+                                        4.1774,
+                                        2.1043,
+                                        4.1774,
+                                        2.1043,
+                                        4.3194,
+                                        1.8052,
+                                        4.3194
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 600,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "סכום",
+                                    "polygon": [
+                                        1.4096,
+                                        4.1774,
+                                        1.6987,
+                                        4.1774,
+                                        1.6987,
+                                        4.3194,
+                                        1.4096,
+                                        4.3143
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 605,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "ש״ח",
+                                    "polygon": [
+                                        1.1206,
+                                        4.1774,
+                                        1.3488,
+                                        4.1774,
+                                        1.3488,
+                                        4.3143,
+                                        1.1206,
+                                        4.3092
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 610,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "עבודה",
+                                    "polygon": [
+                                        5.9428,
+                                        4.3397,
+                                        6.2927,
+                                        4.3397,
+                                        6.2927,
+                                        4.4765,
+                                        5.9428,
+                                        4.4765
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 614,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "150.00",
+                                    "polygon": [
+                                        1.293,
+                                        4.3498,
+                                        1.7088,
+                                        4.3498,
+                                        1.7088,
+                                        4.4765,
+                                        1.3032,
+                                        4.4664
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 620,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "-",
+                                    "polygon": [
+                                        2.2565,
+                                        4.5475,
+                                        2.2565,
+                                        4.6083,
+                                        2.155,
+                                        4.6083,
+                                        2.155,
+                                        4.5475
+                                    ],
+                                    "confidence": 0.727,
+                                    "span": {
+                                        "offset": 627,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "קוד",
+                                    "polygon": [
+                                        6.7085,
+                                        4.8618,
+                                        6.9113,
+                                        4.8618,
+                                        6.9113,
+                                        5.0038,
+                                        6.7085,
+                                        4.9987
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 629,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "פריט",
+                                    "polygon": [
+                                        6.3789,
+                                        4.8568,
+                                        6.673,
+                                        4.8618,
+                                        6.6781,
+                                        4.9987,
+                                        6.384,
+                                        4.9987
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 633,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "חלפים",
+                                    "polygon": [
+                                        4.5839,
+                                        4.8416,
+                                        5.2127,
+                                        4.8416,
+                                        5.2127,
+                                        5.0088,
+                                        4.589,
+                                        5.0139
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 638,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "כמות",
+                                    "polygon": [
+                                        3.3821,
+                                        4.8517,
+                                        3.6712,
+                                        4.8568,
+                                        3.6712,
+                                        4.9936,
+                                        3.3771,
+                                        4.9886
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 644,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "%",
+                                    "polygon": [
+                                        3.0171,
+                                        4.8517,
+                                        3.1134,
+                                        4.8517,
+                                        3.1134,
+                                        5.0038,
+                                        3.0221,
+                                        5.0038
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 649,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "הנחה",
+                                    "polygon": [
+                                        2.652,
+                                        4.8466,
+                                        2.9613,
+                                        4.8517,
+                                        2.9613,
+                                        5.0038,
+                                        2.657,
+                                        5.0038
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 651,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "יח׳",
+                                    "polygon": [
+                                        2.3477,
+                                        4.8466,
+                                        2.5759,
+                                        4.8466,
+                                        2.5759,
+                                        5.0038,
+                                        2.3528,
+                                        5.0038
+                                    ],
+                                    "confidence": 0.87,
+                                    "span": {
+                                        "offset": 656,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "לצרכן",
+                                    "polygon": [
+                                        1.9624,
+                                        4.8466,
+                                        2.3173,
+                                        4.8466,
+                                        2.3224,
+                                        5.0038,
+                                        1.9674,
+                                        5.0038
+                                    ],
+                                    "confidence": 0.965,
+                                    "span": {
+                                        "offset": 660,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "סכום",
+                                    "polygon": [
+                                        1.4451,
+                                        4.8568,
+                                        1.724,
+                                        4.8568,
+                                        1.724,
+                                        4.9936,
+                                        1.4451,
+                                        4.9936
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 666,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "ש״ח",
+                                    "polygon": [
+                                        1.146,
+                                        4.8568,
+                                        1.3843,
+                                        4.8568,
+                                        1.3843,
+                                        4.9936,
+                                        1.151,
+                                        4.9936
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 671,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "שלט",
+                                    "polygon": [
+                                        5.664,
+                                        5.0595,
+                                        5.953,
+                                        5.0545,
+                                        5.953,
+                                        5.237,
+                                        5.664,
+                                        5.237
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 675,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "רמפה",
+                                    "polygon": [
+                                        5.309,
+                                        5.0595,
+                                        5.6335,
+                                        5.0595,
+                                        5.6335,
+                                        5.237,
+                                        5.309,
+                                        5.237
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 679,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "אלחוטי",
+                                    "polygon": [
+                                        4.7817,
+                                        5.0646,
+                                        5.2583,
+                                        5.0595,
+                                        5.2532,
+                                        5.237,
+                                        4.7817,
+                                        5.237
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 684,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "GALILO",
+                                    "polygon": [
+                                        4.2898,
+                                        5.0646,
+                                        4.7462,
+                                        5.0646,
+                                        4.7462,
+                                        5.237,
+                                        4.2847,
+                                        5.2319
+                                    ],
+                                    "confidence": 0.932,
+                                    "span": {
+                                        "offset": 691,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "1.00",
+                                    "polygon": [
+                                        3.4785,
+                                        5.09,
+                                        3.7422,
+                                        5.0849,
+                                        3.7422,
+                                        5.2167,
+                                        3.4785,
+                                        5.2218
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 698,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "650.00",
+                                    "polygon": [
+                                        2.2007,
+                                        5.09,
+                                        2.6215,
+                                        5.09,
+                                        2.6215,
+                                        5.2167,
+                                        2.2007,
+                                        5.2218
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 703,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "650.00",
+                                    "polygon": [
+                                        1.3234,
+                                        5.09,
+                                        1.7392,
+                                        5.095,
+                                        1.7392,
+                                        5.2218,
+                                        1.3285,
+                                        5.2218
+                                    ],
+                                    "confidence": 0.954,
+                                    "span": {
+                                        "offset": 710,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "מכסה",
+                                    "polygon": [
+                                        5.6183,
+                                        5.2421,
+                                        5.9479,
+                                        5.2421,
+                                        5.9428,
+                                        5.3941,
+                                        5.6183,
+                                        5.3891
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 717,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "סולר",
+                                    "polygon": [
+                                        5.2735,
+                                        5.2471,
+                                        5.5676,
+                                        5.2421,
+                                        5.5625,
+                                        5.384,
+                                        5.2786,
+                                        5.384
+                                    ],
+                                    "confidence": 0.975,
+                                    "span": {
+                                        "offset": 722,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "איסוזו",
+                                    "polygon": [
+                                        4.8476,
+                                        5.2471,
+                                        5.2228,
+                                        5.2471,
+                                        5.2228,
+                                        5.384,
+                                        4.8526,
+                                        5.384
+                                    ],
+                                    "confidence": 0.939,
+                                    "span": {
+                                        "offset": 727,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "1.00",
+                                    "polygon": [
+                                        3.4836,
+                                        5.2522,
+                                        3.7472,
+                                        5.2522,
+                                        3.7472,
+                                        5.3739,
+                                        3.4836,
+                                        5.3739
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 734,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "350.00",
+                                    "polygon": [
+                                        2.2007,
+                                        5.2573,
+                                        2.6165,
+                                        5.2522,
+                                        2.6165,
+                                        5.384,
+                                        2.2057,
+                                        5.384
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 739,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "350.00",
+                                    "polygon": [
+                                        1.3285,
+                                        5.2623,
+                                        1.7392,
+                                        5.2573,
+                                        1.7443,
+                                        5.384,
+                                        1.3285,
+                                        5.3789
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 746,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "1.00",
+                                    "polygon": [
+                                        3.4836,
+                                        5.4195,
+                                        3.7422,
+                                        5.4195,
+                                        3.7371,
+                                        5.5513,
+                                        3.4836,
+                                        5.5462
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 753,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "סה״כ",
+                                    "polygon": [
+                                        2.6418,
+                                        5.8758,
+                                        2.9461,
+                                        5.8808,
+                                        2.9461,
+                                        6.0177,
+                                        2.6418,
+                                        6.0177
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 758,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "לעבודה",
+                                    "polygon": [
+                                        2.15,
+                                        5.8758,
+                                        2.5911,
+                                        5.8758,
+                                        2.5911,
+                                        6.0177,
+                                        2.15,
+                                        6.0177
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 763,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "150.00",
+                                    "polygon": [
+                                        1.3437,
+                                        5.896,
+                                        1.7392,
+                                        5.896,
+                                        1.7392,
+                                        6.0177,
+                                        1.3437,
+                                        6.0025
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 770,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "הערות:",
+                                    "polygon": [
+                                        6.8657,
+                                        6.0532,
+                                        7.3373,
+                                        6.0481,
+                                        7.3423,
+                                        6.1799,
+                                        6.8657,
+                                        6.1901
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 777,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "סה״כ",
+                                    "polygon": [
+                                        2.6469,
+                                        6.0532,
+                                        2.9461,
+                                        6.0481,
+                                        2.9461,
+                                        6.1799,
+                                        2.6469,
+                                        6.185
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 784,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "ע.",
+                                    "polygon": [
+                                        2.4289,
+                                        6.0532,
+                                        2.586,
+                                        6.0532,
+                                        2.5911,
+                                        6.185,
+                                        2.4289,
+                                        6.1901
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 789,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "חוץ",
+                                    "polygon": [
+                                        2.2362,
+                                        6.0583,
+                                        2.4035,
+                                        6.0532,
+                                        2.4035,
+                                        6.1901,
+                                        2.2412,
+                                        6.1952
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 792,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "0.00",
+                                    "polygon": [
+                                        1.4756,
+                                        6.0633,
+                                        1.7291,
+                                        6.0633,
+                                        1.7291,
+                                        6.1749,
+                                        1.4756,
+                                        6.1749
+                                    ],
+                                    "confidence": 0.993,
+                                    "span": {
+                                        "offset": 796,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "סה״כ",
+                                    "polygon": [
+                                        2.6368,
+                                        6.2154,
+                                        2.941,
+                                        6.2154,
+                                        2.9461,
+                                        6.3472,
+                                        2.6418,
+                                        6.3472
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 801,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "חלפים",
+                                    "polygon": [
+                                        2.2159,
+                                        6.2205,
+                                        2.5962,
+                                        6.2154,
+                                        2.6013,
+                                        6.3472,
+                                        2.221,
+                                        6.3523
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 806,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "1,000.00",
+                                    "polygon": [
+                                        1.2271,
+                                        6.2306,
+                                        1.7392,
+                                        6.2306,
+                                        1.7443,
+                                        6.3523,
+                                        1.2271,
+                                        6.3472
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 812,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "סה״כ",
+                                    "polygon": [
+                                        2.6418,
+                                        6.5399,
+                                        2.941,
+                                        6.5399,
+                                        2.9461,
+                                        6.6717,
+                                        2.6469,
+                                        6.6717
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 821,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "1,150.00",
+                                    "polygon": [
+                                        1.2271,
+                                        6.5551,
+                                        1.7342,
+                                        6.5551,
+                                        1.7392,
+                                        6.6768,
+                                        1.2271,
+                                        6.6717
+                                    ],
+                                    "confidence": 0.962,
+                                    "span": {
+                                        "offset": 826,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "מ.ע.מ.%",
+                                    "polygon": [
+                                        2.4846,
+                                        6.7427,
+                                        2.9359,
+                                        6.7427,
+                                        2.941,
+                                        6.8745,
+                                        2.4846,
+                                        6.8745
+                                    ],
+                                    "confidence": 0.603,
+                                    "span": {
+                                        "offset": 835,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "18.00",
+                                    "polygon": [
+                                        2.0283,
+                                        6.7427,
+                                        2.3629,
+                                        6.7427,
+                                        2.368,
+                                        6.8745,
+                                        2.0333,
+                                        6.8745
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 843,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "207.00",
+                                    "polygon": [
+                                        1.3285,
+                                        6.7579,
+                                        1.7392,
+                                        6.7478,
+                                        1.7392,
+                                        6.8745,
+                                        1.3285,
+                                        6.8644
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 849,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "תנאי",
+                                    "polygon": [
+                                        7.028,
+                                        7.0367,
+                                        7.3221,
+                                        7.0367,
+                                        7.3221,
+                                        7.1736,
+                                        7.028,
+                                        7.1736
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 856,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "תשלום:",
+                                    "polygon": [
+                                        6.5564,
+                                        7.0367,
+                                        7.0026,
+                                        7.0367,
+                                        7.0026,
+                                        7.1736,
+                                        6.5564,
+                                        7.1736
+                                    ],
+                                    "confidence": 0.957,
+                                    "span": {
+                                        "offset": 861,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "לתשלום",
+                                    "polygon": [
+                                        2.4644,
+                                        7.0367,
+                                        2.9309,
+                                        7.0317,
+                                        2.9309,
+                                        7.1685,
+                                        2.4644,
+                                        7.1685
+                                    ],
+                                    "confidence": 0.963,
+                                    "span": {
+                                        "offset": 868,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "1,357.00",
+                                    "polygon": [
+                                        1.222,
+                                        7.0266,
+                                        1.7443,
+                                        7.0266,
+                                        1.7443,
+                                        7.1584,
+                                        1.2271,
+                                        7.1533
+                                    ],
+                                    "confidence": 0.979,
+                                    "span": {
+                                        "offset": 875,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "אחריות",
+                                    "polygon": [
+                                        6.2724,
+                                        7.3409,
+                                        6.5767,
+                                        7.3409,
+                                        6.5767,
+                                        7.4626,
+                                        6.2724,
+                                        7.4626
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 884,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "לחלקים",
+                                    "polygon": [
+                                        5.9023,
+                                        7.3409,
+                                        6.242,
+                                        7.3409,
+                                        6.242,
+                                        7.4626,
+                                        5.9023,
+                                        7.4626
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 891,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "3",
+                                    "polygon": [
+                                        5.8009,
+                                        7.3409,
+                                        5.8718,
+                                        7.3409,
+                                        5.8718,
+                                        7.4626,
+                                        5.8009,
+                                        7.4626
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 898,
+                                        "length": 1
+                                    }
+                                },
+                                {
+                                    "content": "חודשם",
+                                    "polygon": [
+                                        5.4966,
+                                        7.3409,
+                                        5.7755,
+                                        7.3409,
+                                        5.7755,
+                                        7.4626,
+                                        5.4966,
+                                        7.4626
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 900,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "מיום",
+                                    "polygon": [
+                                        5.2735,
+                                        7.3409,
+                                        5.4713,
+                                        7.3409,
+                                        5.4713,
+                                        7.4626,
+                                        5.2735,
+                                        7.4626
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 906,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "הוצאת",
+                                    "polygon": [
+                                        4.9591,
+                                        7.3409,
+                                        5.2482,
+                                        7.3409,
+                                        5.2482,
+                                        7.4626,
+                                        4.9591,
+                                        7.4626
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 911,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "החשבונית",
+                                    "polygon": [
+                                        4.4977,
+                                        7.3409,
+                                        4.9338,
+                                        7.3409,
+                                        4.9338,
+                                        7.4626,
+                                        4.4977,
+                                        7.4575
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 917,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "לשירותכם",
+                                    "polygon": [
+                                        6.1507,
+                                        7.4829,
+                                        6.5767,
+                                        7.4778,
+                                        6.5817,
+                                        7.5843,
+                                        6.1507,
+                                        7.5843
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 926,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "תמיד",
+                                    "polygon": [
+                                        5.8871,
+                                        7.4778,
+                                        6.1152,
+                                        7.4829,
+                                        6.1203,
+                                        7.5843,
+                                        5.8871,
+                                        7.5792
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 935,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "..",
+                                    "polygon": [
+                                        5.8414,
+                                        7.4778,
+                                        5.8668,
+                                        7.4778,
+                                        5.8668,
+                                        7.5792,
+                                        5.8414,
+                                        7.5792
+                                    ],
+                                    "confidence": 0.953,
+                                    "span": {
+                                        "offset": 940,
+                                        "length": 2
+                                    }
+                                },
+                                {
+                                    "content": "בכבוד",
+                                    "polygon": [
+                                        2.5303,
+                                        9.9822,
+                                        2.9207,
+                                        9.9822,
+                                        2.9207,
+                                        10.1546,
+                                        2.5353,
+                                        10.1546
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 943,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "רב,",
+                                    "polygon": [
+                                        2.3173,
+                                        9.9873,
+                                        2.4998,
+                                        9.9822,
+                                        2.4998,
+                                        10.1546,
+                                        2.3224,
+                                        10.1546
+                                    ],
+                                    "confidence": 0.957,
+                                    "span": {
+                                        "offset": 949,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "עורך",
+                                    "polygon": [
+                                        7.0432,
+                                        10.2408,
+                                        7.317,
+                                        10.2408,
+                                        7.317,
+                                        10.3726,
+                                        7.0432,
+                                        10.3726
+                                    ],
+                                    "confidence": 0.977,
+                                    "span": {
+                                        "offset": 953,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "לפרעון:",
+                                    "polygon": [
+                                        5.9276,
+                                        10.2205,
+                                        6.4246,
+                                        10.2205,
+                                        6.4195,
+                                        10.3929,
+                                        5.9226,
+                                        10.3878
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 958,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "08/07/25",
+                                    "polygon": [
+                                        5.2989,
+                                        10.2205,
+                                        5.8718,
+                                        10.2205,
+                                        5.8718,
+                                        10.3878,
+                                        5.2989,
+                                        10.3878
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 966,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "טכומטר-מכון",
+                                    "polygon": [
+                                        2.586,
+                                        10.1546,
+                                        3.372,
+                                        10.1546,
+                                        3.372,
+                                        10.2965,
+                                        2.586,
+                                        10.2915
+                                    ],
+                                    "confidence": 0.951,
+                                    "span": {
+                                        "offset": 975,
+                                        "length": 11
+                                    }
+                                },
+                                {
+                                    "content": "ספידומטרים",
+                                    "polygon": [
+                                        1.866,
+                                        10.1597,
+                                        2.5607,
+                                        10.1546,
+                                        2.5607,
+                                        10.2915,
+                                        1.866,
+                                        10.2915
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 987,
+                                        "length": 10
+                                    }
+                                },
+                                {
+                                    "content": "עובד",
+                                    "polygon": [
+                                        7.028,
+                                        10.4233,
+                                        7.317,
+                                        10.4233,
+                                        7.3221,
+                                        10.55,
+                                        7.033,
+                                        10.5551
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 998,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "חתימת",
+                                    "polygon": [
+                                        4.2239,
+                                        10.3472,
+                                        4.6093,
+                                        10.3472,
+                                        4.6093,
+                                        10.4943,
+                                        4.2239,
+                                        10.4943
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 1003,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "הלקוח/ה",
+                                    "polygon": [
+                                        3.6357,
+                                        10.3523,
+                                        4.1782,
+                                        10.3472,
+                                        4.1782,
+                                        10.4943,
+                                        3.6407,
+                                        10.4993
+                                    ],
+                                    "confidence": 0.933,
+                                    "span": {
+                                        "offset": 1009,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "חתימת",
+                                    "polygon": [
+                                        2.4086,
+                                        10.3371,
+                                        2.799,
+                                        10.327,
+                                        2.8041,
+                                        10.4993,
+                                        2.4086,
+                                        10.4993
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 1017,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "המאשר",
+                                    "polygon": [
+                                        1.9167,
+                                        10.3422,
+                                        2.3731,
+                                        10.3371,
+                                        2.3781,
+                                        10.4993,
+                                        1.9218,
+                                        10.5044
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 1023,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "/ת:",
+                                    "polygon": [
+                                        1.7037,
+                                        10.3422,
+                                        1.8863,
+                                        10.3422,
+                                        1.8863,
+                                        10.5095,
+                                        1.7037,
+                                        10.5095
+                                    ],
+                                    "confidence": 0.966,
+                                    "span": {
+                                        "offset": 1029,
+                                        "length": 3
+                                    }
+                                },
+                                {
+                                    "content": "תכנון",
+                                    "polygon": [
+                                        6.8911,
+                                        10.6311,
+                                        7.3271,
+                                        10.6362,
+                                        7.3322,
+                                        10.768,
+                                        6.8961,
+                                        10.768
+                                    ],
+                                    "confidence": 0.981,
+                                    "span": {
+                                        "offset": 1033,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "ויישום:",
+                                    "polygon": [
+                                        6.2319,
+                                        10.6261,
+                                        6.8201,
+                                        10.6311,
+                                        6.8251,
+                                        10.768,
+                                        6.2319,
+                                        10.7731
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 1039,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "אייל",
+                                    "polygon": [
+                                        5.8161,
+                                        10.621,
+                                        6.1507,
+                                        10.621,
+                                        6.1507,
+                                        10.7731,
+                                        5.8161,
+                                        10.7731
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 1047,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "פתרונות",
+                                    "polygon": [
+                                        5.162,
+                                        10.621,
+                                        5.74,
+                                        10.621,
+                                        5.7451,
+                                        10.7731,
+                                        5.167,
+                                        10.7731
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 1052,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "תוכנה",
+                                    "polygon": [
+                                        4.66,
+                                        10.6261,
+                                        5.0808,
+                                        10.621,
+                                        5.0808,
+                                        10.7731,
+                                        4.665,
+                                        10.7731
+                                    ],
+                                    "confidence": 0.976,
+                                    "span": {
+                                        "offset": 1060,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "בע״מ",
+                                    "polygon": [
+                                        4.234,
+                                        10.6311,
+                                        4.5788,
+                                        10.6261,
+                                        4.5839,
+                                        10.7731,
+                                        4.2391,
+                                        10.7731
+                                    ],
+                                    "confidence": 0.961,
+                                    "span": {
+                                        "offset": 1066,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "מסמך",
+                                    "polygon": [
+                                        3.4126,
+                                        10.5095,
+                                        3.6205,
+                                        10.5551,
+                                        3.6255,
+                                        10.6413,
+                                        3.4278,
+                                        10.5956
+                                    ],
+                                    "confidence": 0.948,
+                                    "span": {
+                                        "offset": 1071,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "ממוחשב",
+                                    "polygon": [
+                                        3.0931,
+                                        10.6413,
+                                        3.3923,
+                                        10.5145,
+                                        3.4075,
+                                        10.6007,
+                                        3.1286,
+                                        10.7173
+                                    ],
+                                    "confidence": 0.933,
+                                    "span": {
+                                        "offset": 1076,
+                                        "length": 6
+                                    }
+                                },
+                                {
+                                    "content": "אחראי",
+                                    "polygon": [
+                                        1.2575,
+                                        10.6362,
+                                        1.6378,
+                                        10.6362,
+                                        1.6378,
+                                        10.768,
+                                        1.2626,
+                                        10.7528
+                                    ],
+                                    "confidence": 0.98,
+                                    "span": {
+                                        "offset": 1083,
+                                        "length": 5
+                                    }
+                                },
+                                {
+                                    "content": "חתום",
+                                    "polygon": [
+                                        3.5393,
+                                        10.8339,
+                                        3.8436,
+                                        10.7883,
+                                        3.8588,
+                                        10.9201,
+                                        3.5596,
+                                        10.9657
+                                    ],
+                                    "confidence": 0.982,
+                                    "span": {
+                                        "offset": 1089,
+                                        "length": 4
+                                    }
+                                },
+                                {
+                                    "content": "דיגיטלית",
+                                    "polygon": [
+                                        2.9968,
+                                        10.915,
+                                        3.4988,
+                                        10.8441,
+                                        3.5191,
+                                        10.9708,
+                                        3.0171,
+                                        11.0468
+                                    ],
+                                    "confidence": 0.972,
+                                    "span": {
+                                        "offset": 1094,
+                                        "length": 8
+                                    }
+                                },
+                                {
+                                    "content": "קארדקום",
+                                    "polygon": [
+                                        3.3821,
+                                        11.2294,
+                                        3.7016,
+                                        11.1128,
+                                        3.727,
+                                        11.1939,
+                                        3.3974,
+                                        11.3307
+                                    ],
+                                    "confidence": 0.767,
+                                    "span": {
+                                        "offset": 1103,
+                                        "length": 7
+                                    }
+                                },
+                                {
+                                    "content": "בע״מ",
+                                    "polygon": [
+                                        3.1742,
+                                        11.1888,
+                                        3.3619,
+                                        11.2294,
+                                        3.3771,
+                                        11.3307,
+                                        3.1793,
+                                        11.2851
+                                    ],
+                                    "confidence": 0.253,
+                                    "span": {
+                                        "offset": 1111,
+                                        "length": 4
+                                    }
+                                }
+                            ],
+                            "lines": [
+                                {
+                                    "content": "טכומטר-מכון ספידומטרים",
+                                    "polygon": [
+                                        4.0008,
+                                        0.1166,
+                                        7.3525,
+                                        0.1166,
+                                        7.3525,
+                                        0.3752,
+                                        4.0008,
+                                        0.3701
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 0,
+                                            "length": 22
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "א.ת עמק חפר ת.ד 12218",
+                                    "polygon": [
+                                        5.8921,
+                                        0.436,
+                                        7.3322,
+                                        0.436,
+                                        7.3322,
+                                        0.5779,
+                                        5.8921,
+                                        0.5779
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 23,
+                                            "length": 21
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "גשר העץ 20",
+                                    "polygon": [
+                                        6.602,
+                                        0.6084,
+                                        7.3322,
+                                        0.6033,
+                                        7.3322,
+                                        0.725,
+                                        6.6071,
+                                        0.73
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 45,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "טלפון: 04-8247760",
+                                    "polygon": [
+                                        6.0747,
+                                        0.725,
+                                        7.3373,
+                                        0.725,
+                                        7.3373,
+                                        0.8517,
+                                        6.0747,
+                                        0.8517
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 56,
+                                            "length": 17
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "387001",
+                                    "polygon": [
+                                        5.5169,
+                                        0.6084,
+                                        5.9479,
+                                        0.6084,
+                                        5.9479,
+                                        0.725,
+                                        5.5169,
+                                        0.725
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 74,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "פקס 04-8247761 ת.ד 12218",
+                                    "polygon": [
+                                        5.7755,
+                                        1.379,
+                                        7.3322,
+                                        1.384,
+                                        7.3322,
+                                        1.5158,
+                                        5.7704,
+                                        1.5057
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 81,
+                                            "length": 24
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "כיול ותיקון טכוגרפים וכל סוגי שעוני הרכב ומצלמות",
+                                    "polygon": [
+                                        1.9167,
+                                        1.3637,
+                                        4.7817,
+                                        1.3637,
+                                        4.7817,
+                                        1.5158,
+                                        1.9167,
+                                        1.5158
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 106,
+                                            "length": 48
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "תאריך",
+                                    "polygon": [
+                                        6.7896,
+                                        1.5919,
+                                        7.3322,
+                                        1.5919,
+                                        7.3322,
+                                        1.7592,
+                                        6.7896,
+                                        1.7643
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 155,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "08/07/25:",
+                                    "polygon": [
+                                        6.0899,
+                                        1.5868,
+                                        6.7896,
+                                        1.5868,
+                                        6.7846,
+                                        1.7592,
+                                        6.0899,
+                                        1.7541
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 161,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "חשבונית מס 286015 NS",
+                                    "polygon": [
+                                        3.585,
+                                        1.6426,
+                                        5.3394,
+                                        1.6476,
+                                        5.3394,
+                                        1.8302,
+                                        3.585,
+                                        1.8251
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 171,
+                                            "length": 20
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "* נאמן למקור *",
+                                    "polygon": [
+                                        1.6632,
+                                        1.6578,
+                                        2.7128,
+                                        1.6527,
+                                        2.7179,
+                                        1.8403,
+                                        1.6632,
+                                        1.8403
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 192,
+                                            "length": 14
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "דף 1",
+                                    "polygon": [
+                                        1.0446,
+                                        1.6071,
+                                        1.3032,
+                                        1.6071,
+                                        1.3032,
+                                        1.7795,
+                                        1.0446,
+                                        1.7795
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 207,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "תא׳ סיום",
+                                    "polygon": [
+                                        6.7643,
+                                        1.8809,
+                                        7.3322,
+                                        1.8809,
+                                        7.3373,
+                                        2.0482,
+                                        6.7643,
+                                        2.0482
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 212,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "13:12 08/07/25",
+                                    "polygon": [
+                                        5.38,
+                                        1.8859,
+                                        6.4398,
+                                        1.8809,
+                                        6.4398,
+                                        2.0583,
+                                        5.38,
+                                        2.0634
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 221,
+                                            "length": 14
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "תא׳ הפקה 29/07/25",
+                                    "polygon": [
+                                        3.3112,
+                                        1.8859,
+                                        4.7005,
+                                        1.8809,
+                                        4.7005,
+                                        2.0482,
+                                        3.3112,
+                                        2.0532
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 236,
+                                            "length": 17
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "עוסק מורשה",
+                                    "polygon": [
+                                        1.9725,
+                                        1.9011,
+                                        2.657,
+                                        1.8961,
+                                        2.657,
+                                        2.0329,
+                                        1.9725,
+                                        2.038
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 254,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "558117016",
+                                    "polygon": [
+                                        0.9736,
+                                        1.9062,
+                                        1.6429,
+                                        1.9062,
+                                        1.6429,
+                                        2.0329,
+                                        0.9736,
+                                        2.0329
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 265,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "תא׳ כניסה",
+                                    "polygon": [
+                                        6.6933,
+                                        2.0735,
+                                        7.3322,
+                                        2.0634,
+                                        7.3373,
+                                        2.1901,
+                                        6.6933,
+                                        2.2002
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 275,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "08/07/25 :",
+                                    "polygon": [
+                                        5.8414,
+                                        2.0634,
+                                        6.5513,
+                                        2.0634,
+                                        6.5513,
+                                        2.2053,
+                                        5.8414,
+                                        2.2002
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 285,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "08:27",
+                                    "polygon": [
+                                        5.3952,
+                                        2.0634,
+                                        5.7603,
+                                        2.0634,
+                                        5.7603,
+                                        2.1952,
+                                        5.3952,
+                                        2.1901
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 296,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מוסך מורשה:",
+                                    "polygon": [
+                                        1.9066,
+                                        2.0634,
+                                        2.6722,
+                                        2.0634,
+                                        2.6773,
+                                        2.2053,
+                                        1.9066,
+                                        2.2053
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 302,
+                                            "length": 11
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "4204",
+                                    "polygon": [
+                                        1.3082,
+                                        2.0786,
+                                        1.6175,
+                                        2.0786,
+                                        1.6175,
+                                        2.1952,
+                                        1.3133,
+                                        2.1952
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 314,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "לכבוד",
+                                    "polygon": [
+                                        6.9519,
+                                        2.5754,
+                                        7.2916,
+                                        2.5653,
+                                        7.2916,
+                                        2.692,
+                                        6.957,
+                                        2.6869
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 319,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מס׳ לקוח",
+                                    "polygon": [
+                                        4.4166,
+                                        2.5602,
+                                        5.1315,
+                                        2.5602,
+                                        5.1315,
+                                        2.7072,
+                                        4.4166,
+                                        2.7123
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 325,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "3730:",
+                                    "polygon": [
+                                        3.9957,
+                                        2.5703,
+                                        4.3861,
+                                        2.5703,
+                                        4.3861,
+                                        2.7021,
+                                        3.9957,
+                                        2.6971
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 334,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מס. כרטיס: 100233",
+                                    "polygon": [
+                                        1.7849,
+                                        2.5703,
+                                        3.0576,
+                                        2.5653,
+                                        3.0576,
+                                        2.6971,
+                                        1.7849,
+                                        2.7021
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 340,
+                                            "length": 17
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "ט.פ.י פל ים בע״מ",
+                                    "polygon": [
+                                        6.3282,
+                                        2.7326,
+                                        7.2967,
+                                        2.7326,
+                                        7.2967,
+                                        2.8644,
+                                        6.3282,
+                                        2.8644
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 358,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "סוג הרכב",
+                                    "polygon": [
+                                        4.6042,
+                                        2.7427,
+                                        5.1315,
+                                        2.7427,
+                                        5.1315,
+                                        2.8745,
+                                        4.6042,
+                                        2.8745
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 375,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": ": משאית איסוזו",
+                                    "polygon": [
+                                        3.4633,
+                                        2.7427,
+                                        4.376,
+                                        2.7427,
+                                        4.376,
+                                        2.8796,
+                                        3.4633,
+                                        2.8796
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 384,
+                                            "length": 14
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "דגם",
+                                    "polygon": [
+                                        2.8447,
+                                        2.7528,
+                                        3.0678,
+                                        2.7478,
+                                        3.0678,
+                                        2.8694,
+                                        2.8497,
+                                        2.8694
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 399,
+                                            "length": 3
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": ". .",
+                                    "polygon": [
+                                        2.3072,
+                                        2.7934,
+                                        2.3072,
+                                        2.8644,
+                                        2.2717,
+                                        2.8644,
+                                        2.2717,
+                                        2.7934
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 403,
+                                            "length": 3
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "הקטיף 11",
+                                    "polygon": [
+                                        6.7694,
+                                        2.9049,
+                                        7.2967,
+                                        2.9049,
+                                        7.2967,
+                                        3.0367,
+                                        6.7694,
+                                        3.0367
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 407,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מספר רישוי",
+                                    "polygon": [
+                                        4.4673,
+                                        2.9049,
+                                        5.1366,
+                                        2.9049,
+                                        5.1366,
+                                        3.0317,
+                                        4.4673,
+                                        3.0266
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 416,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        4.3456,
+                                        2.9201,
+                                        4.4014,
+                                        2.9201,
+                                        4.4014,
+                                        3.0266,
+                                        4.3456,
+                                        3.0266
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 427,
+                                            "length": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "419-29-702",
+                                    "polygon": [
+                                        3.3923,
+                                        2.91,
+                                        4.0819,
+                                        2.91,
+                                        4.0819,
+                                        3.0469,
+                                        3.3923,
+                                        3.0418
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 429,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מספר שילדה:",
+                                    "polygon": [
+                                        2.2717,
+                                        2.9049,
+                                        3.0576,
+                                        2.8999,
+                                        3.0576,
+                                        3.0266,
+                                        2.2767,
+                                        3.0317
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 440,
+                                            "length": 11
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "א.ת עמק חפר",
+                                    "polygon": [
+                                        6.5513,
+                                        3.0773,
+                                        7.2916,
+                                        3.0773,
+                                        7.2916,
+                                        3.204,
+                                        6.5513,
+                                        3.2091
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 452,
+                                            "length": 11
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "0",
+                                    "polygon": [
+                                        5.8921,
+                                        3.0925,
+                                        5.9682,
+                                        3.0925,
+                                        5.9682,
+                                        3.204,
+                                        5.8921,
+                                        3.199
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 464,
+                                            "length": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "שנת יצור",
+                                    "polygon": [
+                                        4.6042,
+                                        3.0773,
+                                        5.1366,
+                                        3.0773,
+                                        5.1366,
+                                        3.204,
+                                        4.6042,
+                                        3.204
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 466,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        4.3506,
+                                        3.1026,
+                                        4.3963,
+                                        3.1026,
+                                        4.3963,
+                                        3.2091,
+                                        4.3456,
+                                        3.204
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 475,
+                                            "length": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מספר מנוע",
+                                    "polygon": [
+                                        2.4644,
+                                        3.0773,
+                                        3.0678,
+                                        3.0773,
+                                        3.0678,
+                                        3.2091,
+                                        2.4644,
+                                        3.204
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 477,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        2.2717,
+                                        3.1026,
+                                        2.3325,
+                                        3.1026,
+                                        2.3274,
+                                        3.2091,
+                                        2.2666,
+                                        3.2091
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 487,
+                                            "length": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "הערה",
+                                    "polygon": [
+                                        2.7128,
+                                        3.2699,
+                                        3.0779,
+                                        3.2649,
+                                        3.0779,
+                                        3.3916,
+                                        2.7179,
+                                        3.3967
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 489,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מסירה",
+                                    "polygon": [
+                                        4.7715,
+                                        3.417,
+                                        5.1315,
+                                        3.417,
+                                        5.1315,
+                                        3.5386,
+                                        4.7715,
+                                        3.5386
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 494,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": ":",
+                                    "polygon": [
+                                        4.3304,
+                                        3.4322,
+                                        4.3659,
+                                        3.4322,
+                                        4.3659,
+                                        3.5386,
+                                        4.3304,
+                                        3.5386
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 500,
+                                            "length": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "טל׳ נייד",
+                                    "polygon": [
+                                        2.6063,
+                                        3.4068,
+                                        3.0576,
+                                        3.4068,
+                                        3.0576,
+                                        3.5285,
+                                        2.6063,
+                                        3.5234
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 502,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "0505020057 :",
+                                    "polygon": [
+                                        1.4604,
+                                        3.417,
+                                        2.3072,
+                                        3.417,
+                                        2.3072,
+                                        3.5437,
+                                        1.4604,
+                                        3.5437
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 511,
+                                            "length": 12
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "טל׳ עבודה",
+                                    "polygon": [
+                                        6.7085,
+                                        3.5691,
+                                        7.3221,
+                                        3.5691,
+                                        7.3221,
+                                        3.7516,
+                                        6.7085,
+                                        3.7516
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 524,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "098947633:",
+                                    "polygon": [
+                                        5.7603,
+                                        3.5995,
+                                        6.5108,
+                                        3.5995,
+                                        6.5057,
+                                        3.7364,
+                                        5.7603,
+                                        3.7313
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 534,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "ת.זהות / ח.פ: 513327064",
+                                    "polygon": [
+                                        3.6458,
+                                        3.564,
+                                        5.1366,
+                                        3.564,
+                                        5.1366,
+                                        3.7059,
+                                        3.6458,
+                                        3.7059
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 545,
+                                            "length": 23
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "קוד עבודה",
+                                    "polygon": [
+                                        6.597,
+                                        4.1419,
+                                        7.2359,
+                                        4.147,
+                                        7.2359,
+                                        4.294,
+                                        6.597,
+                                        4.289
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 569,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "עבודות",
+                                    "polygon": [
+                                        4.6447,
+                                        4.1115,
+                                        5.162,
+                                        4.1166,
+                                        5.162,
+                                        4.2636,
+                                        4.6447,
+                                        4.2636
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 579,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "ז. תקן",
+                                    "polygon": [
+                                        3.1793,
+                                        4.1724,
+                                        3.5038,
+                                        4.1724,
+                                        3.5038,
+                                        4.2991,
+                                        3.1793,
+                                        4.2991
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 586,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "סה״כ % הנחה סכום ש״ח",
+                                    "polygon": [
+                                        1.0902,
+                                        4.1724,
+                                        2.8396,
+                                        4.1724,
+                                        2.8396,
+                                        4.3143,
+                                        1.0902,
+                                        4.3143
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 593,
+                                            "length": 20
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "עבודה",
+                                    "polygon": [
+                                        5.9073,
+                                        4.3397,
+                                        6.2927,
+                                        4.3447,
+                                        6.2927,
+                                        4.4715,
+                                        5.9124,
+                                        4.4765
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 614,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "150.00",
+                                    "polygon": [
+                                        1.293,
+                                        4.3447,
+                                        1.719,
+                                        4.3498,
+                                        1.719,
+                                        4.4715,
+                                        1.293,
+                                        4.4664
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 620,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "-",
+                                    "polygon": [
+                                        2.2565,
+                                        4.5475,
+                                        2.2565,
+                                        4.654,
+                                        2.1601,
+                                        4.659,
+                                        2.155,
+                                        4.5526
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 627,
+                                            "length": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "קוד פריט",
+                                    "polygon": [
+                                        6.3586,
+                                        4.8517,
+                                        6.9113,
+                                        4.8618,
+                                        6.9113,
+                                        4.9987,
+                                        6.3586,
+                                        4.9936
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 629,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "חלפים",
+                                    "polygon": [
+                                        4.5484,
+                                        4.8365,
+                                        5.2127,
+                                        4.8365,
+                                        5.2127,
+                                        5.0038,
+                                        4.5484,
+                                        5.0088
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 638,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "כמות",
+                                    "polygon": [
+                                        3.3264,
+                                        4.8517,
+                                        3.6712,
+                                        4.8568,
+                                        3.6762,
+                                        4.9936,
+                                        3.3314,
+                                        4.9835
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 644,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "% הנחה יח׳ לצרכן",
+                                    "polygon": [
+                                        1.9573,
+                                        4.8416,
+                                        3.1083,
+                                        4.8416,
+                                        3.1083,
+                                        4.9987,
+                                        1.9573,
+                                        4.9987
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 649,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "סכום ש״ח",
+                                    "polygon": [
+                                        1.1206,
+                                        4.8568,
+                                        1.7342,
+                                        4.8568,
+                                        1.7342,
+                                        4.9936,
+                                        1.1206,
+                                        4.9886
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 666,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "שלט רמפה אלחוטי GALILO",
+                                    "polygon": [
+                                        4.2695,
+                                        5.0545,
+                                        5.953,
+                                        5.0545,
+                                        5.953,
+                                        5.2319,
+                                        4.2695,
+                                        5.237
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 675,
+                                            "length": 22
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "1.00",
+                                    "polygon": [
+                                        3.4785,
+                                        5.095,
+                                        3.7574,
+                                        5.0849,
+                                        3.7574,
+                                        5.2167,
+                                        3.4836,
+                                        5.2167
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 698,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "650.00",
+                                    "polygon": [
+                                        2.1956,
+                                        5.0849,
+                                        2.6215,
+                                        5.0849,
+                                        2.6215,
+                                        5.2167,
+                                        2.1956,
+                                        5.2167
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 703,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "650.00",
+                                    "polygon": [
+                                        1.3234,
+                                        5.09,
+                                        1.7443,
+                                        5.09,
+                                        1.7443,
+                                        5.2167,
+                                        1.3234,
+                                        5.2167
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 710,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מכסה סולר איסוזו",
+                                    "polygon": [
+                                        4.8476,
+                                        5.237,
+                                        5.9479,
+                                        5.237,
+                                        5.9479,
+                                        5.3891,
+                                        4.8476,
+                                        5.3891
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 717,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "1.00",
+                                    "polygon": [
+                                        3.4836,
+                                        5.2522,
+                                        3.7574,
+                                        5.2522,
+                                        3.7574,
+                                        5.3739,
+                                        3.4836,
+                                        5.3739
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 734,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "350.00",
+                                    "polygon": [
+                                        2.1905,
+                                        5.2522,
+                                        2.6215,
+                                        5.2471,
+                                        2.6215,
+                                        5.3789,
+                                        2.1905,
+                                        5.384
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 739,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "350.00",
+                                    "polygon": [
+                                        1.3133,
+                                        5.2522,
+                                        1.7494,
+                                        5.2522,
+                                        1.7494,
+                                        5.3789,
+                                        1.3133,
+                                        5.3789
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 746,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "1.00",
+                                    "polygon": [
+                                        3.4836,
+                                        5.4195,
+                                        3.7624,
+                                        5.4195,
+                                        3.7624,
+                                        5.5513,
+                                        3.4886,
+                                        5.5462
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 753,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "סה״כ לעבודה",
+                                    "polygon": [
+                                        2.1195,
+                                        5.8707,
+                                        2.9461,
+                                        5.8758,
+                                        2.9461,
+                                        6.0126,
+                                        2.1195,
+                                        6.0126
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 758,
+                                            "length": 11
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "150.00",
+                                    "polygon": [
+                                        1.3387,
+                                        5.891,
+                                        1.7443,
+                                        5.891,
+                                        1.7443,
+                                        6.0126,
+                                        1.3387,
+                                        6.0076
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 770,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "הערות:",
+                                    "polygon": [
+                                        6.8657,
+                                        6.0532,
+                                        7.3423,
+                                        6.0481,
+                                        7.3474,
+                                        6.1799,
+                                        6.8657,
+                                        6.185
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 777,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "סה״כ ע. חוץ",
+                                    "polygon": [
+                                        2.2362,
+                                        6.0532,
+                                        2.9511,
+                                        6.0481,
+                                        2.9511,
+                                        6.1799,
+                                        2.2362,
+                                        6.1901
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 784,
+                                            "length": 11
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "0.00",
+                                    "polygon": [
+                                        1.4705,
+                                        6.0684,
+                                        1.7342,
+                                        6.0633,
+                                        1.7342,
+                                        6.1749,
+                                        1.4756,
+                                        6.1749
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 796,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "סה״כ חלפים",
+                                    "polygon": [
+                                        2.1956,
+                                        6.2154,
+                                        2.9562,
+                                        6.2154,
+                                        2.9562,
+                                        6.3422,
+                                        2.1956,
+                                        6.3472
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 801,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "1,000.00",
+                                    "polygon": [
+                                        1.222,
+                                        6.2256,
+                                        1.7443,
+                                        6.2256,
+                                        1.7443,
+                                        6.3472,
+                                        1.222,
+                                        6.3472
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 812,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "סה״כ",
+                                    "polygon": [
+                                        2.6013,
+                                        6.545,
+                                        2.9461,
+                                        6.5399,
+                                        2.9461,
+                                        6.6717,
+                                        2.6063,
+                                        6.6717
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 821,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "1,150.00",
+                                    "polygon": [
+                                        1.222,
+                                        6.55,
+                                        1.7392,
+                                        6.55,
+                                        1.7392,
+                                        6.6717,
+                                        1.222,
+                                        6.6717
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 826,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מ.ע.מ.% 18.00",
+                                    "polygon": [
+                                        2.0283,
+                                        6.7376,
+                                        2.9359,
+                                        6.7376,
+                                        2.9359,
+                                        6.8694,
+                                        2.0283,
+                                        6.8694
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 835,
+                                            "length": 13
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "207.00",
+                                    "polygon": [
+                                        1.3234,
+                                        6.7478,
+                                        1.7392,
+                                        6.7478,
+                                        1.7392,
+                                        6.8694,
+                                        1.3234,
+                                        6.8694
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 849,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "תנאי תשלום:",
+                                    "polygon": [
+                                        6.5513,
+                                        7.0317,
+                                        7.3221,
+                                        7.0317,
+                                        7.3221,
+                                        7.1685,
+                                        6.5513,
+                                        7.1685
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 856,
+                                            "length": 11
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "לתשלום",
+                                    "polygon": [
+                                        2.4441,
+                                        7.0317,
+                                        2.9359,
+                                        7.0266,
+                                        2.9359,
+                                        7.1635,
+                                        2.4441,
+                                        7.1635
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 868,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "1,357.00",
+                                    "polygon": [
+                                        1.222,
+                                        7.0215,
+                                        1.7443,
+                                        7.0215,
+                                        1.7443,
+                                        7.1533,
+                                        1.222,
+                                        7.1533
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 875,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "אחריות לחלקים 3 חודשם מיום הוצאת החשבונית",
+                                    "polygon": [
+                                        4.4723,
+                                        7.3358,
+                                        6.5817,
+                                        7.3358,
+                                        6.5817,
+                                        7.4575,
+                                        4.4723,
+                                        7.4575
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 884,
+                                            "length": 41
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "לשירותכם תמיד ..",
+                                    "polygon": [
+                                        5.8364,
+                                        7.4727,
+                                        6.5817,
+                                        7.4727,
+                                        6.5817,
+                                        7.5792,
+                                        5.8364,
+                                        7.5792
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 926,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "בכבוד רב,",
+                                    "polygon": [
+                                        2.3173,
+                                        9.9822,
+                                        2.9207,
+                                        9.9771,
+                                        2.9258,
+                                        10.1495,
+                                        2.3173,
+                                        10.1495
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 943,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "עורך",
+                                    "polygon": [
+                                        7.028,
+                                        10.2408,
+                                        7.3221,
+                                        10.2408,
+                                        7.3221,
+                                        10.3726,
+                                        7.033,
+                                        10.3726
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 953,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "לפרעון: 08/07/25",
+                                    "polygon": [
+                                        5.2837,
+                                        10.2154,
+                                        6.4398,
+                                        10.2154,
+                                        6.4398,
+                                        10.3878,
+                                        5.2837,
+                                        10.3878
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 958,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "טכומטר-מכון ספידומטרים",
+                                    "polygon": [
+                                        1.8457,
+                                        10.1495,
+                                        3.3669,
+                                        10.1495,
+                                        3.3669,
+                                        10.2915,
+                                        1.8457,
+                                        10.2915
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 975,
+                                            "length": 22
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "עובד",
+                                    "polygon": [
+                                        7.0229,
+                                        10.4283,
+                                        7.3221,
+                                        10.4233,
+                                        7.3271,
+                                        10.55,
+                                        7.0229,
+                                        10.5551
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 998,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "חתימת הלקוח/ה",
+                                    "polygon": [
+                                        3.6154,
+                                        10.3472,
+                                        4.6042,
+                                        10.3422,
+                                        4.6042,
+                                        10.4892,
+                                        3.6154,
+                                        10.4943
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 1003,
+                                            "length": 13
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "חתימת המאשר /ת:",
+                                    "polygon": [
+                                        1.6987,
+                                        10.3371,
+                                        2.8041,
+                                        10.327,
+                                        2.8041,
+                                        10.4943,
+                                        1.6987,
+                                        10.5044
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 1017,
+                                            "length": 15
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "תכנון ויישום: אייל פתרונות תוכנה בע״מ",
+                                    "polygon": [
+                                        4.2239,
+                                        10.621,
+                                        7.3322,
+                                        10.621,
+                                        7.3322,
+                                        10.768,
+                                        4.2239,
+                                        10.768
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 1033,
+                                            "length": 37
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "מסמך ממוחשב",
+                                    "polygon": [
+                                        3.0931,
+                                        10.5602,
+                                        3.6053,
+                                        10.5095,
+                                        3.6255,
+                                        10.6362,
+                                        3.1033,
+                                        10.7173
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 1071,
+                                            "length": 11
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "אחראי",
+                                    "polygon": [
+                                        1.2575,
+                                        10.6362,
+                                        1.6632,
+                                        10.6362,
+                                        1.6632,
+                                        10.768,
+                                        1.2525,
+                                        10.7579
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 1083,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "חתום דיגיטלית",
+                                    "polygon": [
+                                        2.9511,
+                                        10.9201,
+                                        3.8436,
+                                        10.7832,
+                                        3.8588,
+                                        10.915,
+                                        2.9714,
+                                        11.0468
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 1089,
+                                            "length": 13
+                                        }
+                                    ]
+                                },
+                                {
+                                    "content": "קארדקום בע״מ",
+                                    "polygon": [
+                                        3.1692,
+                                        11.1837,
+                                        3.7117,
+                                        11.1077,
+                                        3.732,
+                                        11.2801,
+                                        3.1844,
+                                        11.3307
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 1103,
+                                            "length": 12
+                                        }
+                                    ]
+                                }
+                            ],
+                            "spans": [
+                                {
+                                    "offset": 0,
+                                    "length": 1115
+                                }
+                            ]
+                        }
+                    ],
+                    "tables": [
+                        {
+                            "rowCount": 2,
+                            "columnCount": 6,
+                            "cells": [
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 0,
+                                    "content": "סכום ש״ח",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                0.8785,
+                                                4.0146,
+                                                1.7507,
+                                                4.0146,
+                                                1.7507,
+                                                4.3203,
+                                                0.8785,
+                                                4.3203
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 605,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 1,
+                                    "content": "הנחה",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.7507,
+                                                4.0146,
+                                                2.2004,
+                                                4.0146,
+                                                2.2072,
+                                                4.3203,
+                                                1.7507,
+                                                4.3203
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 600,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 2,
+                                    "content": "סה״כ %",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                2.2004,
+                                                4.0146,
+                                                3.0112,
+                                                4.0146,
+                                                3.0112,
+                                                4.3203,
+                                                2.2072,
+                                                4.3203
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 593,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 3,
+                                    "content": "ז. תקן",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.0112,
+                                                4.0146,
+                                                4.0537,
+                                                4.0146,
+                                                4.0537,
+                                                4.3135,
+                                                3.0112,
+                                                4.3203
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 586,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 4,
+                                    "content": "עבודות",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                4.0537,
+                                                4.0146,
+                                                6.4658,
+                                                4.0146,
+                                                6.4658,
+                                                4.3203,
+                                                4.0537,
+                                                4.3135
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 579,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 5,
+                                    "content": "קוד עבודה",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.4658,
+                                                4.0146,
+                                                7.3311,
+                                                4.0146,
+                                                7.3311,
+                                                4.3203,
+                                                6.4658,
+                                                4.3203
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 569,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 0,
+                                    "content": "150.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                0.8785,
+                                                4.3203,
+                                                1.7507,
+                                                4.3203,
+                                                1.7507,
+                                                4.6668,
+                                                0.8717,
+                                                4.6668
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 620,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 1,
+                                    "content": "-",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.7507,
+                                                4.3203,
+                                                2.2072,
+                                                4.3203,
+                                                2.2072,
+                                                4.6668,
+                                                1.7507,
+                                                4.6668
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 627,
+                                            "length": 1
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 2,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                2.2072,
+                                                4.3203,
+                                                3.0112,
+                                                4.3203,
+                                                3.018,
+                                                4.6668,
+                                                2.2072,
+                                                4.6668
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 3,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.0112,
+                                                4.3203,
+                                                4.0537,
+                                                4.3135,
+                                                4.0537,
+                                                4.6668,
+                                                3.018,
+                                                4.6668
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 4,
+                                    "content": "עבודה",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                4.0537,
+                                                4.3135,
+                                                6.4658,
+                                                4.3203,
+                                                6.4726,
+                                                4.6668,
+                                                4.0537,
+                                                4.6668
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 614,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 5,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.4658,
+                                                4.3203,
+                                                7.3311,
+                                                4.3203,
+                                                7.3311,
+                                                4.6668,
+                                                6.4726,
+                                                4.6668
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                }
+                            ],
+                            "boundingRegions": [
+                                {
+                                    "pageNumber": 1,
+                                    "polygon": [
+                                        0.7154,
+                                        4.0136,
+                                        7.362,
+                                        4.0218,
+                                        7.3625,
+                                        4.6854,
+                                        0.7159,
+                                        4.6776
+                                    ]
+                                }
+                            ],
+                            "spans": [
+                                {
+                                    "offset": 605,
+                                    "length": 8
+                                },
+                                {
+                                    "offset": 600,
+                                    "length": 4
+                                },
+                                {
+                                    "offset": 593,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 586,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 579,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 569,
+                                    "length": 9
+                                },
+                                {
+                                    "offset": 620,
+                                    "length": 8
+                                },
+                                {
+                                    "offset": 614,
+                                    "length": 5
+                                }
+                            ]
+                        },
+                        {
+                            "rowCount": 4,
+                            "columnCount": 6,
+                            "cells": [
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 0,
+                                    "content": "סכום ש״ח",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                0.8898,
+                                                4.7632,
+                                                1.856,
+                                                4.7632,
+                                                1.856,
+                                                5.0551,
+                                                0.8898,
+                                                5.0551
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 666,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 1,
+                                    "content": "יח׳ לצרכן",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.856,
+                                                4.7632,
+                                                2.6248,
+                                                4.7632,
+                                                2.6248,
+                                                5.0551,
+                                                1.856,
+                                                5.0551
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 656,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 2,
+                                    "content": "% הנחה",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                2.6248,
+                                                4.7632,
+                                                3.2099,
+                                                4.7632,
+                                                3.2099,
+                                                5.0551,
+                                                2.6248,
+                                                5.0551
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 649,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 3,
+                                    "content": "כמות",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.2099,
+                                                4.7632,
+                                                3.9992,
+                                                4.7632,
+                                                3.9992,
+                                                5.0551,
+                                                3.2099,
+                                                5.0551
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 644,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 4,
+                                    "content": "חלפים",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.9992,
+                                                4.7632,
+                                                6.1696,
+                                                4.77,
+                                                6.1696,
+                                                5.0551,
+                                                3.9992,
+                                                5.0551
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 638,
+                                            "length": 5
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "columnHeader",
+                                    "rowIndex": 0,
+                                    "columnIndex": 5,
+                                    "content": "קוד פריט",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.1696,
+                                                4.77,
+                                                7.3262,
+                                                4.77,
+                                                7.3262,
+                                                5.0551,
+                                                6.1696,
+                                                5.0551
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 629,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 0,
+                                    "content": "650.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                0.8898,
+                                                5.0551,
+                                                1.856,
+                                                5.0551,
+                                                1.856,
+                                                5.2384,
+                                                0.883,
+                                                5.2384
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 710,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 1,
+                                    "content": "650.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.856,
+                                                5.0551,
+                                                2.6248,
+                                                5.0551,
+                                                2.6248,
+                                                5.2384,
+                                                1.856,
+                                                5.2384
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 703,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 2,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                2.6248,
+                                                5.0551,
+                                                3.2099,
+                                                5.0551,
+                                                3.2099,
+                                                5.2384,
+                                                2.6248,
+                                                5.2384
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 3,
+                                    "content": "1.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.2099,
+                                                5.0551,
+                                                3.9992,
+                                                5.0551,
+                                                3.9992,
+                                                5.2316,
+                                                3.2099,
+                                                5.2384
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 698,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 4,
+                                    "content": "שלט רמפה אלחוטי GALILO",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.9992,
+                                                5.0551,
+                                                6.1696,
+                                                5.0551,
+                                                6.1696,
+                                                5.2316,
+                                                3.9992,
+                                                5.2316
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 675,
+                                            "length": 22
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 1,
+                                    "columnIndex": 5,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.1696,
+                                                5.0551,
+                                                7.3262,
+                                                5.0551,
+                                                7.3262,
+                                                5.2316,
+                                                6.1696,
+                                                5.2316
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 2,
+                                    "columnIndex": 0,
+                                    "content": "350.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                0.883,
+                                                5.2384,
+                                                1.856,
+                                                5.2384,
+                                                1.856,
+                                                5.4013,
+                                                0.883,
+                                                5.4013
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 746,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 2,
+                                    "columnIndex": 1,
+                                    "content": "350.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.856,
+                                                5.2384,
+                                                2.6248,
+                                                5.2384,
+                                                2.6248,
+                                                5.4013,
+                                                1.856,
+                                                5.4013
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 739,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 2,
+                                    "columnIndex": 2,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                2.6248,
+                                                5.2384,
+                                                3.2099,
+                                                5.2384,
+                                                3.2099,
+                                                5.4013,
+                                                2.6248,
+                                                5.4013
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 2,
+                                    "columnIndex": 3,
+                                    "content": "1.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.2099,
+                                                5.2384,
+                                                3.9992,
+                                                5.2316,
+                                                3.9992,
+                                                5.4013,
+                                                3.2099,
+                                                5.4013
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 734,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 2,
+                                    "columnIndex": 4,
+                                    "content": "מכסה סולר איסוזו",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.9992,
+                                                5.2316,
+                                                6.1696,
+                                                5.2316,
+                                                6.1696,
+                                                5.4013,
+                                                3.9992,
+                                                5.4013
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 717,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 2,
+                                    "columnIndex": 5,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.1696,
+                                                5.2316,
+                                                7.3262,
+                                                5.2316,
+                                                7.3262,
+                                                5.4013,
+                                                6.1696,
+                                                5.4013
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 3,
+                                    "columnIndex": 0,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                0.883,
+                                                5.4013,
+                                                1.856,
+                                                5.4013,
+                                                1.856,
+                                                5.5643,
+                                                0.883,
+                                                5.5643
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 3,
+                                    "columnIndex": 1,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.856,
+                                                5.4013,
+                                                2.6248,
+                                                5.4013,
+                                                2.6248,
+                                                5.5643,
+                                                1.856,
+                                                5.5643
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 3,
+                                    "columnIndex": 2,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                2.6248,
+                                                5.4013,
+                                                3.2099,
+                                                5.4013,
+                                                3.2099,
+                                                5.5643,
+                                                2.6248,
+                                                5.5643
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 3,
+                                    "columnIndex": 3,
+                                    "content": "1.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.2099,
+                                                5.4013,
+                                                3.9992,
+                                                5.4013,
+                                                3.9992,
+                                                5.5643,
+                                                3.2099,
+                                                5.5643
+                                            ]
+                                        }
+                                    ],
+                                    "spans": [
+                                        {
+                                            "offset": 753,
+                                            "length": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "rowIndex": 3,
+                                    "columnIndex": 4,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.9992,
+                                                5.4013,
+                                                6.1696,
+                                                5.4013,
+                                                6.1696,
+                                                5.5643,
+                                                3.9992,
+                                                5.5643
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                },
+                                {
+                                    "rowIndex": 3,
+                                    "columnIndex": 5,
+                                    "content": "",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.1696,
+                                                5.4013,
+                                                7.3262,
+                                                5.4013,
+                                                7.333,
+                                                5.5643,
+                                                6.1696,
+                                                5.5643
+                                            ]
+                                        }
+                                    ],
+                                    "spans": []
+                                }
+                            ],
+                            "boundingRegions": [
+                                {
+                                    "pageNumber": 1,
+                                    "polygon": [
+                                        0.7223,
+                                        4.7268,
+                                        7.3555,
+                                        4.733,
+                                        7.357,
+                                        5.5819,
+                                        0.723,
+                                        5.5762
+                                    ]
+                                }
+                            ],
+                            "spans": [
+                                {
+                                    "offset": 666,
+                                    "length": 8
+                                },
+                                {
+                                    "offset": 656,
+                                    "length": 9
+                                },
+                                {
+                                    "offset": 649,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 644,
+                                    "length": 4
+                                },
+                                {
+                                    "offset": 638,
+                                    "length": 5
+                                },
+                                {
+                                    "offset": 629,
+                                    "length": 8
+                                },
+                                {
+                                    "offset": 710,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 703,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 698,
+                                    "length": 4
+                                },
+                                {
+                                    "offset": 675,
+                                    "length": 22
+                                },
+                                {
+                                    "offset": 746,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 739,
+                                    "length": 6
+                                },
+                                {
+                                    "offset": 734,
+                                    "length": 4
+                                },
+                                {
+                                    "offset": 717,
+                                    "length": 16
+                                },
+                                {
+                                    "offset": 753,
+                                    "length": 4
+                                }
+                            ]
+                        }
+                    ],
+                    "styles": [
+                        {
+                            "confidence": 0.1,
+                            "spans": [
+                                {
+                                    "offset": 487,
+                                    "length": 1
+                                }
+                            ],
+                            "isHandwritten": true
+                        }
+                    ],
+                    "documents": [
+                        {
+                            "docType": "invoice",
+                            "boundingRegions": [
+                                {
+                                    "pageNumber": 1,
+                                    "polygon": [
+                                        0,
+                                        0,
+                                        8.25,
+                                        0,
+                                        8.25,
+                                        11.6806,
+                                        0,
+                                        11.6806
+                                    ]
+                                }
+                            ],
+                            "fields": {
+                                "CustomerAddress": {
+                                    "type": "address",
+                                    "content": "הקטיף 11\nא.ת עמק חפר",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.5615,
+                                                2.9049,
+                                                7.3018,
+                                                2.9049,
+                                                7.3018,
+                                                3.2091,
+                                                6.5615,
+                                                3.2091
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.536,
+                                    "spans": [
+                                        {
+                                            "offset": 407,
+                                            "length": 8
+                                        },
+                                        {
+                                            "offset": 452,
+                                            "length": 11
+                                        }
+                                    ],
+                                    "valueAddress": {
+                                        "houseNumber": "11",
+                                        "road": "הקטיף",
+                                        "streetAddress": "11 הקטיף",
+                                        "house": "א.ת עמק חפר"
+                                    }
+                                },
+                                "CustomerAddressRecipient": {
+                                    "type": "string",
+                                    "valueString": "ט.פ.י פל ים בע״מ",
+                                    "content": "ט.פ.י פל ים בע״מ",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.3586,
+                                                2.7376,
+                                                7.2916,
+                                                2.7376,
+                                                7.2916,
+                                                2.8644,
+                                                6.3586,
+                                                2.8644
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.366,
+                                    "spans": [
+                                        {
+                                            "offset": 358,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                "CustomerName": {
+                                    "type": "string",
+                                    "valueString": "ט.פ.י פל ים בע״מ",
+                                    "content": "ט.פ.י פל ים בע״מ",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.3586,
+                                                2.7376,
+                                                7.2916,
+                                                2.7376,
+                                                7.2916,
+                                                2.8644,
+                                                6.3586,
+                                                2.8644
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.366,
+                                    "spans": [
+                                        {
+                                            "offset": 358,
+                                            "length": 16
+                                        }
+                                    ]
+                                },
+                                "CustomerTaxId": {
+                                    "type": "string",
+                                    "valueString": "513327064",
+                                    "content": "513327064",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.6458,
+                                                3.5691,
+                                                4.2949,
+                                                3.564,
+                                                4.2949,
+                                                3.711,
+                                                3.6509,
+                                                3.7059
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.547,
+                                    "spans": [
+                                        {
+                                            "offset": 559,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                "InvoiceDate": {
+                                    "type": "date",
+                                    "valueDate": "2025-07-08",
+                                    "content": "08/07/25:",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                6.0899,
+                                                1.5868,
+                                                6.7643,
+                                                1.5868,
+                                                6.7694,
+                                                1.7643,
+                                                6.0899,
+                                                1.7592
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.944,
+                                    "spans": [
+                                        {
+                                            "offset": 161,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                "InvoiceId": {
+                                    "type": "string",
+                                    "valueString": "286015 NS",
+                                    "content": "286015 NS",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                3.59,
+                                                1.6464,
+                                                4.392,
+                                                1.6502,
+                                                4.3912,
+                                                1.834,
+                                                3.5891,
+                                                1.8302
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.576,
+                                    "spans": [
+                                        {
+                                            "offset": 182,
+                                            "length": 9
+                                        }
+                                    ]
+                                },
+                                "InvoiceTotal": {
+                                    "type": "currency",
+                                    "valueCurrency": {
+                                        "amount": 1357,
+                                        "currencyCode": "ILS"
+                                    },
+                                    "content": "1,357.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.222,
+                                                7.0266,
+                                                1.7443,
+                                                7.0266,
+                                                1.7443,
+                                                7.1584,
+                                                1.2271,
+                                                7.1533
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.95,
+                                    "spans": [
+                                        {
+                                            "offset": 875,
+                                            "length": 8
+                                        }
+                                    ]
+                                },
+                                "Items": {
+                                    "type": "array",
+                                    "valueArray": [
+                                        {
+                                            "type": "object",
+                                            "valueObject": {
+                                                "Amount": {
+                                                    "type": "currency",
+                                                    "valueCurrency": {
+                                                        "amount": 150,
+                                                        "currencyCode": "ILS"
+                                                    },
+                                                    "content": "150.00",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                1.293,
+                                                                4.3498,
+                                                                1.7088,
+                                                                4.3498,
+                                                                1.7088,
+                                                                4.4765,
+                                                                1.3032,
+                                                                4.4664
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.63,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 620,
+                                                            "length": 6
+                                                        }
+                                                    ]
+                                                },
+                                                "Description": {
+                                                    "type": "string",
+                                                    "valueString": "עבודה",
+                                                    "content": "עבודה",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                5.9428,
+                                                                4.3397,
+                                                                6.2927,
+                                                                4.3397,
+                                                                6.2927,
+                                                                4.4765,
+                                                                5.9428,
+                                                                4.4765
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.628,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 614,
+                                                            "length": 5
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "content": "עבודה\n150.00\n-",
+                                            "boundingRegions": [
+                                                {
+                                                    "pageNumber": 1,
+                                                    "polygon": [
+                                                        1.2939,
+                                                        4.2782,
+                                                        6.2944,
+                                                        4.3397,
+                                                        6.2905,
+                                                        4.6591,
+                                                        1.29,
+                                                        4.5977
+                                                    ]
+                                                }
+                                            ],
+                                            "confidence": 0.651,
+                                            "spans": [
+                                                {
+                                                    "offset": 614,
+                                                    "length": 14
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "valueObject": {
+                                                "Amount": {
+                                                    "type": "currency",
+                                                    "valueCurrency": {
+                                                        "amount": 650,
+                                                        "currencyCode": "ILS"
+                                                    },
+                                                    "content": "650.00",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                1.3234,
+                                                                5.09,
+                                                                1.7392,
+                                                                5.095,
+                                                                1.7392,
+                                                                5.2218,
+                                                                1.3285,
+                                                                5.2218
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.906,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 710,
+                                                            "length": 6
+                                                        }
+                                                    ]
+                                                },
+                                                "Description": {
+                                                    "type": "string",
+                                                    "valueString": "שלט רמפה אלחוטי GALILO",
+                                                    "content": "שלט רמפה אלחוטי GALILO",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                4.2847,
+                                                                5.0545,
+                                                                5.953,
+                                                                5.0545,
+                                                                5.953,
+                                                                5.237,
+                                                                4.2847,
+                                                                5.237
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.898,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 675,
+                                                            "length": 22
+                                                        }
+                                                    ]
+                                                },
+                                                "Quantity": {
+                                                    "type": "number",
+                                                    "valueNumber": 1,
+                                                    "content": "1.00",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                3.4785,
+                                                                5.09,
+                                                                3.7422,
+                                                                5.0849,
+                                                                3.7422,
+                                                                5.2167,
+                                                                3.4785,
+                                                                5.2218
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.89,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 698,
+                                                            "length": 4
+                                                        }
+                                                    ]
+                                                },
+                                                "UnitPrice": {
+                                                    "type": "currency",
+                                                    "valueCurrency": {
+                                                        "amount": 650,
+                                                        "currencyCode": "ILS"
+                                                    },
+                                                    "content": "650.00",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                2.2007,
+                                                                5.09,
+                                                                2.6215,
+                                                                5.09,
+                                                                2.6215,
+                                                                5.2167,
+                                                                2.2007,
+                                                                5.2218
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.886,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 703,
+                                                            "length": 6
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "content": "שלט רמפה אלחוטי GALILO\n1.00\n650.00\n650.00",
+                                            "boundingRegions": [
+                                                {
+                                                    "pageNumber": 1,
+                                                    "polygon": [
+                                                        1.3233,
+                                                        5.0794,
+                                                        5.953,
+                                                        5.0545,
+                                                        5.954,
+                                                        5.237,
+                                                        1.3243,
+                                                        5.2619
+                                                    ]
+                                                }
+                                            ],
+                                            "confidence": 0.92,
+                                            "spans": [
+                                                {
+                                                    "offset": 675,
+                                                    "length": 41
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "valueObject": {
+                                                "Amount": {
+                                                    "type": "currency",
+                                                    "valueCurrency": {
+                                                        "amount": 350,
+                                                        "currencyCode": "ILS"
+                                                    },
+                                                    "content": "350.00",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                1.3285,
+                                                                5.2623,
+                                                                1.7392,
+                                                                5.2573,
+                                                                1.7443,
+                                                                5.384,
+                                                                1.3285,
+                                                                5.3789
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.888,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 746,
+                                                            "length": 6
+                                                        }
+                                                    ]
+                                                },
+                                                "Description": {
+                                                    "type": "string",
+                                                    "valueString": "מכסה סולר איסוזו",
+                                                    "content": "מכסה סולר איסוזו",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                4.8476,
+                                                                5.2421,
+                                                                5.9479,
+                                                                5.2421,
+                                                                5.9479,
+                                                                5.3941,
+                                                                4.8476,
+                                                                5.3941
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.899,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 717,
+                                                            "length": 16
+                                                        }
+                                                    ]
+                                                },
+                                                "Quantity": {
+                                                    "type": "number",
+                                                    "valueNumber": 1,
+                                                    "content": "1.00",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                3.4836,
+                                                                5.2522,
+                                                                3.7472,
+                                                                5.2522,
+                                                                3.7472,
+                                                                5.3739,
+                                                                3.4836,
+                                                                5.3739
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.89,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 734,
+                                                            "length": 4
+                                                        }
+                                                    ]
+                                                },
+                                                "UnitPrice": {
+                                                    "type": "currency",
+                                                    "valueCurrency": {
+                                                        "amount": 350,
+                                                        "currencyCode": "ILS"
+                                                    },
+                                                    "content": "350.00",
+                                                    "boundingRegions": [
+                                                        {
+                                                            "pageNumber": 1,
+                                                            "polygon": [
+                                                                2.2007,
+                                                                5.2573,
+                                                                2.6165,
+                                                                5.2522,
+                                                                2.6165,
+                                                                5.384,
+                                                                2.2057,
+                                                                5.384
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "confidence": 0.886,
+                                                    "spans": [
+                                                        {
+                                                            "offset": 739,
+                                                            "length": 6
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "content": "מכסה סולר איסוזו\n1.00\n350.00\n350.00",
+                                            "boundingRegions": [
+                                                {
+                                                    "pageNumber": 1,
+                                                    "polygon": [
+                                                        1.3285,
+                                                        5.2421,
+                                                        5.9479,
+                                                        5.2421,
+                                                        5.9479,
+                                                        5.3941,
+                                                        1.3285,
+                                                        5.3941
+                                                    ]
+                                                }
+                                            ],
+                                            "confidence": 0.903,
+                                            "spans": [
+                                                {
+                                                    "offset": 717,
+                                                    "length": 35
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "PurchaseOrder": {
+                                    "type": "string",
+                                    "valueString": "098947633:",
+                                    "content": "098947633:",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                5.7704,
+                                                3.6045,
+                                                6.5108,
+                                                3.6045,
+                                                6.5108,
+                                                3.7364,
+                                                5.7755,
+                                                3.7364
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.552,
+                                    "spans": [
+                                        {
+                                            "offset": 534,
+                                            "length": 10
+                                        }
+                                    ]
+                                },
+                                "TotalTax": {
+                                    "type": "currency",
+                                    "valueCurrency": {
+                                        "amount": 207,
+                                        "currencyCode": "ILS"
+                                    },
+                                    "content": "207.00",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                1.3285,
+                                                6.7579,
+                                                1.7392,
+                                                6.7478,
+                                                1.7392,
+                                                6.8745,
+                                                1.3285,
+                                                6.8644
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.96,
+                                    "spans": [
+                                        {
+                                            "offset": 849,
+                                            "length": 6
+                                        }
+                                    ]
+                                },
+                                "VendorAddress": {
+                                    "type": "address",
+                                    "content": "א.ת עמק חפר ת.ד 12218\nגשר העץ 20",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                5.8921,
+                                                0.436,
+                                                7.3322,
+                                                0.436,
+                                                7.3322,
+                                                0.73,
+                                                5.8921,
+                                                0.73
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.371,
+                                    "spans": [
+                                        {
+                                            "offset": 23,
+                                            "length": 32
+                                        }
+                                    ],
+                                    "valueAddress": {
+                                        "houseNumber": "12218",
+                                        "road": "גשר העץ",
+                                        "streetAddress": "12218 גשר העץ",
+                                        "house": "א.ת עמק חפר ת.ד"
+                                    }
+                                },
+                                "VendorAddressRecipient": {
+                                    "type": "string",
+                                    "valueString": "טכומטר-מכון ספידומטרים",
+                                    "content": "טכומטר-מכון ספידומטרים",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                4.087,
+                                                0.1158,
+                                                7.3431,
+                                                0.1267,
+                                                7.3422,
+                                                0.3861,
+                                                4.0861,
+                                                0.3752
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.585,
+                                    "spans": [
+                                        {
+                                            "offset": 0,
+                                            "length": 22
+                                        }
+                                    ]
+                                },
+                                "VendorName": {
+                                    "type": "string",
+                                    "valueString": "חתום דיגיטלית\nקארדקום בע״מ",
+                                    "content": "חתום דיגיטלית\nקארדקום בע״מ",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                2.9964,
+                                                10.9123,
+                                                3.8436,
+                                                10.7883,
+                                                3.9119,
+                                                11.2554,
+                                                3.0647,
+                                                11.3794
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.641,
+                                    "spans": [
+                                        {
+                                            "offset": 1089,
+                                            "length": 26
+                                        }
+                                    ]
+                                },
+                                "VendorTaxId": {
+                                    "type": "string",
+                                    "valueString": "558117016",
+                                    "content": "558117016",
+                                    "boundingRegions": [
+                                        {
+                                            "pageNumber": 1,
+                                            "polygon": [
+                                                0.9837,
+                                                1.9163,
+                                                1.6328,
+                                                1.9113,
+                                                1.6378,
+                                                2.0329,
+                                                0.9837,
+                                                2.0329
+                                            ]
+                                        }
+                                    ],
+                                    "confidence": 0.563,
+                                    "spans": [
+                                        {
+                                            "offset": 265,
+                                            "length": 9
+                                        }
+                                    ]
+                                }
+                            },
+                            "confidence": 1,
+                            "spans": [
+                                {
+                                    "offset": 0,
+                                    "length": 1115
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "AZURE_TEXT_CLEAN",
+                "value": "טכומטר-מכון ספידומטרים\nא.ת עמק חפר ת.ד 12218\nגשר העץ 20\nטלפון: 04-8247760\n387001\nפקס 04-8247761 ת.ד 12218\nכיול ותיקון טכוגרפים וכל סוגי שעוני הרכב ומצלמות\nתאריך\n08/07/25:\nחשבונית מס 286015 NS\n* נאמן למקור *\nדף 1\nתא' סיום\n13:12 08/07/25\nתא' הפקה 29/07/25\nעוסק מורשה\n558117016\nתא' כניסה\n08/07/25:\n08:27\nמוסך מורשה:\n4204\nלכבוד\nמס' לקוח\n3730:\nמס. כרטיס: 100233\nט.פ.י פל ים בע\"מ\nסוג הרכב\n: משאית איסוזו\nדגם\n..\nהקטיף 11\nמספר רישוי\n:\n419-29-702\nמספר שילדה:\nא.ת עמק חפר\n0\nשנת יצור\n:\nמספר מנוע\n:\nהערה\nמסירה\n:\nטל' נייד\n0505020057:\nטל' עבודה\n098947633:\nת.זהות / ח.פ: 513327064\nקוד עבודה\nעבודות\nז. תקן\nסה\"כ % הנחה סכום ש\"ח\nעבודה\n150.00\n-\nקוד פריט\nחלפים\nכמות\n% הנחה יח' לצרכן\nסכום ש\"ח\nשלט רמפה אלחוטי GALILO\n1.00650.00650.00\nמכסה סולר איסוזו\n1.00350.00350.00\n1.00\nסה\"כ לעבודה\n150.00\nהערות:\nסה\"כ ע. חוץ\n0.00\nסה\"כ חלפים\n1,000.00\nסה\"כ\n1,150.00\nמ.ע.מ.% 18.00207.00\nתנאי תשלום:\nלתשלום\n1,357.00\nאחריות לחלקים 3 חודשם מיום הוצאת החשבונית\nלשירותכם תמיד..\nבכבוד רב,\nעורך\nלפרעון: 08/07/25\nטכומטר-מכון ספידומטרים\nעובד\nחתימת הלקוח/ה\nחתימת המאשר /ת:\nתכנון ויישום: אייל פתרונות תוכנה בע\"מ\nמסמך ממוחשב\nאחראי\nחתום דיגיטלית\nקארדקום בע\"מ"
+            }
+        ],
+        "language": "javascript",
+        "inputFormat": "string",
+        "dependencies": [],
+        "codeStringJavascript": "// ============================================================================\n// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.1 - 05.11.25.18:50)\n// מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN\n// מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים\n//\n// 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/\n// לקיחת הקובץ העדכני: ls -lt \"MakeCode/Production Invoice/EXEMPTS\" | head -5\n//\n// ✨ גרסה 1.1 v18:50 - תמיכה בטקסט מנורמל:\n// - תמיכה ב-AZURE_TEXT_CLEAN (טקסט אחרי Text Standardization)\n// - עדיפות לטקסט נקי על פני גולמי לחיפושים ו-regex\n// - backward compatible - עובד עם/בלי AZURE_TEXT_CLEAN\n// - לוג DEBUG מציין מקור הטקסט (CLEAN/RAW)\n//\n// ✨ גרסה 1.0 v16:30 - תיקונים קריטיים:\n// - יצירת פריטים מ-OCR Items (לא רק רכבים!)\n// - תיקוף סכום כולל מול OCR (אזהרה אם הפרש >5%)\n// - תמיכה ב-AZURE כ-JSON string (parse אוטומטי)\n// - תמיכה ב-CARS (מיפוי רכבים מוכן)\n// - טיפול בשדות חסרים (learned_config, docs_list, import_files)\n// - שימוש ב-SUPNAME ו-SUP_TEMP\n// ============================================================================\n\n// ============================================================================\n// פונקציית עזר - הסרת undefined values רקורסיבית\n// ============================================================================\n\nfunction removeUndefinedValues(obj) {\n    if (Array.isArray(obj)) {\n        return obj.map(item => removeUndefinedValues(item));\n    } else if (obj !== null && typeof obj === 'object') {\n        const cleaned = {};\n        for (const [key, value] of Object.entries(obj)) {\n            if (value !== undefined) {\n                cleaned[key] = removeUndefinedValues(value);\n            }\n        }\n        return cleaned;\n    }\n    return obj;\n}\n\n// ============================================================================\n// פונקציית עזר - ניקוי invoice לפני שליחה ל-Priority\n// ============================================================================\n\nfunction cleanInvoiceForPriority(invoice) {\n    const cleaned = JSON.parse(JSON.stringify(invoice));\n\n    // וודא ש-PINVOICESCONT_SUBFORM תמיד קיים\n    if (!cleaned.PINVOICESCONT_SUBFORM) {\n        cleaned.PINVOICESCONT_SUBFORM = [];\n    }\n\n    if (cleaned.PINVOICEITEMS_SUBFORM) {\n        cleaned.PINVOICEITEMS_SUBFORM = cleaned.PINVOICEITEMS_SUBFORM.map(item => {\n            delete item.isNewVehicle;\n            delete item._learningNote;\n\n            if (item.SPECIALVATFLAG && item.SPECIALVATFLAG !== \"Y\") {\n                delete item.SPECIALVATFLAG;\n            }\n\n            // הסר שדות undefined - Make.com לא מקבל undefined values\n            if (item.BUDCODE === undefined) {\n                delete item.BUDCODE;\n            }\n            if (item.SPECIALVATFLAG === undefined) {\n                delete item.SPECIALVATFLAG;\n            }\n            if (item.TUNITNAME === undefined) {\n                delete item.TUNITNAME;\n            }\n\n            return item;\n        });\n    }\n\n    return cleaned;\n}\n\n// ============================================================================\n// פונקציה - נרמול שדות Azure v3.0 לפורמט פשוט\n// ============================================================================\n\nfunction normalizeAzureFields(rawFields) {\n    // בדיקת בטיחות - אם rawFields הוא null או undefined\n    if (!rawFields || typeof rawFields !== 'object') {\n        return {};\n    }\n\n    const normalized = {};\n\n    for (const [key, field] of Object.entries(rawFields)) {\n        if (!field || typeof field !== 'object') {\n            normalized[key] = field;\n            continue;\n        }\n\n        // חילוץ הערך לפי הסוג\n        if (field.valueString !== undefined) {\n            normalized[key] = field.valueString;\n        } else if (field.valueDate !== undefined) {\n            normalized[key] = field.valueDate;\n        } else if (field.valueNumber !== undefined) {\n            normalized[key] = field.valueNumber;\n        } else if (field.valueCurrency !== undefined && field.valueCurrency !== null) {\n            normalized[key] = (field.valueCurrency && field.valueCurrency.amount) || 0;\n            // שמירה גם של הסכום עם קוד מטבע כשדה נפרד\n            if (key.includes('Total') || key.includes('Amount')) {\n                normalized[key + '_amount'] = (field.valueCurrency && field.valueCurrency.amount) || 0;\n                normalized[key + '_currency'] = (field.valueCurrency && field.valueCurrency.currencyCode) || '';\n            }\n        } else if (field.valueArray !== undefined && Array.isArray(field.valueArray)) {\n            // עיבוד מערכים (Items, UnidentifiedNumbers וכו')\n            normalized[key] = field.valueArray.map(item => {\n                if (!item) return item;\n                if (item.valueObject && item.valueObject !== null) {\n                    return normalizeAzureFields(item.valueObject);\n                } else if (item.valueString !== undefined) {\n                    return item.valueString;\n                } else if (item.content !== undefined) {\n                    return item.content;\n                } else {\n                    return item;\n                }\n            });\n        } else if (field.valueObject !== undefined && field.valueObject !== null) {\n            normalized[key] = normalizeAzureFields(field.valueObject);\n        } else if (field.content !== undefined) {\n            // fallback ל-content\n            normalized[key] = field.content;\n        } else {\n            // fallback לשדה המקורי\n            normalized[key] = field;\n        }\n    }\n\n    return normalized;\n}\n\n// ============================================================================\n// פונקציה - המרת מבנה חדש למבנה ישן (wrapper)\n// ============================================================================\n\nfunction convertProductionInputToProcessingInput(productionInput) {\n    // אם זה כבר במבנה הישן, החזר כמו שזה\n    if (productionInput.input && Array.isArray(productionInput.input)) {\n        return productionInput;\n    }\n\n    // parse את AZURE אם זה string\n    let azureData;\n    if (!productionInput.AZURE) {\n        // אם AZURE חסר לגמרי\n        azureData = {};\n    } else if (typeof productionInput.AZURE === 'string') {\n        try {\n            azureData = JSON.parse(productionInput.AZURE);\n        } catch (e) {\n            console.error('Error parsing AZURE JSON:', e.message);\n            azureData = {};\n        }\n    } else {\n        azureData = productionInput.AZURE || {};\n    }\n\n    // בניית learned_config מתוך CARS ו-SUP_TEMP\n    const learnedConfig = buildLearnedConfigFromProduction(\n        productionInput.SUPNAME,\n        productionInput.CARS,\n        productionInput.SUP_TEMP\n    );\n\n    // חילוץ documents מתוך analyzeResult\n    let documents = [];\n    let fields = {};\n    let content = \"\";\n\n    if (azureData.analyzeResult) {\n        content = azureData.analyzeResult.content || \"\";\n        if (azureData.analyzeResult.documents && azureData.analyzeResult.documents.length > 0) {\n            documents = azureData.analyzeResult.documents;\n            const rawFields = documents[0].fields || {};\n\n            // המרת שדות Azure v3.0 לפורמט פשוט\n            fields = normalizeAzureFields(rawFields);\n\n            // שמירת content גם כחלק מ-fields כדי שניתן יהיה לחפש בו\n            fields._rawContent = content;\n        }\n    } else if (azureData.fields) {\n        // מבנה ישן\n        fields = azureData.fields;\n        content = azureData.content || \"\";\n        fields._rawContent = content;\n    }\n\n    // בניית מבנה ישן\n    return {\n        input: [\n            {\n                name: \"learned_config\",\n                value: learnedConfig\n            },\n            {\n                name: \"docs_list\",\n                value: {\n                    DOC_YES_NO: \"N\",\n                    list_of_docs: []\n                }\n            },\n            {\n                name: \"import_files\",\n                value: {\n                    IMPFILES: []\n                }\n            },\n            {\n                name: \"AZURE_RESULT\",\n                value: {\n                    data: {\n                        fields: fields,\n                        documents: documents\n                    }\n                }\n            },\n            {\n                name: \"AZURE_TEXT_CLEAN\",\n                value: productionInput.AZURE_TEXT_CLEAN || \"\"\n            },\n            {\n                name: \"AZURE_TEXT\",\n                value: content\n            }\n        ]\n    };\n}\n\n// ============================================================================\n// פונקציה - בניית learned_config מתוך נתוני Production\n// ============================================================================\n\nfunction buildLearnedConfigFromProduction(supname, cars, supTemp) {\n    // מיפוי רכבים מתוך CARS\n    const vehicleMapping = {};\n\n    // parse CARS אם זה string\n    let carsArray = [];\n    if (typeof cars === 'string') {\n        try {\n            carsArray = JSON.parse(cars);\n        } catch (e) {\n            console.error('Error parsing CARS JSON:', e.message);\n            carsArray = [];\n        }\n    } else if (Array.isArray(cars)) {\n        carsArray = cars;\n    }\n\n    if (carsArray && Array.isArray(carsArray)) {\n        carsArray.forEach(car => {\n            if (car.CAR_NUMBER && car.ACCNAME) {\n                vehicleMapping[car.CAR_NUMBER] = {\n                    accname: car.ACCNAME,\n                    accdes: car.ASSDES || \"\",\n                    budcode: car.BUDCODE || \"\",\n                    vat_pattern: {\n                        VATFLAG: \"Y\",\n                        SPECIALVATFLAG: \"varies\"\n                    },\n                    date_range_pattern: \"never\",\n                    pdaccname_pattern: \"never\"\n                };\n            }\n        });\n    }\n\n    // parse SUP_TEMP אם קיים\n    let supplierTemplate = null;\n    let parsedTemplate = null;\n\n    if (supTemp && typeof supTemp === 'string') {\n        try {\n            supplierTemplate = JSON.parse(supTemp);\n        } catch (e) {\n            supplierTemplate = null;\n        }\n    } else if (supTemp && typeof supTemp === 'object') {\n        supplierTemplate = supTemp;\n    }\n\n    // parse TEMPLETE (שגיאת כתיב מכוונת - זה השם בפועל)\n    let parsedConfig = null;\n    let templateData = null;  // ✨ שמירת templateData המקורי!\n    if (supplierTemplate && supplierTemplate.TEMPLETE) {\n        try {\n            const templateStr = typeof supplierTemplate.TEMPLETE === 'string'\n                ? supplierTemplate.TEMPLETE\n                : JSON.stringify(supplierTemplate.TEMPLETE);\n            templateData = JSON.parse(templateStr);  // ✨ שמירה למשתנה חיצוני\n\n            // ✨ חלץ את כל ה-PINVOICES ואת ה-technical_config\n            // ✨ תיקון: invoice_data עבר לתוך llm_prompt.all_templates\n            if (templateData.llm_prompt && templateData.llm_prompt.all_templates) {\n                // חלץ את כל ה-PINVOICES מכל התבניות\n                const allPinvoices = templateData.llm_prompt.all_templates.map(template => {\n                    return template.invoice_data?.PINVOICES?.[0] || {};\n                });\n\n                parsedTemplate = {\n                    PINVOICES: allPinvoices,\n                    document_types_count: allPinvoices.length\n                };\n            }\n\n            // חלץ גם את ה-technical_config אם קיים\n            // ✨ תיקון: technical_config.all_templates\n            if (templateData.technical_config && templateData.technical_config.all_templates) {\n                // קח את הקונפיג הראשון (או מרג'ת כולם - תלוי בלוגיקה)\n                parsedConfig = {\n                    ...templateData.technical_config.all_templates[0],\n                    supplier_config: {\n                        supplier_code: templateData.technical_config.supplier_code,\n                        supplier_name: templateData.technical_config.supplier_name\n                    }\n                };\n            }\n        } catch (e) {\n            parsedTemplate = null;\n            parsedConfig = null;\n            templateData = null;  // ✨ נקה גם את templateData במקרה של שגיאה\n        }\n    }\n\n    // בניית config - ✨ תמיכה במספר תבניות!\n    const templatesCount = parsedTemplate?.PINVOICES?.length || 1;\n\n    const config = {\n        status: \"success\",\n        supplier_id: supname || \"\",\n        supplier_name: supplierTemplate?.SDES || parsedConfig?.supplier_config?.supplier_name || \"\",\n        vendor_tax_id_reference: supplierTemplate?.VATNUM || parsedConfig?.supplier_config?.vendor_tax_id_reference || \"\",\n        supplier_phone: supplierTemplate?.supplier_phone || \"\",\n        supplier_email: supplierTemplate?.supplier_email || \"\",\n        json_files_analyzed: 1,\n        templates_detected: templatesCount,  // ✨ מספר התבניות שנמצאו\n        // ✨ שמירת המבנה המקורי מ-Processing Invoice!\n        llm_prompt: templateData?.llm_prompt || null,\n        technical_config: templateData?.technical_config || null,\n        config: parsedConfig || {\n            supplier_config: {\n                supplier_code: supname || \"\",\n                supplier_name: supplierTemplate?.SDES || \"\",\n                vendor_tax_id_reference: supplierTemplate?.VATNUM || \"\"\n            },\n            structure: [\n                {\n                    has_import: false,\n                    has_purchase_orders: false,\n                    has_doc: false,\n                    has_date_range: false,\n                    has_budcode: true,\n                    has_pdaccname: false,\n                    inventory_management: \"not_managed_inventory\",\n                    debit_type: \"D\"\n                }\n            ],\n            rules: {\n                invoice_date_format: \"DD/MM/YY\",\n                doc_variation: \"\",\n                validation_data: {\n                    TOTQUANT: 1\n                },\n                critical_patterns: {\n                    vehicle_rules: {\n                        partname: \"car\",\n                        vehicle_account_mapping: vehicleMapping,\n                        default_values: {\n                            accname: Object.values(vehicleMapping)[0]?.accname || \"\",\n                            budcode: Object.values(vehicleMapping)[0]?.budcode || \"\"\n                        },\n                        output_format: {\n                            partname: \"car\"\n                        }\n                    },\n                    partname_rules: {}\n                }\n            },\n            document_types: [\n                {\n                    type: \"חשבונית רגילה עם פירוט\",\n                    accnames: Object.values(vehicleMapping).map(v => v.accname).filter((v, i, a) => a.indexOf(v) === i)\n                }\n            ]\n        },\n        template: parsedTemplate || supplierTemplate?.template || {\n            PINVOICES: [\n                {\n                    SUPNAME: supname || \"\",\n                    CODE: \"ש\\\"ח\",\n                    DEBIT: \"D\",\n                    IVDATE: \"\",\n                    BOOKNUM: \"\",\n                    DETAILS: \"\",\n                    PINVOICEITEMS_SUBFORM: [],\n                    PINVOICESCONT_SUBFORM: []\n                }\n            ],\n            document_types_count: 1\n        },\n        recommended_samples: {\n            samples: []\n        }\n    };\n\n    return config;\n}\n\n// ============================================================================\n// פונקציה ראשית - עיבוד חשבונית Production\n// ============================================================================\n\nfunction processProductionInvoice(productionInput) {\n    const executionReport = {\n        stage: \"\",\n        found: [],\n        not_found: [],\n        warnings: [],\n        errors: []\n    };\n\n    try {\n        executionReport.stage = \"המרת מבנה Production ל-Processing\";\n\n        // המרה למבנה הישן\n        const processingInput = convertProductionInputToProcessingInput(productionInput);\n\n        // שימוש בפונקציה הקיימת\n        executionReport.stage = \"קריאה לפונקציית עיבוד\";\n        const result = processInvoiceComplete(processingInput);\n\n        // הוספת מידע על המקור\n        if (result.status === \"success\") {\n            result.metadata = result.metadata || {};\n            result.metadata.input_type = \"production\";\n            result.metadata.filename = productionInput.FILENAME || \"\";\n            result.metadata.cars_count = (productionInput.CARS || []).length;\n        }\n\n        // הסר כל ערכי undefined מהתוצאה\n        return removeUndefinedValues(result);\n\n    } catch (error) {\n        executionReport.errors.push(error.message);\n\n        const errorResult = {\n            status: \"error\",\n            error_type: error.name || \"ProductionProcessingError\",\n            message: error.message,\n            execution_report: executionReport\n        };\n\n        // הסר כל ערכי undefined גם בשגיאות\n        return removeUndefinedValues(errorResult);\n    }\n}\n\n// ============================================================================\n// הכללה של כל הפונקציות מהקוד המקורי (v4.1-1147lines.js)\n// ============================================================================\n\nfunction processInvoiceComplete(input) {\n    const executionReport = {\n        stage: \"\",\n        found: [],\n        not_found: [],\n        warnings: [],\n        errors: []\n    };\n\n    try {\n        // DEBUG: לוג את מה שמגיע\n        console.log(\"DEBUG: input structure:\", JSON.stringify(input).substring(0, 200));\n\n        // חילוץ נתונים מהמבנה\n        const inputData = {};\n        if (input.input && Array.isArray(input.input)) {\n            input.input.forEach(item => {\n                inputData[item.name] = item.value;\n            });\n        }\n\n        console.log(\"DEBUG: inputData keys:\", Object.keys(inputData));\n\n        // בדיקה: האם learned_config הוא SUP_TEMP (יש TEMPLETE)?\n        let learnedConfig = inputData.learned_config || {};\n        if (typeof learnedConfig === 'string') {\n            try {\n                learnedConfig = JSON.parse(learnedConfig);\n            } catch (e) {\n                console.log(\"DEBUG: Failed to parse learned_config\");\n                learnedConfig = {};\n            }\n        }\n\n        // אם יש TEMPLETE - זה SUP_TEMP, לא learned_config מלא\n        if (learnedConfig.TEMPLETE && learnedConfig.SUPNAME) {\n            console.log(\"DEBUG: learned_config is SUP_TEMP, converting...\");\n            // parse TEMPLETE\n            try {\n                const templateStr = typeof learnedConfig.TEMPLETE === 'string'\n                    ? learnedConfig.TEMPLETE\n                    : JSON.stringify(learnedConfig.TEMPLETE);\n                const templateData = JSON.parse(templateStr);\n\n                console.log(\"DEBUG: TEMPLETE parsed, has technical_config?\", !!templateData.technical_config);\n\n                // ✨ תיקון: חלץ מהמבנה החדש\n                let parsedConfig = {};\n                let parsedTemplate = { PINVOICES: [{}] };\n\n                // חלץ technical_config\n                if (templateData.technical_config && templateData.technical_config.all_templates) {\n                    parsedConfig = {\n                        ...templateData.technical_config.all_templates[0],\n                        supplier_config: {\n                            supplier_code: templateData.technical_config.supplier_code,\n                            supplier_name: templateData.technical_config.supplier_name\n                        }\n                    };\n                }\n\n                // חלץ invoice_data מכל התבניות\n                if (templateData.llm_prompt && templateData.llm_prompt.all_templates) {\n                    const allPinvoices = templateData.llm_prompt.all_templates.map(template => {\n                        return template.invoice_data?.PINVOICES?.[0] || {};\n                    });\n                    parsedTemplate = {\n                        PINVOICES: allPinvoices,\n                        document_types_count: allPinvoices.length\n                    };\n                }\n\n                // בניית learned_config\n                learnedConfig = {\n                    status: \"success\",\n                    supplier_id: learnedConfig.SUPNAME,\n                    supplier_name: learnedConfig.SDES || \"\",\n                    vendor_tax_id_reference: learnedConfig.VATNUM || \"\",\n                    config: parsedConfig,\n                    template: parsedTemplate\n                };\n            } catch (e) {\n                console.log(\"DEBUG: Failed to parse TEMPLETE:\", e.message);\n            }\n        }\n\n        // Parse docs_list אם זה string\n        let docsList = inputData.docs_list || { DOC_YES_NO: \"N\", list_of_docs: [] };\n        if (typeof docsList === 'string') {\n            try {\n                docsList = JSON.parse(docsList);\n            } catch (e) {\n                docsList = { DOC_YES_NO: \"N\", list_of_docs: [] };\n            }\n        }\n\n        // Parse import_files אם זה string\n        let importFiles = inputData.import_files || { IMPFILES: [] };\n        if (typeof importFiles === 'string') {\n            try {\n                importFiles = JSON.parse(importFiles);\n            } catch (e) {\n                importFiles = { IMPFILES: [] };\n            }\n        }\n\n        // Parse AZURE_RESULT אם זה string - זו הבעיה המרכזית!\n        let azureResult = inputData.AZURE_RESULT || { data: { fields: {} } };\n        if (typeof azureResult === 'string') {\n            console.log(\"DEBUG: AZURE_RESULT is string, parsing...\");\n            try {\n                azureResult = JSON.parse(azureResult);\n            } catch (e) {\n                console.log(\"DEBUG: Failed to parse AZURE_RESULT\");\n                azureResult = { data: { fields: {} } };\n            }\n        }\n\n        // ✨ חדש: תמיכה בטקסט מנורמל (AZURE_TEXT_CLEAN)\n        // אם יש טקסט נקי מ-Text Standardization - השתמש בו\n        // אחרת - השתמש בטקסט הגולמי\n        const azureTextClean = inputData.AZURE_TEXT_CLEAN || \"\";\n        const azureTextRaw = inputData.AZURE_TEXT || \"\";\n        const azureText = azureTextClean || azureTextRaw;\n\n        console.log(\"DEBUG: azureText source:\", azureTextClean ? \"CLEAN\" : \"RAW\", \"length:\", azureText.length);\n        console.log(\"DEBUG: azureResult type:\", typeof azureResult, \"has data?\", !!azureResult.data);\n\n        // וידוא שיש data.fields - תמיכה ב-Azure v3.0 format (analyzeResult)\n        if (!azureResult.data) {\n            // בדוק אם יש analyzeResult (Azure v3.0)\n            if (azureResult.analyzeResult) {\n                console.log(\"DEBUG: Converting analyzeResult to data.fields format\");\n                const analyzeResult = azureResult.analyzeResult;\n                const documents = analyzeResult.documents || [];\n\n                if (documents.length > 0) {\n                    // המר שדות Azure v3.0 לפורמט פשוט\n                    const rawFields = documents[0].fields || {};\n                    const normalizedFields = normalizeAzureFields(rawFields);\n\n                    azureResult.data = {\n                        fields: normalizedFields,\n                        documents: documents\n                    };\n                } else {\n                    // אם אין documents, צור data ריק\n                    console.log(\"DEBUG: No documents in analyzeResult, creating empty data\");\n                    azureResult.data = { fields: {}, documents: [] };\n                }\n            } else {\n                console.log(\"DEBUG: Creating azureResult.data\");\n                azureResult.data = { fields: {}, documents: [] };\n            }\n        }\n        if (!azureResult.data.fields) {\n            console.log(\"DEBUG: Creating azureResult.data.fields\");\n            azureResult.data.fields = {};\n        }\n\n        console.log(\"DEBUG: azureResult.data.fields type:\", typeof azureResult.data.fields);\n\n        executionReport.stage = \"שלב 1: זיהוי סוג ותבנית\";\n\n        const hasImport = checkImportExists(importFiles);\n        const hasDocs = checkDocsInOCR(azureResult.data.fields, azureText);\n        const debitType = identifyDebitType(azureResult.data.fields);\n\n        executionReport.found.push(`סוג: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);\n\n        // תמיכה בשני מבנים: config/template או technical_config/invoice_data\n        const config = learnedConfig.config || learnedConfig.technical_config || {};\n\n        // קריאת כל המבנים והתבניות\n        const allStructures = config.structure || [{\n            has_import: false,\n            has_doc: false,\n            debit_type: \"D\",\n            has_budcode: true,\n            inventory_management: \"not_managed_inventory\"\n        }];\n\n        // תמיכה במבנים שונים של template\n        let allTemplates;\n        if (learnedConfig.template?.PINVOICES) {\n            // מבנה ישן - template.PINVOICES\n            allTemplates = learnedConfig.template.PINVOICES;\n        } else if (learnedConfig.llm_prompt?.all_templates) {\n            // ✨ מבנה חדש v4.2 - llm_prompt.all_templates[].invoice_data.PINVOICES[0]\n            allTemplates = learnedConfig.llm_prompt.all_templates.map(t =>\n                t.invoice_data?.PINVOICES?.[0] || {}\n            );\n        } else if (learnedConfig.invoice_data?.PINVOICES) {\n            // מבנה ביניים - invoice_data.PINVOICES\n            allTemplates = learnedConfig.invoice_data.PINVOICES;\n        } else {\n            // fallback - תבנית ריקה\n            allTemplates = [{\n                SUPNAME: config.supplier_config?.supplier_code || \"\",\n                CODE: \"ש\\\"ח\",\n                DEBIT: \"D\"\n            }];\n        }\n\n        // ✨ תיקון! מציאת התבנית המתאימה במקום עיבוד כל התבניות\n        const templateIndex = findMatchingTemplate(allStructures, hasImport, hasDocs, debitType);\n\n        if (templateIndex === -1) {\n            executionReport.errors.push(\"לא נמצאה תבנית מתאימה!\");\n            throw new Error(\"לא נמצאה תבנית מתאימה\");\n        }\n\n        const structure = allStructures[templateIndex];\n        const template = allTemplates[templateIndex] || allTemplates[0];\n\n        executionReport.found.push(`תבנית: נמצאה התאמה (index=${templateIndex})`);\n\n        executionReport.stage = \"שלב 2: הבנת דפוסים\";\n\n        const patterns = extractPatterns(learnedConfig.recommended_samples, docsList);\n        executionReport.found.push(`דפוסים: נמצאו`);\n\n        const vehicleRules = config.rules?.critical_patterns?.vehicle_rules || null;\n        if (vehicleRules && vehicleRules.vehicle_account_mapping) {\n            executionReport.found.push(`חוקי רכבים: פעילים (${Object.keys(vehicleRules.vehicle_account_mapping).length} רכבים)`);\n        }\n\n        executionReport.stage = \"שלב 3: חיפוש נתונים\";\n\n        const ocrFields = azureResult.data.fields || {};\n\n        // חיפוש נתונים לפי התבנית שנבחרה\n        const searchResults = searchAllData(\n            ocrFields,\n            azureText,\n            patterns,\n            structure,\n            importFiles,\n            docsList,\n            vehicleRules\n        );\n\n        // הדפסת תוצאות החיפוש\n        Object.keys(searchResults).forEach(key => {\n            if (key === 'vehicles' && searchResults.vehicles) {\n                if (searchResults.vehicles.length > 0) {\n                    executionReport.found.push(`רכבים: ${searchResults.vehicles.length} - ${searchResults.vehicles.join(', ')}`);\n                }\n            } else if (searchResults[key]) {\n                executionReport.found.push(`${key}: נמצא`);\n            }\n        });\n\n        executionReport.stage = \"שלב 4: בניית חשבונית\";\n\n        // בניית חשבונית לתבנית שנבחרה\n        const invoice = buildInvoiceFromTemplate(\n            template,\n            structure,\n            config,\n            searchResults,\n            learnedConfig,\n            ocrFields\n        );\n\n        executionReport.stage = \"שלב 5: בקרות\";\n\n        // בקרות\n        const validation = performValidation(invoice, ocrFields, config, docsList, patterns);\n\n        executionReport.stage = \"שלב 6: ניתוח למידה\";\n\n        // ניתוח למידה\n        const learningAnalysis = analyzeLearning(invoice, config);\n\n        executionReport.stage = \"שלב 7: ניקוי והכנה לפריוריטי\";\n\n        // ניקוי\n        const cleanedInvoice = cleanInvoiceForPriority(invoice);\n\n        const result = {\n            status: \"success\",\n            supplier_identification: {\n                // ✨ תמיכה במבנה חדש: חפש גם ב-llm_prompt ו-technical_config\n                supplier_code: learnedConfig.supplier_id ||\n                              learnedConfig.llm_prompt?.supplier_code ||\n                              learnedConfig.technical_config?.supplier_code ||\n                              config.supplier_config?.supplier_code || \"\",\n                supplier_name: learnedConfig.supplier_name ||\n                              learnedConfig.llm_prompt?.supplier_name ||\n                              learnedConfig.technical_config?.supplier_name ||\n                              config.supplier_config?.supplier_name || \"\",\n                identification_method: \"vendor_tax_id\",\n                confidence: \"high\"\n            },\n            invoice_data: {\n                PINVOICES: [cleanedInvoice]  // ✨ תיקון! רק החשבונית התואמת\n            },\n            validation: validation,\n            learning_analysis: learningAnalysis,\n            execution_report: executionReport,\n            metadata: {\n                ocr_invoice_id: ocrFields.InvoiceId || \"\",\n                ocr_invoice_date: ocrFields.InvoiceDate || \"\",\n                ocr_total_amount: ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || 0,\n                processing_timestamp: new Date().toISOString(),\n                version: \"1.0-production\",\n                template_index: templateIndex,  // ✨ התבנית שנבחרה\n                template_type: structure.has_import && structure.has_doc ? \"import_with_docs\" :\n                              structure.has_import ? \"import_only\" :\n                              structure.has_doc ? \"docs_only\" :\n                              structure.debit_type === \"C\" ? \"credit_note\" : \"regular\"\n            }\n        };\n\n        // הסר כל ערכי undefined מהתוצאה לפני החזרה\n        return removeUndefinedValues(result);\n\n    } catch (error) {\n        executionReport.errors.push(error.message);\n\n        const errorResult = {\n            status: \"error\",\n            error_type: error.name || \"ProcessingError\",\n            message: error.message,\n            execution_report: executionReport\n        };\n\n        // הסר כל ערכי undefined גם בשגיאות\n        return removeUndefinedValues(errorResult);\n    }\n}\n\n// ============================================================================\n// פונקציות עזר מהקוד המקורי\n// ============================================================================\n\nfunction checkImportExists(importFiles) {\n    if (!importFiles || !importFiles.IMPFILES) return false;\n    if (importFiles.IMPFILES.length === 0) return false;\n    return true;\n}\n\nfunction checkDocsInOCR(ocrFields, azureText) {\n    const unidentified = ocrFields.UnidentifiedNumbers || [];\n    const docPattern = /^25\\d{6}$/;          // DOCNO pattern\n    const booknumPattern = /^108\\d{6}$/;     // BOOKNUM pattern\n\n    if (unidentified.length > 0) {\n        if (typeof unidentified[0] === 'object' && unidentified[0].value) {\n            // בדיקה של שני הדפוסים - DOCNO או BOOKNUM\n            if (unidentified.some(item => docPattern.test(item.value) || booknumPattern.test(item.value))) {\n                return true;\n            }\n        } else {\n            // בדיקה של שני הדפוסים - DOCNO או BOOKNUM\n            if (unidentified.some(num => docPattern.test(num) || booknumPattern.test(num))) {\n                return true;\n            }\n        }\n    }\n\n    // בדיקה גם ב-AZURE_TEXT - שני הדפוסים עם word boundaries\n    if (azureText) {\n        if (azureText.match(/\\b25\\d{6}\\b/g) || azureText.match(/\\b108\\d{6}\\b/g)) {\n            return true;\n        }\n    }\n\n    return false;\n}\n\nfunction identifyDebitType(ocrFields) {\n    const total = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || 0;\n    return total >= 0 ? \"D\" : \"C\";\n}\n\n// ✨ חדש! מציאת תבנית מתאימה לפי מאפייני החשבונית\nfunction findMatchingTemplate(structures, hasImport, hasDocs, debitType) {\n    return structures.findIndex(s =>\n        s.has_import === hasImport &&\n        s.has_doc === hasDocs &&\n        s.debit_type === debitType\n    );\n}\n\nfunction extractPatterns(recommendedSamples, docsList) {\n    const patterns = {\n        booknum_pattern: null,\n        ivnum_pattern: null,\n        docs_pattern: null,\n        docs_totquant: {}\n    };\n\n    if (recommendedSamples && recommendedSamples.samples && recommendedSamples.samples.length > 0) {\n        const sample = recommendedSamples.samples[0];\n\n        if (sample.sample_booknum) {\n            patterns.booknum_pattern = {\n                length: sample.sample_booknum.length,\n                example: sample.sample_booknum\n            };\n        }\n    }\n\n    return patterns;\n}\n\nfunction searchAllData(ocrFields, azureText, patterns, structure, importFiles, docsList, vehicleRules) {\n    return {\n        booknum: searchBooknum(ocrFields, patterns),\n        ivdate: searchIvdate(ocrFields),\n        details: searchDetails(ocrFields, azureText),\n        ordname: null,\n        impfnum: null,\n        documents: null,\n        vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules) : [],\n        items: ocrFields.Items || []\n    };\n}\n\nfunction searchBooknum(ocrFields, patterns) {\n    const original = ocrFields.InvoiceId || \"\";\n    let booknum = String(original);\n\n    // שלב 1: הסר prefix כמו \"SI\"\n    booknum = booknum.replace(/^SI/i, '');\n\n    // שלב 2: הסר suffix לא-מספרי (כמו \" Ns\", \" ns\", וכו')\n    // חלץ את המספרים מהתחילה, אפשר מספרים וסימנים מיוחדים\n    const match = booknum.match(/^[\\d\\-\\/]+/);\n    if (match) {\n        booknum = match[0];\n    }\n\n    // שלב 3: trim רווחים\n    booknum = booknum.trim();\n\n    if (patterns.booknum_pattern) {\n        const expectedLength = patterns.booknum_pattern.length;\n        if (booknum.length > expectedLength) {\n            booknum = booknum.slice(-expectedLength);\n        }\n    }\n\n    console.log(`DEBUG-BOOKNUM: \"${original}\" → \"${booknum}\"`);\n    return booknum;\n}\n\nfunction searchIvdate(ocrFields) {\n    const isoDate = ocrFields.InvoiceDate;\n    if (!isoDate) return \"\";\n\n    const date = new Date(isoDate);\n    const day = String(date.getDate()).padStart(2, '0');\n    const month = String(date.getMonth() + 1).padStart(2, '0');\n    const year = String(date.getFullYear()).slice(-2);\n\n    return `${day}/${month}/${year}`;\n}\n\nfunction searchDetails(ocrFields, azureText) {\n    if (ocrFields.InvoiceDescription) {\n        return ocrFields.InvoiceDescription;\n    }\n\n    if (azureText) {\n        const lines = azureText.split('\\n').filter(l => l.trim());\n        if (lines.length > 2) {\n            return lines[2].substring(0, 100);\n        }\n    }\n\n    return \"\";\n}\n\nfunction extractVehiclesAdvanced(ocrFields, vehicleRules) {\n    if (!vehicleRules || !vehicleRules.vehicle_account_mapping) return [];\n\n    const foundVehicles = [];\n    const vehiclePattern = /\\d{3}-\\d{2}-\\d{3}/g;\n    const searchLocations = vehicleRules.search_locations || [\n        {\n            location: \"fields.UnidentifiedNumbers\",\n            priority: 1,\n            filter_by_label: \"רכב\"\n        }\n    ];\n\n    const sortedLocations = [...searchLocations].sort((a, b) => a.priority - b.priority);\n\n    for (const location of sortedLocations) {\n        if (location.location === \"fields.VehicleNumbers\") {\n            if (ocrFields.VehicleNumbers && Array.isArray(ocrFields.VehicleNumbers)) {\n                ocrFields.VehicleNumbers.forEach(vNum => {\n                    if (!foundVehicles.includes(vNum)) {\n                        foundVehicles.push(vNum);\n                    }\n                });\n            }\n        }\n        else if (location.location === \"fields.UnidentifiedNumbers\") {\n            const unidentified = ocrFields.UnidentifiedNumbers || [];\n\n            unidentified.forEach(item => {\n                const value = typeof item === 'object' ? item.value : item;\n                const label = typeof item === 'object' ? (item.label || '') : '';\n                const context = typeof item === 'object' ? (item.context || '') : '';\n\n                const isValidVehicleNumber = /\\d{3}-\\d{2}-\\d{3}/.test(value);\n                const looksLikeCardNumber = context.includes('כרטיס') || label.includes('כרטיס');\n\n                if (location.filter_by_label) {\n                    if (label && label.includes(location.filter_by_label)) {\n                        if (isValidVehicleNumber && !looksLikeCardNumber && !foundVehicles.includes(value)) {\n                            foundVehicles.push(value);\n                        }\n                    }\n                } else {\n                    if (isValidVehicleNumber && !looksLikeCardNumber && !foundVehicles.includes(value)) {\n                        foundVehicles.push(value);\n                    }\n                }\n            });\n        }\n    }\n\n    // אם לא נמצאו רכבים בשדות ספציפיים, חפש רכבים ממופים ב-content כ-fallback\n    if (foundVehicles.length === 0 && ocrFields._rawContent) {\n        const contentMatches = ocrFields._rawContent.match(vehiclePattern);\n        if (contentMatches) {\n            contentMatches.forEach(match => {\n                // בדוק אם הרכב קיים ב-vehicle_account_mapping\n                if (vehicleRules.vehicle_account_mapping[match] && !foundVehicles.includes(match)) {\n                    foundVehicles.push(match);\n                }\n            });\n        }\n    }\n\n    return [...new Set(foundVehicles)];\n}\n\nfunction buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields) {\n    // ✨ חילוץ supplier_code מכל המקורות האפשריים\n    const supplierCode = template.SUPNAME ||\n                        config.supplier_config?.supplier_code ||\n                        learnedConfig.supplier_id ||\n                        learnedConfig.llm_prompt?.supplier_code ||\n                        learnedConfig.technical_config?.supplier_code ||\n                        \"\";\n\n    const invoice = {\n        SUPNAME: supplierCode,  // ✨ תיקון!\n        CODE: template.CODE || \"ש\\\"ח\",\n        DEBIT: structure.debit_type || \"D\",\n        IVDATE: searchResults.ivdate,\n        BOOKNUM: searchResults.booknum\n    };\n\n    // DETAILS - יצירה חכמה לפי רכבים\n    if (searchResults.vehicles && searchResults.vehicles.length > 0) {\n        const vehicleNum = searchResults.vehicles[0];\n        const shortDesc = extractShortDescription(ocrFields, vehicleNum);\n\n        let currentMileage = '';\n        const unidentified = ocrFields.UnidentifiedNumbers || [];\n\n        if (unidentified.length > 0) {\n            const mileageItem = unidentified.find(item => {\n                if (typeof item === 'object') {\n                    const label = item.label || '';\n                    const value = item.value || '';\n                    if (label.includes('ק') || label.includes('קמ') || label.includes('מ')) {\n                        return /^\\d{5,6}$/.test(value);\n                    }\n                }\n                return false;\n            });\n\n            if (mileageItem && typeof mileageItem === 'object') {\n                currentMileage = mileageItem.value;\n            }\n        }\n\n        if (!currentMileage && ocrFields.CustomerId && /^\\d{5,6}$/.test(ocrFields.CustomerId)) {\n            currentMileage = ocrFields.CustomerId;\n        }\n\n        invoice.DETAILS = currentMileage ? `${shortDesc}-${currentMileage}` : shortDesc;\n    } else if (searchResults.details) {\n        invoice.DETAILS = searchResults.details;\n    }\n\n    // פריטים\n    const needItems = true;\n\n    if (needItems) {\n        const vehicleRules = config.rules?.critical_patterns?.vehicle_rules;\n\n        if (searchResults.vehicles && searchResults.vehicles.length > 0 && vehicleRules) {\n            // 1️⃣ יצירת פריטים מרכבים + OCR\n            invoice.PINVOICEITEMS_SUBFORM = createVehicleItems(\n                searchResults.vehicles,\n                searchResults.items,\n                vehicleRules,\n                ocrFields\n            );\n        } else if (searchResults.items && searchResults.items.length > 0) {\n            // 2️⃣ יצירת פריטים מ-OCR Items (בלי רכבים)\n            invoice.PINVOICEITEMS_SUBFORM = createItemsFromOCR(\n                searchResults.items,\n                template,\n                ocrFields\n            );\n        } else if (template.PINVOICEITEMS_SUBFORM) {\n            // 3️⃣ fallback - העתק מהתבנית רק אם אין OCR כלל\n            invoice.PINVOICEITEMS_SUBFORM = JSON.parse(JSON.stringify(template.PINVOICEITEMS_SUBFORM));\n        }\n    }\n\n    if (template.PINVOICESCONT_SUBFORM) {\n        invoice.PINVOICESCONT_SUBFORM = template.PINVOICESCONT_SUBFORM;\n    }\n\n    return invoice;\n}\n\nfunction extractShortDescription(ocrFields, vehicleNum) {\n    if (ocrFields.Items && ocrFields.Items.length > 0) {\n        const item = ocrFields.Items.find(i =>\n            i.Description && (\n                i.Description.includes(vehicleNum) ||\n                i.Description.includes('טיפול') ||\n                i.Description.includes('עבודה')\n            )\n        );\n\n        if (item && item.Description) {\n            const desc = item.Description.trim();\n\n            const servicePattern = /טיפול\\s+[\\d,]+\\s*ק[״\"]?מ/i;\n            const match = desc.match(servicePattern);\n\n            if (match) {\n                let serviceDesc = match[0];\n                serviceDesc = serviceDesc\n                    .replace(/,/g, '')\n                    .replace(/קמ/g, 'ק\"מ')\n                    .replace(/ק״מ/g, 'ק\"מ');\n\n                return serviceDesc;\n            }\n\n            const words = desc.split(/\\s+/);\n            let shortDesc = words.slice(0, 4).join(' ');\n\n            if (shortDesc.length > 50) {\n                shortDesc = shortDesc.substring(0, 47) + '...';\n            }\n\n            return shortDesc;\n        }\n    }\n\n    return 'טיפול';\n}\n\nfunction createItemsFromOCR(ocrItems, template, ocrFields) {\n    if (!ocrItems || ocrItems.length === 0) return [];\n\n    const items = [];\n\n    // שדות קבועים מהתבנית (אם יש פריט ראשון בתבנית)\n    const templateItem = template.PINVOICEITEMS_SUBFORM?.[0] || {};\n\n    ocrItems.forEach((ocrItem, index) => {\n        // חישוב מחיר - נסה UnitPrice, ואם לא קיים - חלק Amount ב-Quantity\n        let price = 0;\n        if (ocrItem.UnitPrice) {\n            price = ocrItem.UnitPrice;\n        } else if (ocrItem.Amount && ocrItem.Quantity) {\n            price = ocrItem.Amount / (ocrItem.Quantity || 1);\n        } else if (ocrItem.Amount) {\n            price = ocrItem.Amount;\n        }\n\n        const item = {\n            // שדות קבועים מהתבנית\n            PARTNAME: templateItem.PARTNAME || \"item\",\n            TUNITNAME: ocrItem.Unit || templateItem.TUNITNAME || \"יח'\",\n            VATFLAG: templateItem.VATFLAG || \"Y\",\n            ACCNAME: templateItem.ACCNAME || \"\",\n            SPECIALVATFLAG: templateItem.SPECIALVATFLAG || \"Y\",\n\n            // שדות דינמיים מ-OCR\n            PDES: ocrItem.Description || templateItem.PDES || \"\",\n            TQUANT: ocrItem.Quantity || 1,\n            PRICE: price\n        };\n\n        // BUDCODE אם קיים בתבנית\n        if (templateItem.BUDCODE) {\n            item.BUDCODE = templateItem.BUDCODE;\n        }\n\n        items.push(item);\n    });\n\n    // בדיקת סכום כולל מול OCR\n    const calculatedTotal = items.reduce((sum, item) => sum + (item.TQUANT * item.PRICE), 0);\n    const ocrTotal = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || ocrFields.SubTotal_amount || 0;\n\n    if (calculatedTotal > 0 && ocrTotal > 0) {\n        const difference = Math.abs(calculatedTotal - ocrTotal);\n        const percentDiff = (difference / ocrTotal) * 100;\n\n        if (percentDiff > 5) {  // הפרש של יותר מ-5%\n            console.log(`⚠️  WARNING: הפרש סכומים! OCR=${ocrTotal}, חישוב=${calculatedTotal.toFixed(2)}, הפרש=${difference.toFixed(2)} (${percentDiff.toFixed(1)}%)`);\n        } else {\n            console.log(`✅ סכום תואם: OCR=${ocrTotal}, חישוב=${calculatedTotal.toFixed(2)}`);\n        }\n    }\n\n    console.log(`DEBUG-createItemsFromOCR: נוצרו ${items.length} פריטים מ-OCR`);\n    return items;\n}\n\nfunction createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {\n    if (!vehicles || vehicles.length === 0) return [];\n\n    const vehicleItems = [];\n    const totalPrice = ocrFields.SubTotal_amount || ocrFields.InvoiceTotal_amount || 0;\n    const pricePerVehicle = vehicles.length > 0 ? totalPrice / vehicles.length : totalPrice;\n\n    vehicles.forEach(vehicleNum => {\n        const mapping = vehicleRules.vehicle_account_mapping?.[vehicleNum];\n\n        const relatedItem = ocrItems.find(item =>\n            (item.VehicleNumber && item.VehicleNumber === vehicleNum) ||\n            (item.Description && item.Description.includes(vehicleNum))\n        );\n\n        const shortDesc = extractShortDescription(ocrFields, vehicleNum);\n\n        const item = {\n            PARTNAME: vehicleRules.output_format?.partname || \"car\",\n            PDES: shortDesc,\n            TQUANT: relatedItem?.Quantity || 1,\n            TUNITNAME: relatedItem?.Unit || \"יח'\",\n            PRICE: pricePerVehicle,\n            VATFLAG: mapping?.vat_pattern?.VATFLAG || \"Y\",\n            ACCNAME: mapping?.accname || vehicleRules.default_values?.accname || \"\"\n        };\n\n        if (mapping?.budcode) {\n            item.BUDCODE = mapping.budcode;\n        } else if (vehicleRules.default_values?.budcode) {\n            item.BUDCODE = vehicleRules.default_values.budcode;\n        }\n\n        if (mapping?.vat_pattern?.SPECIALVATFLAG === \"Y\") {\n            item.SPECIALVATFLAG = \"Y\";\n        }\n\n        if (!mapping) {\n            item._learningNote = \"רכב חדש - נדרש מיפוי\";\n        }\n\n        vehicleItems.push(item);\n    });\n\n    return vehicleItems;\n}\n\nfunction performValidation(invoice, ocrFields, config, docsList, patterns) {\n    const warnings = [];\n    const checks = {\n        required_fields_check: \"passed\",\n        invoice_structure_check: \"passed\"\n    };\n\n    const requiredFields = [\"SUPNAME\", \"CODE\", \"DEBIT\", \"IVDATE\", \"BOOKNUM\"];\n    const missingFields = requiredFields.filter(f => !invoice[f]);\n\n    if (missingFields.length > 0) {\n        warnings.push(`שדות חובה חסרים: ${missingFields.join(', ')}`);\n        checks.required_fields_check = \"failed\";\n    }\n\n    return {\n        all_valid: warnings.length === 0,\n        checks: checks,\n        warnings: warnings\n    };\n}\n\nfunction analyzeLearning(invoice, config) {\n    const newPatterns = {\n        new_partnames: [],\n        new_vehicles: [],\n        unknown_accounts: []\n    };\n\n    const instructions = [];\n\n    if (invoice.PINVOICEITEMS_SUBFORM) {\n        invoice.PINVOICEITEMS_SUBFORM.forEach(item => {\n            if (item._learningNote) {\n                const vehicleMatch = item.PDES.match(/\\d{3}-\\d{2}-\\d{3}/);\n                if (vehicleMatch) {\n                    const vehiclePattern = {\n                        vehicle_number: vehicleMatch[0],\n                        suggested_accname: item.ACCNAME || \"\",\n                        suggested_vatflag: item.VATFLAG || \"Y\"\n                    };\n\n                    // הוסף suggested_budcode רק אם קיים\n                    if (item.BUDCODE !== undefined) {\n                        vehiclePattern.suggested_budcode = item.BUDCODE;\n                    }\n\n                    newPatterns.new_vehicles.push(vehiclePattern);\n                }\n            }\n        });\n    }\n\n    const learningRequired = newPatterns.new_vehicles.length > 0;\n\n    return {\n        learning_required: learningRequired,\n        new_patterns: newPatterns,\n        learning_instructions: instructions,\n        recommendation: learningRequired ? \"שלח לקוד 3 ללמידה\" : \"אין צורך בלמידה\"\n    };\n}\n\n// ============================================================================\n// Exports - אפשר ייבוא כמודול\n// ============================================================================\n\nmodule.exports = {\n    processProductionInvoice,\n    processInvoiceComplete\n};\n\n// ============================================================================\n// נקודת כניסה - רק אם מריצים ישירות (לא כמודול)\n// ============================================================================\n\n// ✨ גישה פשוטה כמו ב-Processing Invoice - return ישיר\nif (typeof input !== 'undefined') {\n    // DEBUG: לוג את סוג input\n    console.log(\"DEBUG-v18:50: typeof input =\", typeof input, \"isArray =\", Array.isArray(input));\n\n    // קריאת INPUT - תמיכה בשני המבנים\n    const inputData = input[0] || input;\n\n    console.log(\"DEBUG-v18:50: inputData keys =\", Object.keys(inputData));\n\n    let result;\n\n    if (inputData.AZURE && inputData.SUPNAME) {\n        // מבנה חדש - Production Invoice\n        result = processProductionInvoice(inputData);\n    } else if (inputData.input && Array.isArray(inputData.input)) {\n        // מבנה Processing Invoice עם input array\n        result = processInvoiceComplete(inputData);\n    } else {\n        // מבנה ישן - Processing Invoice (fallback)\n        const processInput = {\n            learned_config: input.learned_config || {},\n            docs_list: input.docs_list || { DOC_YES_NO: \"N\", list_of_docs: [] },\n            import_files: input.import_files || { IMPFILES: [] },\n            AZURE_RESULT: input.AZURE_RESULT || { data: { fields: {} } },\n            AZURE_TEXT_CLEAN: input.AZURE_TEXT_CLEAN || \"\",\n            AZURE_TEXT: input.AZURE_TEXT || \"\"\n        };\n        result = processInvoiceComplete({ input: [\n            { name: \"learned_config\", value: processInput.learned_config },\n            { name: \"docs_list\", value: processInput.docs_list },\n            { name: \"import_files\", value: processInput.import_files },\n            { name: \"AZURE_RESULT\", value: processInput.AZURE_RESULT },\n            { name: \"AZURE_TEXT_CLEAN\", value: processInput.AZURE_TEXT_CLEAN },\n            { name: \"AZURE_TEXT\", value: processInput.AZURE_TEXT }\n        ]});\n    }\n\n    console.log(JSON.stringify(result, null, 2));\n    console.log(\"DEBUG-v18:50: returning object, has items?\", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);\n    console.log(\"DEBUG-v18:50: items count =\", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);\n    console.log(\"DEBUG-v18:50: BOOKNUM =\", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);\n\n    // ✨ return object - כמו Processing Invoice!\n    return result;\n}\n"
+    }
+]
