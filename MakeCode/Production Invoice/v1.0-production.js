@@ -1,10 +1,15 @@
 // ============================================================================
-// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.1 - 05.11.25.18:50)
+// קוד Production Invoice - עיבוד חשבוניות (גרסה 1.2 - 05.11.25.19:30)
 // מקבל: מבנה חדש עם AZURE, CARS, SUPNAME + AZURE_TEXT_CLEAN
 // מחזיר: JavaScript object + פריטים מ-OCR + תיקוף סכומים
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+//
+// ✨ גרסה 1.2 v19:30 - תמיכה ב-Azure OCR ישירות:
+// - תמיכה ב-AZURE_RESULT ישירות מ-Azure OCR (בלי analyzeResult wrapper)
+// - זיהוי אוטומטי: apiVersion + documents = Azure v3.0 ישירות
+// - לוגים מפורטים: "Converting direct Azure v3.0 format"
 //
 // ✨ גרסה 1.1 v18:50 - תמיכה בטקסט מנורמל:
 // - תמיכה ב-AZURE_TEXT_CLEAN (טקסט אחרי Text Standardization)
@@ -600,9 +605,9 @@ function processInvoiceComplete(input) {
 
         // וידוא שיש data.fields - תמיכה ב-Azure v3.0 format (analyzeResult)
         if (!azureResult.data) {
-            // בדוק אם יש analyzeResult (Azure v3.0)
+            // בדוק אם יש analyzeResult (Azure v3.0 wrapped)
             if (azureResult.analyzeResult) {
-                console.log("DEBUG: Converting analyzeResult to data.fields format");
+                console.log("DEBUG: Converting wrapped analyzeResult to data.fields format");
                 const analyzeResult = azureResult.analyzeResult;
                 const documents = analyzeResult.documents || [];
 
@@ -620,8 +625,28 @@ function processInvoiceComplete(input) {
                     console.log("DEBUG: No documents in analyzeResult, creating empty data");
                     azureResult.data = { fields: {}, documents: [] };
                 }
+            } else if (azureResult.apiVersion && azureResult.documents) {
+                // Azure v3.0 ישירות (בלי wrapper של analyzeResult)
+                console.log("DEBUG: Converting direct Azure v3.0 format to data.fields");
+                const documents = azureResult.documents || [];
+
+                if (documents.length > 0) {
+                    // המר שדות Azure v3.0 לפורמט פשוט
+                    const rawFields = documents[0].fields || {};
+                    const normalizedFields = normalizeAzureFields(rawFields);
+
+                    azureResult.data = {
+                        fields: normalizedFields,
+                        documents: documents
+                    };
+                    console.log("DEBUG: Converted direct Azure format, fields count:", Object.keys(normalizedFields).length);
+                } else {
+                    // אם אין documents, צור data ריק
+                    console.log("DEBUG: No documents in direct Azure format, creating empty data");
+                    azureResult.data = { fields: {}, documents: [] };
+                }
             } else {
-                console.log("DEBUG: Creating azureResult.data");
+                console.log("DEBUG: Unknown format - creating empty azureResult.data");
                 azureResult.data = { fields: {}, documents: [] };
             }
         }
@@ -1324,12 +1349,12 @@ module.exports = {
 // ✨ גישה פשוטה כמו ב-Processing Invoice - return ישיר
 if (typeof input !== 'undefined') {
     // DEBUG: לוג את סוג input
-    console.log("DEBUG-v18:50: typeof input =", typeof input, "isArray =", Array.isArray(input));
+    console.log("DEBUG-v19:30: typeof input =", typeof input, "isArray =", Array.isArray(input));
 
     // קריאת INPUT - תמיכה בשני המבנים
     const inputData = input[0] || input;
 
-    console.log("DEBUG-v18:50: inputData keys =", Object.keys(inputData));
+    console.log("DEBUG-v19:30: inputData keys =", Object.keys(inputData));
 
     let result;
 
@@ -1360,9 +1385,9 @@ if (typeof input !== 'undefined') {
     }
 
     console.log(JSON.stringify(result, null, 2));
-    console.log("DEBUG-v18:50: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
-    console.log("DEBUG-v18:50: items count =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("DEBUG-v18:50: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("DEBUG-v19:30: returning object, has items?", !!result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM);
+    console.log("DEBUG-v19:30: items count =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("DEBUG-v19:30: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
 
     // ✨ return object - כמו Processing Invoice!
     return result;
