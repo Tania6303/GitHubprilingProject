@@ -1227,18 +1227,27 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
         items.push(item);
     });
 
-    // בדיקת סכום כולל מול OCR
+    // בדיקת סכום כולל מול OCR - תיקון: השווה מול SubTotal (לפני מע"מ)
     const calculatedTotal = items.reduce((sum, item) => sum + (item.TQUANT * item.PRICE), 0);
-    const ocrTotal = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || ocrFields.SubTotal_amount || 0;
 
-    if (calculatedTotal > 0 && ocrTotal > 0) {
-        const difference = Math.abs(calculatedTotal - ocrTotal);
-        const percentDiff = (difference / ocrTotal) * 100;
+    // חישוב SubTotal מ-OCR
+    let ocrSubtotal = ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
+    if (!ocrSubtotal &&
+        (ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount) &&
+        (ocrFields.TotalTax || ocrFields.TotalTax_amount)) {
+        const invoiceTotal = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount;
+        const totalTax = ocrFields.TotalTax || ocrFields.TotalTax_amount;
+        ocrSubtotal = invoiceTotal - totalTax;
+    }
+
+    if (calculatedTotal > 0 && ocrSubtotal > 0) {
+        const difference = Math.abs(calculatedTotal - ocrSubtotal);
+        const percentDiff = (difference / ocrSubtotal) * 100;
 
         if (percentDiff > 5) {  // הפרש של יותר מ-5%
-            console.log(`⚠️  WARNING: הפרש סכומים! OCR=${ocrTotal}, חישוב=${calculatedTotal.toFixed(2)}, הפרש=${difference.toFixed(2)} (${percentDiff.toFixed(1)}%)`);
+            console.log(`⚠️  WARNING: הפרש סכומים! OCR SubTotal=${ocrSubtotal}, חישוב=${calculatedTotal.toFixed(2)}, הפרש=${difference.toFixed(2)} (${percentDiff.toFixed(1)}%)`);
         } else {
-            console.log(`✅ סכום תואם: OCR=${ocrTotal}, חישוב=${calculatedTotal.toFixed(2)}`);
+            console.log(`✅ סכום תואם: OCR SubTotal=${ocrSubtotal}, חישוב=${calculatedTotal.toFixed(2)}`);
         }
     }
 
@@ -1326,22 +1335,33 @@ function performValidation(invoice, ocrFields, config, docsList, patterns) {
             return sum + (item.TQUANT || 0) * (item.PRICE || 0);
         }, 0);
 
-        const ocrTotal = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount ||
-                        ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
+        // ⚠️ תיקון קריטי: חישוב הפריטים הוא לפני מע"מ!
+        // קודם נסה SubTotal (לפני מע"מ)
+        let ocrSubtotal = ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
 
-        if (calculatedTotal > 0 && ocrTotal > 0) {
-            const difference = Math.abs(calculatedTotal - ocrTotal);
-            const percentDiff = (difference / ocrTotal) * 100;
+        // אם אין SubTotal אבל יש InvoiceTotal + TotalTax - חשב SubTotal
+        if (!ocrSubtotal &&
+            (ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount) &&
+            (ocrFields.TotalTax || ocrFields.TotalTax_amount)) {
+            const invoiceTotal = ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount;
+            const totalTax = ocrFields.TotalTax || ocrFields.TotalTax_amount;
+            ocrSubtotal = invoiceTotal - totalTax;
+            console.log(`DEBUG-validation: חישוב SubTotal מ-InvoiceTotal: ${invoiceTotal} - ${totalTax} = ${ocrSubtotal}`);
+        }
+
+        if (calculatedTotal > 0 && ocrSubtotal > 0) {
+            const difference = Math.abs(calculatedTotal - ocrSubtotal);
+            const percentDiff = (difference / ocrSubtotal) * 100;
 
             if (percentDiff > 5) {
-                warnings.push(`⚠️ הפרש סכומים: חישוב=${calculatedTotal.toFixed(2)} ש"ח, OCR=${ocrTotal.toFixed(2)} ש"ח, הפרש=${percentDiff.toFixed(1)}%`);
+                warnings.push(`⚠️ הפרש סכומים: חישוב=${calculatedTotal.toFixed(2)} ש"ח, OCR SubTotal=${ocrSubtotal.toFixed(2)} ש"ח, הפרש=${percentDiff.toFixed(1)}%`);
                 checks.amount_validation = "warning";
             } else {
-                warnings.push(`✅ סכום תקין: ${calculatedTotal.toFixed(2)} ש"ח (הפרש ${percentDiff.toFixed(1)}% מ-OCR)`);
+                warnings.push(`✅ סכום תקין: ${calculatedTotal.toFixed(2)} ש"ח (הפרש ${percentDiff.toFixed(1)}% מ-OCR SubTotal)`);
                 checks.amount_validation = "passed";
             }
         } else {
-            warnings.push(`ℹ️ לא ניתן לבדוק סכומים: חישוב=${calculatedTotal.toFixed(2)}, OCR=${ocrTotal}`);
+            warnings.push(`ℹ️ לא ניתן לבדוק סכומים: חישוב=${calculatedTotal.toFixed(2)}, OCR SubTotal=${ocrSubtotal}`);
             checks.amount_validation = "not_applicable";
         }
     } else {
