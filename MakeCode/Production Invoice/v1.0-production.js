@@ -1,7 +1,7 @@
-// Production Invoice v1.7.0 (06.11.25 - 11:14)
+// Production Invoice v1.7.1 (06.11.25 - 11:34)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
-// מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation
-// תיקונים: vehicles input parsing + structure.has_vehicles + חיפוש רכבים בטקסט + PDES+ACCNAME ממיפוי + duplicate handling
+// מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
+// תיקונים: PDES מתיאור מוצרים אמיתיים + PRICE=SubTotal + metadata מורחב + field_mapping מפורט
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -675,7 +675,7 @@ function processInvoiceComplete(input) {
             ocrFields
         );
         executionReport.stage = "שלב 5: בקרות";
-        const validation = performValidation(invoice, ocrFields, config, docsList, patterns);
+        const validation = performValidation(invoice, ocrFields, config, docsList, patterns, structure, searchResults, template);
         executionReport.stage = "שלב 6: ניתוח למידה";
         const learningAnalysis = analyzeLearning(invoice, config);
         executionReport.stage = "שלב 7: ניקוי והכנה לפריוריטי";
@@ -704,13 +704,24 @@ function processInvoiceComplete(input) {
                 ocr_invoice_id: ocrFields.InvoiceId || "",
                 ocr_invoice_date: ocrFields.InvoiceDate || "",
                 ocr_total_amount: ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || 0,
+                ocr_subtotal: ocrFields.SubTotal || ocrFields.SubTotal_amount ||
+                             (ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount ?
+                              ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount : null),
+                ocr_tax: ocrFields.TotalTax || ocrFields.TotalTax_amount || 0,
                 processing_timestamp: new Date().toISOString(),
                 version: "1.0-production",
                 template_index: templateIndex,
                 template_type: structure.has_import && structure.has_doc ? "import_with_docs" :
                               structure.has_import ? "import_only" :
                               structure.has_doc ? "docs_only" :
-                              structure.debit_type === "C" ? "credit_note" : "regular"
+                              structure.has_vehicles ? "vehicles" :
+                              structure.debit_type === "C" ? "credit_note" : "regular",
+                has_vehicles: structure.has_vehicles || false,
+                vehicle_numbers: searchResults.vehicles || [],
+                vehicle_count: searchResults.vehicles ? searchResults.vehicles.length : 0,
+                has_documents: structure.has_doc || false,
+                document_count: searchResults.documents ? searchResults.documents.length : 0,
+                has_import: structure.has_import || false
             }
         };
         return removeUndefinedValues(result);
@@ -1009,31 +1020,19 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         BOOKNUM: searchResults.booknum
     };
     if (searchResults.vehicles && searchResults.vehicles.length > 0) {
-        const vehicleNum = searchResults.vehicles[0];
-        const shortDesc = extractShortDescription(ocrFields, vehicleNum);
-        let currentMileage = '';
-        const unidentified = ocrFields.UnidentifiedNumbers || [];
-        if (unidentified.length > 0) {
-            const mileageItem = unidentified.find(item => {
-                if (typeof item === 'object') {
-                    const label = item.label || '';
-                    const value = item.value || '';
-                    if (label.includes('ק') || label.includes('קמ') || label.includes('מ')) {
-                        return /^\d{5,6}$/.test(value);
-                    }
-                }
-                return false;
-            });
-            if (mileageItem && typeof mileageItem === 'object') {
-                currentMileage = mileageItem.value;
-            }
+        // ברכבים - DETAILS צריך להיות null (לא תיאור כללי)
+        invoice.DETAILS = null;
+    } else if (searchResults.details && searchResults.details.trim()) {
+        // DETAILS רק אם זה לא generic work description וזה לא חשבונית רכבים
+        const isGeneric = ['עבודה', 'work', 'labor'].some(term => searchResults.details.trim() === term);
+        const isVehicleInvoice = structure.has_vehicles && searchResults.vehicles && searchResults.vehicles.length > 0;
+
+        if (isVehicleInvoice || isGeneric) {
+            invoice.DETAILS = null;  // ברכבים או עבודה גנרית - לא מציגים
+            console.log(`🔧 DETAILS set to null (vehicles=${isVehicleInvoice}, generic=${isGeneric})`);
+        } else {
+            invoice.DETAILS = searchResults.details;
         }
-        if (!currentMileage && ocrFields.CustomerId && /^\d{5,6}$/.test(ocrFields.CustomerId)) {
-            currentMileage = ocrFields.CustomerId;
-        }
-        invoice.DETAILS = currentMileage ? `${shortDesc}-${currentMileage}` : shortDesc;
-    } else if (searchResults.details) {
-        invoice.DETAILS = searchResults.details;
     }
 
     // תעודות (אם נמצאו)
@@ -1170,24 +1169,47 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
 function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
     if (!vehicles || vehicles.length === 0) return [];
     const vehicleItems = [];
-    const totalPrice = ocrFields.SubTotal_amount || ocrFields.InvoiceTotal_amount || 0;
-    const pricePerVehicle = vehicles.length > 0 ? totalPrice / vehicles.length : totalPrice;
+
+    // Calculate SubTotal (before VAT)
+    let subtotal = ocrFields.SubTotal_amount || ocrFields.SubTotal || 0;
+    if (!subtotal && ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount) {
+        subtotal = ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount;
+        console.log(`📊 Calculated SubTotal: ${ocrFields.InvoiceTotal_amount} - ${ocrFields.TotalTax_amount} = ${subtotal}`);
+    }
+
+    const pricePerVehicle = vehicles.length > 0 ? subtotal / vehicles.length : subtotal;
+
     vehicles.forEach(vehicleNum => {
         const mapping = vehicleRules.vehicle_account_mapping?.[vehicleNum];
-        const relatedItem = ocrItems.find(item =>
-            (item.VehicleNumber && item.VehicleNumber === vehicleNum) ||
-            (item.Description && item.Description.includes(vehicleNum))
-        );
 
-        // PDES: אם יש mapping עם assdes - השתמש בו, אחרת חפש ב-OCR
-        let pdesWithVehicle;
-        if (mapping && mapping.assdes) {
-            // השתמש ב-ASSDES מהמיפוי (כולל את מספר הרכב והתיאור)
-            pdesWithVehicle = mapping.assdes;
-        } else {
-            // fallback: חפש תיאור ב-OCR
-            const shortDesc = extractShortDescription(ocrFields, vehicleNum);
-            pdesWithVehicle = `${vehicleNum} ${shortDesc}`;
+        // Build PDES from real product descriptions (not "עבודה")
+        let pdesWithVehicle = vehicleNum;
+
+        // Get product descriptions from Items, excluding generic work descriptions
+        if (ocrItems && ocrItems.length > 0) {
+            const productDescriptions = [];
+            const excludeTerms = ['עבודה', 'work', 'labor'];
+
+            // Sort by amount (highest first) and take meaningful descriptions
+            const sortedItems = [...ocrItems].sort((a, b) => {
+                const amountA = parseFloat(a.Amount_amount || a.Amount || 0);
+                const amountB = parseFloat(b.Amount_amount || b.Amount || 0);
+                return amountB - amountA;
+            });
+
+            for (const item of sortedItems) {
+                const desc = item.Description_content || item.Description || '';
+                const isGeneric = excludeTerms.some(term => desc.trim() === term);
+
+                if (desc && !isGeneric && productDescriptions.length < 3) {
+                    productDescriptions.push(desc.trim());
+                }
+            }
+
+            if (productDescriptions.length > 0) {
+                pdesWithVehicle = productDescriptions.join('+ ');
+                console.log(`🚗 רכב ${vehicleNum}: PDES = "${pdesWithVehicle}"`);
+            }
         }
 
         let actualMapping = mapping;
@@ -1195,15 +1217,17 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
             console.log(`🚗 רכב ${vehicleNum}: ${mapping.length} bundles, לוקח ראשון`);
             actualMapping = mapping[0];
         }
+
         const item = {
             PARTNAME: vehicleRules.output_format?.partname || "car",
             PDES: pdesWithVehicle,
-            TQUANT: relatedItem?.Quantity || 1,
-            TUNITNAME: relatedItem?.Unit || "יח'",
+            TQUANT: 1,
+            TUNITNAME: "יח'",
             PRICE: pricePerVehicle,
             VATFLAG: actualMapping?.vat_pattern?.VATFLAG || "Y",
             ACCNAME: actualMapping?.accname || ""
         };
+
         if (actualMapping?.budcode) {
             item.BUDCODE = actualMapping.budcode;
         } else if (vehicleRules.default_values?.budcode) {
@@ -1222,13 +1246,47 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
     return vehicleItems;
 }
 
-function performValidation(invoice, ocrFields, config, docsList, patterns) {
+function performValidation(invoice, ocrFields, config, docsList, patterns, structure, searchResults, template) {
     const warnings = [];
     const checks = {
         required_fields_check: "passed",
         invoice_structure_check: "passed",
         amount_validation: "not_checked"
     };
+
+    // Build field mapping - shows source and value for each field
+    const fieldMapping = {
+        SUPNAME: { source: "Template", field: "supplier_code", value: invoice.SUPNAME },
+        CODE: { source: "Template", value: invoice.CODE },
+        DEBIT: { source: structure.debit_type === "C" ? "Calculated (Credit)" : "Template", value: invoice.DEBIT },
+        IVDATE: { source: "OCR", field: "InvoiceDate", value: invoice.IVDATE, ocr_value: ocrFields.InvoiceDate },
+        BOOKNUM: { source: "OCR", field: "InvoiceId", value: invoice.BOOKNUM, ocr_value: ocrFields.InvoiceId },
+        DETAILS: { source: searchResults.details ? "OCR" : "Template", value: invoice.DETAILS }
+    };
+
+    if (structure.has_doc && searchResults.documents && searchResults.documents.length > 0) {
+        fieldMapping.DOCNO = { source: "Documents Search", value: invoice.DOCNO, count: searchResults.documents.length };
+    }
+
+    if (structure.has_vehicles && searchResults.vehicles && searchResults.vehicles.length > 0) {
+        fieldMapping.PINVOICEITEMS_SUBFORM = {
+            source: "Vehicle Items",
+            vehicle_numbers: searchResults.vehicles,
+            count: searchResults.vehicles.length,
+            items: invoice.PINVOICEITEMS_SUBFORM?.map(item => ({
+                PDES: item.PDES,
+                ACCNAME: item.ACCNAME,
+                PRICE: item.PRICE
+            }))
+        };
+    } else if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
+        fieldMapping.PINVOICEITEMS_SUBFORM = {
+            source: "OCR Items",
+            count: invoice.PINVOICEITEMS_SUBFORM.length
+        };
+    }
+
+    checks.field_mapping = fieldMapping;
     const requiredFields = ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"];
     const missingFields = requiredFields.filter(f => !invoice[f]);
     if (missingFields.length > 0) {
@@ -1313,7 +1371,7 @@ function analyzeLearning(invoice, config) {
 result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.7.0: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.7.1: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1355,9 +1413,9 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.7.0: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.7.0: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    console.log("v1.7.0: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+    console.log("v1.7.1: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.7.1: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.7.1: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
     console.log("==========================================");
 }
 
