@@ -1,8 +1,9 @@
-// Production Invoice v1.7.4 (06.11.25 - 15:30)
+// Production Invoice v1.7.5 (06.11.25 - 16:00)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
 // ⚠️ תיקון קריטי 1: needItems - אם has_doc=true לעולם לא ליצור פריטים (גם אם documents.length=0)
 // ⚠️ תיקון קריטי 2: מניעת כפילויות תעודות - כל BOOKNUM מופיע פעם אחת בלבד
+// ⚠️ תיקון קריטי 3: validation על BOOKNUM - דילוג על תעודות עם BOOKNUM קצר מדי (<7 תווים)
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -926,6 +927,13 @@ function searchDocuments(ocrFields, azureText, docsList) {
     if (foundDocs.length === 0 && azureText) {
         console.log('🔍 מחפש fallback ב-AZURE_TEXT');
         for (const doc of availableDocs) {
+            // ⚠️ דלג על BOOKNUM לא תקין (קצר מדי או ריק)
+            // BOOKNUM תקין: 107XXXXXX, 108XXXXXX, 258XXXXXX (מינימום 7 תווים)
+            if (!doc.BOOKNUM || doc.BOOKNUM.length < 7) {
+                console.log(`⚠️ דילוג על תעודה עם BOOKNUM לא תקין: DOCNO=${doc.DOCNO}, BOOKNUM="${doc.BOOKNUM || 'null'}"`);
+                continue;
+            }
+
             const pattern = new RegExp('\\b' + doc.BOOKNUM + '\\b');
             if (pattern.test(azureText)) {
                 // בדיקה: האם כבר הוספנו תעודה עם אותו BOOKNUM?

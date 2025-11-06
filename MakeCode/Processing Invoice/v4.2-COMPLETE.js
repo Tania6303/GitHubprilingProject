@@ -1,10 +1,15 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.3 - 05.11.25.16:55)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.4 - 06.11.25.16:30)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
 // 📁 קבצי בדיקה: MakeCode/Processing Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Processing Invoice/EXEMPTS" | head -5
+//
+// ✨ חדש בגרסה 4.4:
+// - 🎯 זיהוי דינמי של תבניות תעודות: מזהה אוטומטית תבנית BOOKNUM (107/108XXXXXX) מה-OCR
+// - 📚 הסברה משופרת ל-LLM: הנחיות מותאמות אישית עם דוגמאות קונקרטיות מה-OCR
+// - 🔍 לוג מפורט: "✨ זוהתה תבנית BOOKNUM: 108XXXXXX (3 דוגמאות: 108187003, 108187002...)"
 //
 // ✨ חדש בגרסה 4.3:
 // - fallback לחיפוש רכבים ב-AZURE_TEXT (כש-Azure לא מזהה אוטומטית)
@@ -87,6 +92,15 @@ function processInvoiceComplete(input) {
         );
         const hasDocsInList = checkDocsExist(input.docs_list);
         const hasDocs = hasDocsInOCR || hasDocsInList;
+
+        // ✨ חדש! זיהוי תבניות תעודות מה-OCR
+        const documentPatterns = detectDocumentPatterns(
+            input.AZURE_RESULT.data.fields,
+            input.AZURE_TEXT
+        );
+        if (documentPatterns.guidance) {
+            executionReport.found.push(documentPatterns.guidance);
+        }
 
         // ג. זיהוי חיוב/זיכוי
         const debitType = identifyDebitType(input.AZURE_RESULT.data.fields);
@@ -288,7 +302,8 @@ function processInvoiceComplete(input) {
                 searchResults,
                 executionReport,
                 i,
-                templateStructure
+                templateStructure,
+                documentPatterns  // ✨ חדש! העברת תבניות תעודות
             ));
 
             allTechnicalConfigs.push(generateTechnicalConfig(
@@ -297,7 +312,8 @@ function processInvoiceComplete(input) {
                 searchResults,
                 executionReport,
                 i,
-                templateStructure
+                templateStructure,
+                documentPatterns  // ✨ חדש! העברת תבניות תעודות
             ));
         }
 
@@ -445,6 +461,69 @@ function checkDocsInOCR(ocrFields, azureText) {
     }
 
     return false;
+}
+
+// ✨ פונקציה חדשה: זיהוי דינמי של תבניות תעודות
+function detectDocumentPatterns(ocrFields, azureText) {
+    const detected = {
+        booknum_found: [],
+        docno_found: [],
+        booknum_pattern: null,
+        docno_pattern: null,
+        guidance: ""
+    };
+
+    const unidentified = ocrFields.UnidentifiedNumbers || [];
+
+    // חפש BOOKNUM ב-UnidentifiedNumbers
+    if (unidentified.length > 0) {
+        const values = typeof unidentified[0] === 'object'
+            ? unidentified.map(item => item.value).filter(v => v)
+            : unidentified;
+
+        // תבניות אפשריות ל-BOOKNUM (107XXXXXX, 108XXXXXX, וכו')
+        values.forEach(val => {
+            if (/^10[78]\d{6}$/.test(val)) {
+                detected.booknum_found.push(val);
+            }
+            if (/^25\d{6}$/.test(val)) {
+                detected.docno_found.push(val);
+            }
+        });
+    }
+
+    // חפש גם ב-AZURE_TEXT אם לא נמצא ב-UnidentifiedNumbers
+    if (detected.booknum_found.length === 0 && azureText) {
+        const booknumMatches = azureText.match(/\b10[78]\d{6}\b/g);
+        if (booknumMatches) {
+            detected.booknum_found = [...new Set(booknumMatches)]; // unique values
+        }
+    }
+
+    if (detected.docno_found.length === 0 && azureText) {
+        const docnoMatches = azureText.match(/\b25\d{6}\b/g);
+        if (docnoMatches) {
+            detected.docno_found = [...new Set(docnoMatches)];
+        }
+    }
+
+    // זהה את התבנית המדויקת על פי מה שנמצא
+    if (detected.booknum_found.length > 0) {
+        const firstBooknum = detected.booknum_found[0];
+        const prefix = firstBooknum.substring(0, 3); // 107 או 108
+
+        detected.booknum_pattern = `\\b(${prefix}\\d{6})\\b`;
+        detected.guidance = `🔍 זוהתה תבנית BOOKNUM: ${prefix}XXXXXX (${detected.booknum_found.length} דוגמאות: ${detected.booknum_found.slice(0, 3).join(', ')})`;
+
+        console.log(`✨ ${detected.guidance}`);
+    }
+
+    if (detected.docno_found.length > 0) {
+        detected.docno_pattern = `\\b(25\\d{6})\\b`;
+        console.log(`✨ זוהתה תבנית DOCNO: 25XXXXXX (${detected.docno_found.length} דוגמאות: ${detected.docno_found.slice(0, 3).join(', ')})`);
+    }
+
+    return detected;
 }
 
 function identifyDebitType(ocrFields) {
@@ -1405,7 +1484,7 @@ function analyzeLearning(invoice, config) {
 // פונקציות עזר - שלב 7 (יצירת פלטים נוספים)
 // ============================================================================
 
-function generateLLMPrompt(config, ocrFields, searchResults, executionReport, templateIndex, structure) {
+function generateLLMPrompt(config, ocrFields, searchResults, executionReport, templateIndex, structure, documentPatterns = null) {
     const supplierCode = config.supplier_config.supplier_code;
     const supplierName = config.supplier_config.supplier_name;
 
@@ -1522,7 +1601,16 @@ function generateLLMPrompt(config, ocrFields, searchResults, executionReport, te
     }
 
     if (structure.has_doc) {
-        processingSteps.push(`${processingSteps.length + 1}. זהה תעודות (DOCNO/BOOKNUM) - חפש מספרים בפורמט 25XXXXXX או 108XXXXXX`);
+        // ✨ חדש! הנחיה דינמית על פי תבנית שזוהתה מה-OCR
+        let docsGuidance = "זהה תעודות (DOCNO/BOOKNUM)";
+        if (documentPatterns && documentPatterns.booknum_found.length > 0) {
+            const prefix = documentPatterns.booknum_found[0].substring(0, 3);
+            const examples = documentPatterns.booknum_found.slice(0, 3).join(', ');
+            docsGuidance += ` - זוהו ${documentPatterns.booknum_found.length} מספרי BOOKNUM בפורמט ${prefix}XXXXXX (דוגמאות: ${examples}). חפש מספרים אלו בטקסט והתאם עם docs_list`;
+        } else {
+            docsGuidance += " - חפש מספרים בפורמט 25XXXXXX או 107/108XXXXXX";
+        }
+        processingSteps.push(`${processingSteps.length + 1}. ${docsGuidance}`);
     }
 
     if (structure.has_purchase_orders) {
@@ -1550,7 +1638,7 @@ function generateLLMPrompt(config, ocrFields, searchResults, executionReport, te
     };
 }
 
-function generateTechnicalConfig(config, ocrFields, searchResults, executionReport, templateIndex, structure) {
+function generateTechnicalConfig(config, ocrFields, searchResults, executionReport, templateIndex, structure, documentPatterns = null) {
     const supplierCode = config.supplier_config.supplier_code;
     const supplierName = config.supplier_config.supplier_name;
 
@@ -1670,6 +1758,15 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
 
     // DOCUMENTS (DOCNO + BOOKNUM) - רק אם התבנית שנבחרה דורשת תעודות
     if (structure.has_doc) {
+        // ✨ חדש! שימוש בתבנית שזוהתה דינמית מה-OCR
+        const detectedPattern = documentPatterns && documentPatterns.booknum_pattern
+            ? documentPatterns.booknum_pattern
+            : "\\b(108\\d{6})\\b";  // ברירת מחדל אם לא זוהה
+
+        const detectedDescription = documentPatterns && documentPatterns.booknum_found.length > 0
+            ? `BOOKNUM - זוהה ${documentPatterns.booknum_found[0].substring(0, 3)}XXXXXX (${documentPatterns.booknum_found.length} דוגמאות מה-OCR)`
+            : "BOOKNUM - 9 ספרות מתחיל ב-108";
+
         extractionRules.documents = {
             search_in: [
                 {
@@ -1679,14 +1776,15 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
                         label: "מס׳ הקצאה (BOOKNUM)",
                         description: "חפש במערך UnidentifiedNumbers עם תווית BOOKNUM"
                     },
-                    pattern: "\\b(108\\d{6})\\b",
-                    description: "BOOKNUM - 9 ספרות מתחיל ב-108"
+                    pattern: detectedPattern,
+                    description: detectedDescription,
+                    detected_examples: documentPatterns ? documentPatterns.booknum_found.slice(0, 3) : []  // ✨ הוספת דוגמאות
                 },
                 {
                     location: "AZURE_TEXT",
                     priority: 2,
                     fallback: true,
-                    pattern: "\\b(108\\d{6})\\b",
+                    pattern: detectedPattern,
                     description: "חיפוש fallback ב-AZURE_TEXT אם לא נמצא ב-UnidentifiedNumbers"
                 }
             ],
