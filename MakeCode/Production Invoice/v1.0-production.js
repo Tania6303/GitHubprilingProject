@@ -1,6 +1,6 @@
-// Production Invoice v1.6.6 IIFE (21:56 05.11.25) - 49KB ✅ FINAL
-// תיקון קריטי: IIFE מלא + return result בתוך if block (כמו v4.2!)
-// קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-05-*.js (מיין לפי שעה אחרונה)
+// Production Invoice v1.6.7 IIFE (06.11.25) - תיקון return + documents
+// תיקונים: חיפוש תעודות + לא יוצר items כשיש תעודות
+// קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-06-*.js
 
 (function() {
 
@@ -414,8 +414,19 @@ function processInvoiceComplete(input) {
         let docsList = inputData.docs_list || { DOC_YES_NO: "N", list_of_docs: [] };
         if (typeof docsList === 'string') {
             try {
-                docsList = JSON.parse(docsList);
+                // טיפול בפורמט "{[...]}" - הסר את הסוגריים החיצוניים
+                let cleaned = docsList.trim();
+                if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+                    cleaned = cleaned.slice(1, -1); // הסר { ו-}
+                }
+                const parsedArray = JSON.parse(cleaned);
+                docsList = {
+                    DOC_YES_NO: "Y",
+                    list_of_docs: Array.isArray(parsedArray) ? parsedArray.map(d => JSON.stringify(d)) : []
+                };
+                console.log(`✅ docs_list parsed: ${docsList.list_of_docs.length} תעודות`);
             } catch (e) {
+                console.log('❌ שגיאה בפרסור docs_list:', e.message);
                 docsList = { DOC_YES_NO: "N", list_of_docs: [] };
             }
         }
@@ -702,13 +713,20 @@ function extractPatterns(recommendedSamples, docsList) {
 }
 
 function searchAllData(ocrFields, azureText, patterns, structure, importFiles, docsList, vehicleRules) {
+    // חיפוש תעודות אם נדרש
+    let documents = null;
+    if (structure.has_doc) {
+        documents = searchDocuments(ocrFields, azureText, docsList);
+        console.log(`🔍 מחפש תעודות: נמצאו ${documents?.length || 0}`);
+    }
+
     return {
         booknum: searchBooknum(ocrFields, patterns),
         ivdate: searchIvdate(ocrFields),
         details: searchDetails(ocrFields, azureText),
         ordname: null,
         impfnum: null,
-        documents: null,
+        documents: documents,
         vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules) : [],
         items: ocrFields.Items || []
     };
@@ -754,6 +772,75 @@ function searchDetails(ocrFields, azureText) {
         }
     }
     return "";
+}
+
+function searchDocuments(ocrFields, azureText, docsList) {
+    const foundDocs = [];
+
+    if (!docsList || !docsList.list_of_docs || docsList.list_of_docs.length === 0) {
+        console.log('⚠️ docs_list ריק או לא קיים');
+        return foundDocs;
+    }
+
+    let availableDocs = [];
+    try {
+        availableDocs = docsList.list_of_docs.flatMap(d => JSON.parse(d));
+        console.log(`📋 יש ${availableDocs.length} תעודות זמינות`);
+    } catch (e) {
+        console.log('❌ שגיאה בפרסור docs_list:', e.message);
+        return foundDocs;
+    }
+
+    const unidentified = ocrFields.UnidentifiedNumbers || [];
+    console.log(`🔍 מחפש ב-${unidentified.length} UnidentifiedNumbers`);
+
+    // חיפוש ב-UnidentifiedNumbers
+    if (unidentified.length > 0) {
+        if (typeof unidentified[0] === 'object' && unidentified[0].value) {
+            for (const item of unidentified) {
+                const match = availableDocs.find(doc => doc.BOOKNUM === item.value);
+                if (match) {
+                    console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
+                    foundDocs.push({
+                        DOCNO: match.DOCNO,
+                        BOOKNUM: match.BOOKNUM,
+                        TOTQUANT: match.TOTQUANT || null
+                    });
+                }
+            }
+        } else {
+            for (const num of unidentified) {
+                const match = availableDocs.find(doc => doc.BOOKNUM === num);
+                if (match) {
+                    console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
+                    foundDocs.push({
+                        DOCNO: match.DOCNO,
+                        BOOKNUM: match.BOOKNUM,
+                        TOTQUANT: match.TOTQUANT || null
+                    });
+                }
+            }
+        }
+    }
+
+    // Fallback: חיפוש ב-AZURE_TEXT
+    if (foundDocs.length === 0 && azureText) {
+        console.log('🔍 מחפש fallback ב-AZURE_TEXT');
+        for (const doc of availableDocs) {
+            const pattern = new RegExp('\\b' + doc.BOOKNUM + '\\b');
+            if (pattern.test(azureText)) {
+                console.log(`✅ מצאתי תעודה בטקסט: ${doc.BOOKNUM} → ${doc.DOCNO}`);
+                foundDocs.push({
+                    DOCNO: doc.DOCNO,
+                    BOOKNUM: doc.BOOKNUM,
+                    TOTQUANT: doc.TOTQUANT || null
+                });
+            }
+        }
+    }
+
+    console.log(`📊 סה"כ תעודות שנמצאו: ${foundDocs.length}`);
+    return foundDocs;
 }
 
 function extractVehiclesAdvanced(ocrFields, vehicleRules) {
@@ -873,7 +960,30 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
     } else if (searchResults.details) {
         invoice.DETAILS = searchResults.details;
     }
-    const needItems = true;
+
+    // תעודות (אם נמצאו)
+    if (searchResults.documents && searchResults.documents.length > 0) {
+        console.log(`📄 מוסיף ${searchResults.documents.length} תעודות`);
+        if (searchResults.documents.length === 1) {
+            // תעודה יחידה - שדות רגילים
+            const doc = searchResults.documents[0];
+            invoice.DOCNO = doc.DOCNO;
+            // BOOKNUM נשאר של החשבונית, לא משנים!
+            console.log(`✅ תעודה יחידה: DOCNO=${doc.DOCNO}, doc BOOKNUM=${doc.BOOKNUM}`);
+        } else {
+            // מספר תעודות - תת-טופס
+            invoice.PIVDOC_SUBFORM = searchResults.documents.map(d => ({
+                DOCNO: d.DOCNO,
+                BOOKNUM: d.BOOKNUM
+            }));
+            console.log(`✅ ${searchResults.documents.length} תעודות ב-PIVDOC_SUBFORM`);
+        }
+    }
+
+    // פריטים - רק אם אין תעודות!
+    const needItems = !structure.has_doc || !searchResults.documents || searchResults.documents.length === 0;
+    console.log(`🔧 needItems=${needItems} (has_doc=${structure.has_doc}, found docs=${searchResults.documents?.length || 0})`);
+
     if (needItems) {
         const vehicleRules = config.rules?.critical_patterns?.vehicle_rules;
         if (searchResults.vehicles && searchResults.vehicles.length > 0 && vehicleRules) {
@@ -893,6 +1003,7 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
             invoice.PINVOICEITEMS_SUBFORM = JSON.parse(JSON.stringify(template.PINVOICEITEMS_SUBFORM));
         }
     }
+
     if (template.PINVOICESCONT_SUBFORM) {
         invoice.PINVOICESCONT_SUBFORM = template.PINVOICESCONT_SUBFORM;
     }
@@ -1156,11 +1267,14 @@ if (typeof input !== 'undefined') {
             { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
         ]});
     }
-    console.log(JSON.stringify(result, null, 2));
-    console.log("v1.6.6: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.6.6: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    console.log("==========================================");
-    return result;  // ✅ CRITICAL: return INSIDE if block like v4.2!
+console.log(JSON.stringify(result, null, 2));
+console.log("v1.6.7: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+console.log("v1.6.7: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+console.log("v1.6.7: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+console.log("==========================================");
 }
+
+// החזרת התוצאה מחוץ ל-IIFE - Make.com צריך לקבל אותה
+return result;
 
 })();  // End of IIFE - Make.com will get the return value
