@@ -1,4 +1,4 @@
-// Production Invoice v1.6.9 (06.11.25 - 10:52)
+// Production Invoice v1.6.9 (06.11.25 - 11:03)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation
 // תיקונים: פרסור vehicles + בניית vehicle_account_mapping + PDES מ-ASSDES + מיפוי ACCNAME
