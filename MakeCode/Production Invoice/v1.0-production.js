@@ -1275,14 +1275,14 @@ if (typeof input !== 'undefined') {
             { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
         ]});
     }
-console.log(JSON.stringify(result, null, 2));
-console.log("v1.6.8: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-console.log("v1.6.8: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-console.log("v1.6.8: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
-console.log("==========================================");
+    console.log(JSON.stringify(result, null, 2));
+    console.log("v1.6.8: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.6.8: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.6.8: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+    console.log("==========================================");
 }
 
 })();  // End of IIFE
 
-// ⚠️ result הוא global - Make.com יקרא אותו אוטומטית
-result;
+// ⚠️ CRITICAL: return מחוץ ל-IIFE - Make.com עוטף את הכל בפונקציה!
+return result;
