@@ -1,6 +1,10 @@
-// Production Invoice v1.6.7 IIFE (06.11.25) - תיקון return + documents
-// תיקונים: חיפוש תעודות + לא יוצר items כשיש תעודות
-// קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-06-*.js
+// Production Invoice v1.6.7 (06.11.25 - 10:00)
+// מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
+// מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים) + דוח ביצוע + validation
+// תיקונים: חיפוש תעודות + לא יוצר items כשיש תעודות + return result
+//
+// 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
+// לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
 
 (function() {
 
