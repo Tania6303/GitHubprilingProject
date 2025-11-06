@@ -1,7 +1,7 @@
-// Production Invoice v1.7.2 (06.11.25 - 12:15)
+// Production Invoice v1.7.3 (06.11.25 - 12:45)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
-// תיקונים: DETAILS לפי שורה 1 PDES + PDES מתיאור מוצרים אמיתיים + PRICE=SubTotal + metadata מורחב
+// ⚠️ תיקון קריטי: needItems - אם has_doc=true לעולם לא ליצור פריטים (גם אם documents.length=0)
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -1047,8 +1047,9 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         }
     }
 
-    // פריטים - רק אם אין תעודות!
-    const needItems = !structure.has_doc || !searchResults.documents || searchResults.documents.length === 0;
+    // פריטים - רק אם זו לא תבנית תעודות!
+    // אם has_doc=true → לעולם לא צריך פריטים (גם אם לא נמצאו תעודות)
+    const needItems = !structure.has_doc;
     console.log(`🔧 needItems=${needItems} (has_doc=${structure.has_doc}, found docs=${searchResults.documents?.length || 0})`);
 
     if (needItems) {
