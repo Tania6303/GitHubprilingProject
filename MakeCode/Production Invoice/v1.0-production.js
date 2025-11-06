@@ -1,7 +1,8 @@
-// Production Invoice v1.7.3 (06.11.25 - 12:45)
+// Production Invoice v1.7.4 (06.11.25 - 15:30)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
-// ⚠️ תיקון קריטי: needItems - אם has_doc=true לעולם לא ליצור פריטים (גם אם documents.length=0)
+// ⚠️ תיקון קריטי 1: needItems - אם has_doc=true לעולם לא ליצור פריטים (גם אם documents.length=0)
+// ⚠️ תיקון קריטי 2: מניעת כפילויות תעודות - כל BOOKNUM מופיע פעם אחת בלבד
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -886,24 +887,36 @@ function searchDocuments(ocrFields, azureText, docsList) {
             for (const item of unidentified) {
                 const match = availableDocs.find(doc => doc.BOOKNUM === item.value);
                 if (match) {
-                    console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
-                    foundDocs.push({
-                        DOCNO: match.DOCNO,
-                        BOOKNUM: match.BOOKNUM,
-                        TOTQUANT: match.TOTQUANT || null
-                    });
+                    // בדיקה: האם כבר הוספנו תעודה עם אותו BOOKNUM?
+                    const alreadyExists = foundDocs.some(d => d.BOOKNUM === match.BOOKNUM);
+                    if (!alreadyExists) {
+                        console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
+                        foundDocs.push({
+                            DOCNO: match.DOCNO,
+                            BOOKNUM: match.BOOKNUM,
+                            TOTQUANT: match.TOTQUANT || null
+                        });
+                    } else {
+                        console.log(`⏭️ דילוג: ${match.BOOKNUM} כבר קיים`);
+                    }
                 }
             }
         } else {
             for (const num of unidentified) {
                 const match = availableDocs.find(doc => doc.BOOKNUM === num);
                 if (match) {
-                    console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
-                    foundDocs.push({
-                        DOCNO: match.DOCNO,
-                        BOOKNUM: match.BOOKNUM,
-                        TOTQUANT: match.TOTQUANT || null
-                    });
+                    // בדיקה: האם כבר הוספנו תעודה עם אותו BOOKNUM?
+                    const alreadyExists = foundDocs.some(d => d.BOOKNUM === match.BOOKNUM);
+                    if (!alreadyExists) {
+                        console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
+                        foundDocs.push({
+                            DOCNO: match.DOCNO,
+                            BOOKNUM: match.BOOKNUM,
+                            TOTQUANT: match.TOTQUANT || null
+                        });
+                    } else {
+                        console.log(`⏭️ דילוג: ${match.BOOKNUM} כבר קיים`);
+                    }
                 }
             }
         }
@@ -915,12 +928,18 @@ function searchDocuments(ocrFields, azureText, docsList) {
         for (const doc of availableDocs) {
             const pattern = new RegExp('\\b' + doc.BOOKNUM + '\\b');
             if (pattern.test(azureText)) {
-                console.log(`✅ מצאתי תעודה בטקסט: ${doc.BOOKNUM} → ${doc.DOCNO}`);
-                foundDocs.push({
-                    DOCNO: doc.DOCNO,
-                    BOOKNUM: doc.BOOKNUM,
-                    TOTQUANT: doc.TOTQUANT || null
-                });
+                // בדיקה: האם כבר הוספנו תעודה עם אותו BOOKNUM?
+                const alreadyExists = foundDocs.some(d => d.BOOKNUM === doc.BOOKNUM);
+                if (!alreadyExists) {
+                    console.log(`✅ מצאתי תעודה בטקסט: ${doc.BOOKNUM} → ${doc.DOCNO}`);
+                    foundDocs.push({
+                        DOCNO: doc.DOCNO,
+                        BOOKNUM: doc.BOOKNUM,
+                        TOTQUANT: doc.TOTQUANT || null
+                    });
+                } else {
+                    console.log(`⏭️ דילוג: ${doc.BOOKNUM} כבר קיים`);
+                }
             }
         }
     }
