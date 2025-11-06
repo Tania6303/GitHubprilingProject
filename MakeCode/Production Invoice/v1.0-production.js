@@ -1,7 +1,7 @@
-// Production Invoice v1.6.9 (06.11.25 - 11:03)
+// Production Invoice v1.7.0 (06.11.25 - 11:14)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation
-// תיקונים: פרסור vehicles + בניית vehicle_account_mapping + PDES מ-ASSDES + מיפוי ACCNAME
+// תיקונים: vehicles input parsing + structure.has_vehicles + חיפוש רכבים בטקסט + PDES+ACCNAME ממיפוי + duplicate handling
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -367,11 +367,15 @@ function processInvoiceComplete(input) {
         errors: []
     };
     try {
-        const inputData = {};
+        let inputData = {};
         if (input.input && Array.isArray(input.input)) {
+            // פורמט Make.com: { input: [{name, value}, ...] }
             input.input.forEach(item => {
                 inputData[item.name] = item.value;
             });
+        } else if (input.learned_config || input.AZURE_RESULT || input.vehicles) {
+            // פורמט ישיר: { learned_config, AZURE_RESULT, vehicles, ... }
+            inputData = input;
         }
         let learnedConfig = inputData.learned_config || {};
         if (typeof learnedConfig === 'string') {
@@ -461,15 +465,20 @@ function processInvoiceComplete(input) {
                     vehiclesData = JSON.parse(cleaned);
                 }
                 // המרה למבנה vehicle_account_mapping: { "CAR_NUMBER": { accname, assdes, ... } }
+                // אם יש duplicate - לוקח את זה עם ACCNAME הגבוה ביותר
                 if (Array.isArray(vehiclesData)) {
                     vehiclesData.forEach(v => {
                         if (v.CAR_NUMBER) {
-                            vehicleMapping[v.CAR_NUMBER] = {
-                                accname: v.ACCNAME,
-                                assdes: v.ASSDES,
-                                group: v.GROUP,
-                                vat_pattern: { VATFLAG: "Y" } // default VAT
-                            };
+                            const existing = vehicleMapping[v.CAR_NUMBER];
+                            // אם אין existing או ACCNAME הנוכחי גבוה יותר - עדכן
+                            if (!existing || (v.ACCNAME && (!existing.accname || v.ACCNAME > existing.accname))) {
+                                vehicleMapping[v.CAR_NUMBER] = {
+                                    accname: v.ACCNAME,
+                                    assdes: v.ASSDES,
+                                    group: v.GROUP,
+                                    vat_pattern: { VATFLAG: "Y" } // default VAT
+                                };
+                            }
                         }
                     });
                     console.log(`✅ vehicles parsed: ${Object.keys(vehicleMapping).length} רכבים`);
@@ -549,7 +558,7 @@ function processInvoiceComplete(input) {
             }
             // Inject the mapping
             config.rules.critical_patterns.vehicle_rules.vehicle_account_mapping = vehicleMapping;
-            console.log(`✅ Injected ${Object.keys(vehicleMapping).length} vehicles into config.rules.critical_patterns.vehicle_rules`);
+            console.log(`✅ Injected ${Object.keys(vehicleMapping).length} vehicles into config`);
         }
 
         // בניית allStructures - תמיכה בפורמטים שונים
@@ -561,6 +570,7 @@ function processInvoiceComplete(input) {
             allStructures = learnedConfig.processing_scenario.all_templates.map(t => ({
                 has_import: t.check_import || false,
                 has_doc: t.check_docs || false,
+                has_vehicles: t.check_vehicles || false,
                 debit_type: t.debit_type || "D",
                 has_budcode: true,
                 inventory_management: "not_managed_inventory"
@@ -574,6 +584,7 @@ function processInvoiceComplete(input) {
             allStructures = config.all_templates.map(t => ({
                 has_import: t.check_import || false,
                 has_doc: t.check_docs || false,
+                has_vehicles: t.check_vehicles || false,
                 debit_type: t.debit_type || "D",
                 has_budcode: true,
                 inventory_management: "not_managed_inventory"
@@ -587,6 +598,7 @@ function processInvoiceComplete(input) {
             allStructures = [{
                 has_import: false,
                 has_doc: false,
+                has_vehicles: false,
                 debit_type: "D",
                 has_budcode: true,
                 inventory_management: "not_managed_inventory"
@@ -1301,7 +1313,7 @@ function analyzeLearning(invoice, config) {
 result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.9: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.7.0: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1327,6 +1339,7 @@ if (typeof input !== 'undefined') {
             learned_config: input.learned_config || {},
             docs_list: input.docs_list || { DOC_YES_NO: "N", list_of_docs: [] },
             import_files: input.import_files || { IMPFILES: [] },
+            vehicles: input.vehicles || "{}",
             AZURE_RESULT: input.AZURE_RESULT || { data: { fields: {} } },
             AZURE_TEXT_CLEAN: input.AZURE_TEXT_CLEAN || "",
             AZURE_TEXT: input.AZURE_TEXT || ""
@@ -1335,15 +1348,16 @@ if (typeof input !== 'undefined') {
             { name: "learned_config", value: processInput.learned_config },
             { name: "docs_list", value: processInput.docs_list },
             { name: "import_files", value: processInput.import_files },
+            { name: "vehicles", value: processInput.vehicles },
             { name: "AZURE_RESULT", value: processInput.AZURE_RESULT },
             { name: "AZURE_TEXT_CLEAN", value: processInput.AZURE_TEXT_CLEAN },
             { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.6.9: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.6.9: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    console.log("v1.6.9: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+    console.log("v1.7.0: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.7.0: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.7.0: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
     console.log("==========================================");
 }
 
