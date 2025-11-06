@@ -1,4 +1,4 @@
-// Production Invoice v1.6.8 (06.11.25 - 10:15)
+// Production Invoice v1.6.8 (06.11.25 - 12:14)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים) + דוח ביצוע + validation
 // תיקונים: חיפוש תעודות + לא יוצר items כשיש תעודות + result גלובלי למען Make.com
@@ -1236,7 +1236,7 @@ function analyzeLearning(invoice, config) {
 result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.6: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.6.8: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
