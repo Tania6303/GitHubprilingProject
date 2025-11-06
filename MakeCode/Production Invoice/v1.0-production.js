@@ -1,7 +1,7 @@
-// Production Invoice v1.7.1 (06.11.25 - 11:34)
+// Production Invoice v1.7.2 (06.11.25 - 12:15)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
-// תיקונים: PDES מתיאור מוצרים אמיתיים + PRICE=SubTotal + metadata מורחב + field_mapping מפורט
+// תיקונים: DETAILS לפי שורה 1 PDES + PDES מתיאור מוצרים אמיתיים + PRICE=SubTotal + metadata מורחב
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -1019,18 +1019,11 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         IVDATE: searchResults.ivdate,
         BOOKNUM: searchResults.booknum
     };
-    if (searchResults.vehicles && searchResults.vehicles.length > 0) {
-        // ברכבים - DETAILS צריך להיות null (לא תיאור כללי)
-        invoice.DETAILS = null;
-    } else if (searchResults.details && searchResults.details.trim()) {
-        // DETAILS רק אם זה לא generic work description וזה לא חשבונית רכבים
+    // DETAILS - יוגדר מאוחר יותר לפי שורה 1 של PDES (אם יש פריטים)
+    // אם זה לא רכבים ויש details מ-OCR
+    if (searchResults.details && searchResults.details.trim() && !searchResults.vehicles) {
         const isGeneric = ['עבודה', 'work', 'labor'].some(term => searchResults.details.trim() === term);
-        const isVehicleInvoice = structure.has_vehicles && searchResults.vehicles && searchResults.vehicles.length > 0;
-
-        if (isVehicleInvoice || isGeneric) {
-            invoice.DETAILS = null;  // ברכבים או עבודה גנרית - לא מציגים
-            console.log(`🔧 DETAILS set to null (vehicles=${isVehicleInvoice}, generic=${isGeneric})`);
-        } else {
+        if (!isGeneric) {
             invoice.DETAILS = searchResults.details;
         }
     }
@@ -1076,6 +1069,12 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         } else if (template.PINVOICEITEMS_SUBFORM) {
             invoice.PINVOICEITEMS_SUBFORM = JSON.parse(JSON.stringify(template.PINVOICEITEMS_SUBFORM));
         }
+    }
+
+    // DETAILS - לפי PDES של שורה 1 (אם יש פריטים)
+    if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
+        invoice.DETAILS = invoice.PINVOICEITEMS_SUBFORM[0].PDES || null;
+        console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
     }
 
     if (template.PINVOICESCONT_SUBFORM) {
@@ -1261,7 +1260,12 @@ function performValidation(invoice, ocrFields, config, docsList, patterns, struc
         DEBIT: { source: structure.debit_type === "C" ? "Calculated (Credit)" : "Template", value: invoice.DEBIT },
         IVDATE: { source: "OCR", field: "InvoiceDate", value: invoice.IVDATE, ocr_value: ocrFields.InvoiceDate },
         BOOKNUM: { source: "OCR", field: "InvoiceId", value: invoice.BOOKNUM, ocr_value: ocrFields.InvoiceId },
-        DETAILS: { source: searchResults.details ? "OCR" : "Template", value: invoice.DETAILS }
+        DETAILS: {
+            source: invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0
+                ? "First Item PDES"
+                : (searchResults.details ? "OCR" : "Template"),
+            value: invoice.DETAILS
+        }
     };
 
     if (structure.has_doc && searchResults.documents && searchResults.documents.length > 0) {

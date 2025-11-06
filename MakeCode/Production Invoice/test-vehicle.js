@@ -35,6 +35,7 @@ try {
         console.log('  BOOKNUM:', invoice.BOOKNUM);
         console.log('  IVDATE:', invoice.IVDATE);
         console.log('  SUPNAME:', invoice.SUPNAME);
+        console.log('  DETAILS:', invoice.DETAILS);
         console.log('');
 
         if (invoice.PINVOICEITEMS_SUBFORM) {
