@@ -40,20 +40,22 @@
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────┐
-│ STEP 2: Processing Invoice v4.2                        │
+│ STEP 2: Processing Invoice v4.4                        │
 │ תפקיד: למידה מדוגמה + יצירת הנחיות                    │
 │ קלט: learned_config + AZURE_RESULT + דוגמה             │
 │ פלט: 4 פלטים (invoice_data, llm_prompt,               │
 │       technical_config, processing_scenario)            │
+│ 🎯 חדש: זיהוי דינמי של תבניות BOOKNUM מה-OCR         │
 └────────────────┬────────────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────┐
-│ STEP 3: Production Invoice v1.0                        │
+│ STEP 3: Production Invoice v1.7.5                      │
 │ תפקיד: ייצור JSON סופי לחשבונית חדשה                  │
 │ קלט: learned_config + AZURE_RESULT + נתונים חיים       │
 │       (docs_list, import_files, vehicles)               │
 │ פלט: JSON מוכן ל-Priority + execution_report           │
+│ ⚠️ חדש: BOOKNUM validation - מסנן תעודות לא תקינות   │
 └────────────────┬────────────────────────────────────────┘
                  │
                  ▼
@@ -144,14 +146,14 @@ MakeCode/
 - **שימוש:** פעם אחת לספק
 - **📖 README:** [SupplierDataLearning/README.md](SupplierDataLearning/README.md)
 
-### **2️⃣ Processing Invoice v4.2**
+### **2️⃣ Processing Invoice v4.4**
 - **תפקיד:** למידה מדוגמה + יצירת הנחיות
 - **קלט:** learned_config + AZURE_RESULT + דוגמה
 - **פלט:** 4 פלטים (הנחיות)
 - **שימוש:** פעם אחת לספק
 - **📖 README:** [Processing Invoice/README.md](Processing%20Invoice/README.md)
 
-### **3️⃣ Production Invoice v1.0** ⭐ חדש!
+### **3️⃣ Production Invoice v1.7.5** ⭐
 - **תפקיד:** ייצור JSON לחשבונית חדשה
 - **קלט:** learned_config + AZURE_RESULT + נתונים חיים
 - **פלט:** JSON סופי ל-Priority
@@ -261,12 +263,12 @@ cd "../Production Invoice"
 - ✅ הוספת `extractDocumentNumbers()` - זיהוי BOOKNUM
 - ✅ סינון VIN מזויף (תאריכים 202X)
 
-#### **Processing Invoice v4.2**
+#### **Processing Invoice v4.4**
 - ✅ `extraction_rules.documents` בtechnical_config
 - ✅ AZURE_TEXT fallback משופר
 - ✅ טיפול בשגיאות לתעודות
 
-#### **Production Invoice v1.0** ⭐ חדש!
+#### **Production Invoice v1.7.5** ⭐
 - ✅ מודול חדש לייצור JSON בproduction
 - ✅ נבדק עם ספק 2511
 - ✅ תיעוד מלא
@@ -306,6 +308,20 @@ cd "../Production Invoice"
 
 ---
 
-**גרסת מערכת:** 1.0
-**תאריך עדכון אחרון:** 31 אוקטובר 2025
+## 📜 עדכונים אחרונים (06.11.2025)
+
+### ⚠️ Production Invoice v1.7.5 - תיקונים קריטיים
+1. **v1.7.5:** BOOKNUM validation - מסנן תעודות עם BOOKNUM לא תקין (<7 תווים)
+2. **v1.7.4:** מניעת כפילויות תעודות ב-PIVDOC_SUBFORM
+3. **v1.7.3:** תיקון needItems logic - אם has_doc=true, לא ליצור פריטים
+
+### 🎯 Processing Invoice v4.4 - שיפורים
+- זיהוי דינמי של תבניות BOOKNUM מה-OCR
+- הסברה משופרת ל-LLM עם דוגמאות קונקרטיות מהחשבונית
+- תבנית regex מותאמת אישית לפי מה שנמצא ב-OCR
+
+---
+
+**גרסת מערכת:** 2.0
+**תאריך עדכון אחרון:** 06 נובמבר 2025
 **מחבר:** Claude Code (Anthropic)
