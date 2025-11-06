@@ -477,13 +477,47 @@ function processInvoiceComplete(input) {
         const debitType = identifyDebitType(azureResult.data.fields);
         executionReport.found.push(`סוג: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);
         const config = learnedConfig.config || learnedConfig.technical_config || {};
-        const allStructures = config.structure || [{
-            has_import: false,
-            has_doc: false,
-            debit_type: "D",
-            has_budcode: true,
-            inventory_management: "not_managed_inventory"
-        }];
+
+        // בניית allStructures - תמיכה בפורמטים שונים
+        let allStructures = config.structure;
+
+        // אם אין structure, נסה לבנות מ-processing_scenario.all_templates
+        if (!allStructures && learnedConfig.processing_scenario?.all_templates) {
+            console.log('🔧 בונה structure מתוך processing_scenario.all_templates');
+            allStructures = learnedConfig.processing_scenario.all_templates.map(t => ({
+                has_import: t.check_import || false,
+                has_doc: t.check_docs || false,
+                debit_type: t.debit_type || "D",
+                has_budcode: true,
+                inventory_management: "not_managed_inventory"
+            }));
+            console.log(`✅ נבנו ${allStructures.length} structures:`, JSON.stringify(allStructures));
+        }
+
+        // fallback לוגיקה ישנה - technical_config.all_templates
+        if (!allStructures && config.all_templates) {
+            console.log('🔧 בונה structure מתוך technical_config.all_templates');
+            allStructures = config.all_templates.map(t => ({
+                has_import: t.check_import || false,
+                has_doc: t.check_docs || false,
+                debit_type: t.debit_type || "D",
+                has_budcode: true,
+                inventory_management: "not_managed_inventory"
+            }));
+            console.log(`✅ נבנו ${allStructures.length} structures:`, JSON.stringify(allStructures));
+        }
+
+        // fallback אחרון - אם גם זה לא קיים
+        if (!allStructures) {
+            console.log('⚠️ משתמש ב-fallback structure');
+            allStructures = [{
+                has_import: false,
+                has_doc: false,
+                debit_type: "D",
+                has_budcode: true,
+                inventory_management: "not_managed_inventory"
+            }];
+        }
         let allTemplates;
         if (learnedConfig.template?.PINVOICES) {
             allTemplates = learnedConfig.template.PINVOICES;
