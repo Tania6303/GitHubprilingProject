@@ -1,7 +1,7 @@
-// Production Invoice v1.6.8 (06.11.25 - 12:14)
+// Production Invoice v1.6.9 (06.11.25 - 10:52)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
-// מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים) + דוח ביצוע + validation
-// תיקונים: חיפוש תעודות + לא יוצר items כשיש תעודות + result גלובלי למען Make.com
+// מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation
+// תיקונים: פרסור vehicles + בניית vehicle_account_mapping + PDES מ-ASSDES + מיפוי ACCNAME
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
@@ -446,6 +446,40 @@ function processInvoiceComplete(input) {
                 importFiles = { IMPFILES: [] };
             }
         }
+
+        // Parse vehicles input and build vehicle_account_mapping
+        let vehicleMapping = {};
+        if (inputData.vehicles) {
+            try {
+                let vehiclesData = inputData.vehicles;
+                if (typeof vehiclesData === 'string') {
+                    // טיפול בפורמט "{[...]}" - הסר את הסוגריים החיצוניים
+                    let cleaned = vehiclesData.trim();
+                    if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+                        cleaned = cleaned.slice(1, -1); // הסר { ו-}
+                    }
+                    vehiclesData = JSON.parse(cleaned);
+                }
+                // המרה למבנה vehicle_account_mapping: { "CAR_NUMBER": { accname, assdes, ... } }
+                if (Array.isArray(vehiclesData)) {
+                    vehiclesData.forEach(v => {
+                        if (v.CAR_NUMBER) {
+                            vehicleMapping[v.CAR_NUMBER] = {
+                                accname: v.ACCNAME,
+                                assdes: v.ASSDES,
+                                group: v.GROUP,
+                                vat_pattern: { VATFLAG: "Y" } // default VAT
+                            };
+                        }
+                    });
+                    console.log(`✅ vehicles parsed: ${Object.keys(vehicleMapping).length} רכבים`);
+                }
+            } catch (e) {
+                console.log('❌ שגיאה בפרסור vehicles:', e.message);
+                vehicleMapping = {};
+            }
+        }
+
         let azureResult = inputData.AZURE_RESULT || { data: { fields: {} } };
         if (typeof azureResult === 'string') {
             try {
@@ -496,6 +530,27 @@ function processInvoiceComplete(input) {
         const debitType = identifyDebitType(azureResult.data.fields);
         executionReport.found.push(`סוג: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);
         const config = learnedConfig.config || learnedConfig.technical_config || {};
+
+        // Inject vehicle_account_mapping into config if we have vehicles
+        if (Object.keys(vehicleMapping).length > 0) {
+            if (!config.rules) config.rules = {};
+            if (!config.rules.critical_patterns) config.rules.critical_patterns = {};
+            if (!config.rules.critical_patterns.vehicle_rules) {
+                config.rules.critical_patterns.vehicle_rules = {
+                    partname: "car",
+                    vehicle_account_mapping: {},
+                    search_locations: [
+                        { location: "fields.VehicleNumbers", priority: 1 },
+                        { location: "fields.UnidentifiedNumbers", priority: 2, filter_by_label: "רכב" }
+                    ],
+                    output_format: { partname: "car" },
+                    default_values: { budcode: null }
+                };
+            }
+            // Inject the mapping
+            config.rules.critical_patterns.vehicle_rules.vehicle_account_mapping = vehicleMapping;
+            console.log(`✅ Injected ${Object.keys(vehicleMapping).length} vehicles into config.rules.critical_patterns.vehicle_rules`);
+        }
 
         // בניית allStructures - תמיכה בפורמטים שונים
         let allStructures = config.structure;
@@ -1111,8 +1166,18 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
             (item.VehicleNumber && item.VehicleNumber === vehicleNum) ||
             (item.Description && item.Description.includes(vehicleNum))
         );
-        const shortDesc = extractShortDescription(ocrFields, vehicleNum);
-        const pdesWithVehicle = `${vehicleNum} ${shortDesc}`;
+
+        // PDES: אם יש mapping עם assdes - השתמש בו, אחרת חפש ב-OCR
+        let pdesWithVehicle;
+        if (mapping && mapping.assdes) {
+            // השתמש ב-ASSDES מהמיפוי (כולל את מספר הרכב והתיאור)
+            pdesWithVehicle = mapping.assdes;
+        } else {
+            // fallback: חפש תיאור ב-OCR
+            const shortDesc = extractShortDescription(ocrFields, vehicleNum);
+            pdesWithVehicle = `${vehicleNum} ${shortDesc}`;
+        }
+
         let actualMapping = mapping;
         if (Array.isArray(mapping) && mapping.length > 0) {
             console.log(`🚗 רכב ${vehicleNum}: ${mapping.length} bundles, לוקח ראשון`);
@@ -1236,7 +1301,7 @@ function analyzeLearning(invoice, config) {
 result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.8: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.6.9: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1276,9 +1341,9 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.6.8: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.6.8: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    console.log("v1.6.8: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+    console.log("v1.6.9: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.6.9: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.6.9: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
     console.log("==========================================");
 }
 
