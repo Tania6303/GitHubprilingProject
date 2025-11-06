@@ -31,17 +31,33 @@ MakeCode/
 
 ## 🔍 איך למצוא את הקובץ הנכון לבדיקה?
 
-### ✅ תמיד קח את הקובץ העדכני ביותר!
+### ⚠️ חשוב מאוד: תמיד חפש לפי GIT COMMIT DATE!
 
-**פקודה:**
+**❌ אל תסתמך על:**
+- `ls -lt` (modification time)
+- שם הקובץ
+- filesystem timestamps
+
+**✅ השתמש ב-git log:**
 ```bash
-ls -lt "MakeCode/[MODULE_NAME]/EXEMPTS" | head -5
+cd "MakeCode/[MODULE]/EXEMPTS" && git log --name-only --pretty=format:"%H %ci %s" --all -- . | head -50
 ```
 
-**או בפירוט מלא:**
+**דוגמה:**
 ```bash
-find "MakeCode/[MODULE_NAME]/EXEMPTS" -type f -printf '%T@ %Tc %p\n' | sort -rn | head -5
+cd "MakeCode/Production Invoice/EXEMPTS" && git log --name-only --pretty=format:"%ci %s" --all -- . | head -20
 ```
+
+זה יראה לך:
+```
+2025-11-06 14:33:47 +0200 יצירה אוטומטית מתוך MakeCode
+input-14:11-2025-11-06-0.7707135552764477.js
+
+2025-11-06 14:33:46 +0200 יצירה אוטומטית מתוך MakeCode
+output-14:11-2025-11-06-0.5093925310866825.js
+```
+
+**הקבצים עם התאריך האחרון ביותר = העדכניים!**
 
 ---
 
@@ -54,19 +70,21 @@ find "MakeCode/[MODULE_NAME]/EXEMPTS" -type f -printf '%T@ %Tc %p\n' | sort -rn 
    - Production Invoice? → `MakeCode/Production Invoice/EXEMPTS`
    - SupplierDataLearning? → `MakeCode/SupplierDataLearning/EXEMPTS`
 
-2. **מצא את הקבצים העדכניים:**
+2. **⚠️ מצא את הקבצים העדכניים לפי GIT LOG:**
    ```bash
-   ls -lt "MakeCode/[MODULE]/EXEMPTS" | head -5
+   cd "MakeCode/[MODULE]/EXEMPTS" && git log --name-only --pretty=format:"%ci %s" --all -- . | head -20
    ```
 
-3. **קרא את הקבצים לפי סדר עדכניות:**
-   - הקובץ הראשון ברשימה = העדכני ביותר ✅
-   - בדוק timestamp בשם הקובץ
-   - בדוק גם את ה-processing_timestamp בתוך output
+   **קח את הקבצים עם התאריך האחרון ביותר!**
+
+3. **קרא את הקבצים:**
+   - הקבצים עם commit date האחרון = העדכניים ביותר ✅
+   - **לא** לפי שם הקובץ!
+   - **לא** לפי modification time!
 
 4. **אל תשאל את המשתמש "איפה הקבצים?"**
    - אתה יודע: `EXEMPTS/`
-   - פשוט תמצא ותקרא אותם!
+   - פשוט תמצא ותקרא אותם עם git log!
 
 ---
 
