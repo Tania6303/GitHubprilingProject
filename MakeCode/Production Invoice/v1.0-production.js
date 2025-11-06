@@ -1,10 +1,14 @@
-// Production Invoice v1.6.7 (06.11.25 - 10:00)
+// Production Invoice v1.6.8 (06.11.25 - 10:15)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים) + דוח ביצוע + validation
-// תיקונים: חיפוש תעודות + לא יוצר items כשיש תעודות + return result
+// תיקונים: חיפוש תעודות + לא יוצר items כשיש תעודות + result גלובלי למען Make.com
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+
+// ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
+// משתמשים ב-var (לא let) כדי ליצור משתנה גלובלי אמיתי
+var result;
 
 (function() {
 
@@ -1229,7 +1233,7 @@ function analyzeLearning(invoice, config) {
 }
 
 // Main execution - Make.com runs this automatically
-let result = { status: "error", message: "No input provided" };
+result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
     console.log("v1.6.6: input type =", typeof input, "isArray =", Array.isArray(input));
@@ -1272,13 +1276,13 @@ if (typeof input !== 'undefined') {
         ]});
     }
 console.log(JSON.stringify(result, null, 2));
-console.log("v1.6.7: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-console.log("v1.6.7: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-console.log("v1.6.7: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+console.log("v1.6.8: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+console.log("v1.6.8: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+console.log("v1.6.8: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
 console.log("==========================================");
 }
 
-// החזרת התוצאה מחוץ ל-IIFE - Make.com צריך לקבל אותה
-return result;
+})();  // End of IIFE
 
-})();  // End of IIFE - Make.com will get the return value
+// ⚠️ result הוא global - Make.com יקרא אותו אוטומטית
+result;
