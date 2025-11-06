@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Invoice - ייצור חשבוניות</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb {
+            background: #f8f9fa;
+            padding: 15px 40px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .breadcrumb a {
+            color: #00f2fe;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #00f2fe;
+            border-bottom: 3px solid #00f2fe;
+            padding-bottom: 10px;
+            margin: 30px 0 20px 0;
+            font-size: 2em;
+        }
+
+        h3 {
+            color: #4facfe;
+            margin: 25px 0 15px 0;
+            font-size: 1.5em;
+        }
+
+        .flow-step {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-right: 5px solid #4facfe;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-right: 5px solid #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏭 Production Invoice</h1>
+            <p>שלב 3: יצירת JSON סופי למערכת ERP</p>
+        </header>
+
+        <div class="breadcrumb">
+            <a href="../Documentation-Mapping-Rules.html">⬅ חזרה לדף הראשי</a>
+        </div>
+
+        <div class="content">
+            <h2>📋 סקירה</h2>
+            <p>מודול Production Invoice הוא השלב האחרון בתהליך. הוא לוקח את התבנית המאוחדת מ-Processing Invoice ומייצר JSON סופי מוכן לשליחה ל-Priority ERP.</p>
+
+            <div class="info-box">
+                <h3>🎯 תפקיד עיקרי</h3>
+                <p>המרת המבנה החדש (עם all_templates) למבנה שמערכת ה-ERP מבינה.</p>
+            </div>
+
+            <h2>📥 קלט</h2>
+            <p>הקלט מגיע ממערכת Make.com ומכיל:</p>
+            <ul>
+                <li><strong>AZURE:</strong> נתוני OCR (JSON string או אובייקט)</li>
+                <li><strong>SUPNAME:</strong> קוד ספק</li>
+                <li><strong>CARS:</strong> רשימת רכבים (JSON array)</li>
+                <li><strong>SUP_TEMP:</strong> תבנית מאוחדת מ-Processing Invoice</li>
+            </ul>
+
+            <h2>⚙️ תהליך העיבוד</h2>
+
+            <div class="flow-step">
+                <h3>שלב 1: המרת מבנה</h3>
+                <p>המרת המבנה החדש (SUP_TEMP) למבנה learned_config:</p>
+                <ul>
+                    <li>חילוץ <span class="highlight">invoice_data</span> מכל תבנית ב-all_templates</li>
+                    <li>חילוץ <span class="highlight">technical_config</span> לבניית config</li>
+                    <li>בניית vehicle_account_mapping מרשימת CARS</li>
+                </ul>
+            </div>
+
+            <div class="flow-step">
+                <h3>שלב 2: קריאה ל-Processing Invoice</h3>
+                <p>העברת הנתונים המומרים לפונקציה processInvoiceComplete().</p>
+            </div>
+
+            <div class="flow-step">
+                <h3>שלב 3: ניקוי והכנה</h3>
+                <p>ניקוי החשבונית הסופית:</p>
+                <ul>
+                    <li>הסרת שדות למידה (_learningNote, isNewVehicle)</li>
+                    <li>הסרת SPECIALVATFLAG אם לא "Y"</li>
+                    <li>הסרת undefined values (Make.com לא מקבל)</li>
+                </ul>
+            </div>
+
+            <div class="flow-step">
+                <h3>שלב 4: החזרת JSON</h3>
+                <p>החזרת JSON מובנה מוכן לשליחה ל-Priority.</p>
+            </div>
+
+            <h2>✨ טיפול במבנה החדש</h2>
+
+            <div class="warning-box">
+                <h3>⚠️ שינוי קריטי בגרסה 4.2</h3>
+                <p>המבנה של Processing Invoice השתנה:</p>
+                <ul>
+                    <li><strong>לפני:</strong> invoice_data ו-technical_config ברמה עליונה</li>
+                    <li><strong>אחרי:</strong> supplier_code/name ברמה עליונה, הכל האחר תחת all_templates</li>
+                </ul>
+            </div>
+
+            <h3>קוד חילוץ מהמבנה החדש:</h3>
+            <div class="code-block">
+// חילוץ invoice_data מכל התבניות
+if (templateData.llm_prompt && templateData.llm_prompt.all_templates) {
+    const allPinvoices = templateData.llm_prompt.all_templates.map(template => {
+        return template.invoice_data?.PINVOICES?.[0] || {};
+    });
+
+    parsedTemplate = {
+        PINVOICES: allPinvoices,
+        document_types_count: allPinvoices.length
+    };
+}
+
+// חילוץ technical_config
+if (templateData.technical_config && templateData.technical_config.all_templates) {
+    parsedConfig = {
+        ...templateData.technical_config.all_templates[0],
+        supplier_config: {
+            supplier_code: templateData.technical_config.supplier_code,
+            supplier_name: templateData.technical_config.supplier_name
+        }
+    };
+}
+            </div>
+
+            <h2>📤 פלט</h2>
+            <p>JSON סופי הכולל:</p>
+            <ul>
+                <li><strong>status:</strong> "success" או "error"</li>
+                <li><strong>invoice:</strong> חשבונית מובנית לפי פורמט Priority</li>
+                <li><strong>execution_report:</strong> דוח ביצוע (found, not_found, warnings, errors)</li>
+            </ul>
+
+            <h3>דוגמה לפלט סופי:</h3>
+            <div class="code-block">
+{
+  "status": "success",
+  "invoice": {
+    "SUPNAME": "5014",
+    "CODE": "ש\"ח",
+    "DEBIT": "D",
+    "IVDATE": "05/11/25",
+    "BOOKNUM": "1234567",
+    "PINVOICEITEMS_SUBFORM": [
+      {
+        "PARTNAME": "car",
+        "PDES": "טיפול 75000 ק\"מ",
+        "TQUANT": 1,
+        "TUNITNAME": "יח'",
+        "PRICE": 300,
+        "VATFLAG": "Y",
+        "ACCNAME": "66979",
+        "SPECIALVATFLAG": "Y"
+      }
+    ],
+    "PINVOICESCONT_SUBFORM": [
+      {
+        "FNCPATNAME": "2323"
+      }
+    ]
+  },
+  "execution_report": {
+    "stage": "שלב 7: ניקוי והחזרת תוצאה",
+    "found": [
+      "סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D",
+      "רכבים: 1 - 741-69-103"
+    ],
+    "not_found": [],
+    "warnings": [],
+    "errors": []
+  }
+}
+            </div>
+
+            <h2>🔗 שרשרת המערכת המלאה</h2>
+            <div class="info-box">
+                <h3>1️⃣ Supplier Data Learning</h3>
+                <p>ERP Priority → learned_config</p>
+
+                <h3>2️⃣ Processing Invoice</h3>
+                <p>learned_config + OCR → תבנית מאוחדת (all_templates)</p>
+
+                <h3>3️⃣ Production Invoice</h3>
+                <p>תבנית מאוחדת → JSON סופי → ERP Priority</p>
+            </div>
+
+            <h2>⚠️ נקודות חשובות</h2>
+            <ul>
+                <li>Production Invoice <strong>חייב</strong> להכיר את המבנה החדש של Processing Invoice</li>
+                <li>כל שינוי ב-Processing Invoice דורש בדיקה ב-Production Invoice</li>
+                <li>ניקוי שדות undefined <strong>קריטי</strong> - Make.com דוחה JSON עם undefined</li>
+                <li>PINVOICESCONT_SUBFORM חייב להיות מוגדר (אפילו כמערך ריק)</li>
+            </ul>
+
+            <h2>🔄 עדכונים עתידיים</h2>
+            <p>כאשר מוסיפים שדות חדשים ב-Processing Invoice:</p>
+            <ol>
+                <li>לוודא שהם מועברים דרך all_templates</li>
+                <li>לעדכן את Production Invoice לקרוא אותם נכון</li>
+                <li>לבדוק שהניקוי cleanInvoiceForPriority() מטפל בהם</li>
+                <li>לעדכן דוקומנטציה</li>
+            </ol>
+        </div>
+
+        <footer>
+            <p>📅 עודכן לאחרונה: 05 נובמבר 2025</p>
+            <p>🔧 גרסה: 1.0 v16:02</p>
+            <p>✅ תיקונים אחרונים: ניקוי BOOKNUM, חילוץ תבניות מ-v4.2, החזרת object</p>
+        </footer>
+    </div>
+</body>
+</html>

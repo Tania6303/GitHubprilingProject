@@ -1,7 +1,15 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.2 - תיקון מחיר)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.3 - 05.11.25.16:55)
 // מקבל: OCR + הגדרות + תעודות + יבוא
-// מחזיר: JSON לפריוריטי + דוח ביצוע
+// מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
+//
+// 📁 קבצי בדיקה: MakeCode/Processing Invoice/EXEMPTS/
+// לקיחת הקובץ העדכני: ls -lt "MakeCode/Processing Invoice/EXEMPTS" | head -5
+//
+// ✨ חדש בגרסה 4.3:
+// - fallback לחיפוש רכבים ב-AZURE_TEXT (כש-Azure לא מזהה אוטומטית)
+// - לוגים מפורטים: "⚠️ לא נמצאו רכבים במקומות המובנים - מחפש ב-AZURE_TEXT..."
+// - מונע זיהוי מספרי כרטיס כרכבים (בדיקת context)
 //
 // ✨ חדש בגרסה 4.2:
 // - תיקון חישוב מחיר: InvoiceTotal - TotalTax = סה"כ לפני מע"מ (עבודות + חלקים)
@@ -305,7 +313,23 @@ function processInvoiceComplete(input) {
         const allProcessingScenarios = [];
         for (let i = 0; i < config.structure.length; i++) {
             const templateStructure = config.structure[i];
+
+            // ✨ קביעת document_type לפי התבנית
+            let documentTypeKey = "regular_invoice";
+            if (templateStructure.has_import && templateStructure.has_doc) {
+                documentTypeKey = "import_with_docs_invoice";
+            } else if (templateStructure.has_import) {
+                documentTypeKey = "import_invoice";
+            } else if (templateStructure.has_doc) {
+                documentTypeKey = "docs_invoice";
+            } else if (templateStructure.debit_type === "C") {
+                documentTypeKey = "credit_note";
+            } else if (hasVehicles) {
+                documentTypeKey = "vehicle_service_invoice";
+            }
+
             allProcessingScenarios.push({
+                document_type: documentTypeKey,  // ✨ הוספה!
                 check_docs: templateStructure.has_doc || false,
                 check_import: templateStructure.has_import || false,
                 check_vehicles: hasVehicles || false
@@ -314,29 +338,48 @@ function processInvoiceComplete(input) {
 
         const selectedProcessingScenario = allProcessingScenarios[templateIndex];
 
+        // ✨ מבנה חדש: supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
+        const supplierCode = config.supplier_config.supplier_code;
+        const supplierName = config.supplier_config.supplier_name;
+
+        // בניית all_templates עבור llm_prompt - עם invoice_data!
+        const llmTemplates = allLlmPrompts.map((prompt, idx) => {
+            const { supplier_code, supplier_name, ...rest } = prompt;
+            return {
+                ...rest,
+                invoice_data: {
+                    PINVOICES: [allInvoices[idx]]
+                }
+            };
+        });
+
+        // בניית all_templates עבור technical_config
+        const technicalTemplates = allTechnicalConfigs.map(cfg => {
+            const { supplier_code, supplier_name, ...rest } = cfg;
+            return rest;
+        });
+
         return {
             status: "success",
 
-            // 1. JSON לפריוריטי (הפלט העיקרי) - כל התבניות!
-            invoice_data: {
-                PINVOICES: allInvoices
-            },
-
-            // 2. הנחיות ל-LLM - עם כל התבניות בפנים
+            // 1. הנחיות ל-LLM - supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
             llm_prompt: {
-                ...selectedLlmPrompt,
-                all_templates: allLlmPrompts
+                supplier_code: supplierCode,
+                supplier_name: supplierName,
+                all_templates: llmTemplates
             },
 
-            // 3. קונפיג טכני - עם כל התבניות בפנים
+            // 2. קונפיג טכני - supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
             technical_config: {
-                ...selectedTechnicalConfig,
-                all_templates: allTechnicalConfigs
+                supplier_code: supplierCode,
+                supplier_name: supplierName,
+                all_templates: technicalTemplates
             },
 
-            // 4. סצנריו עיבוד - מה צריך לשלוף מהמערכת - עם כל התבניות בפנים
+            // 3. סצנריו עיבוד - supplier_code/name ברמה עליונה, הכל האחר תחת all_templates
             processing_scenario: {
-                ...selectedProcessingScenario,
+                supplier_code: supplierCode,
+                supplier_name: supplierName,
                 all_templates: allProcessingScenarios
             }
         };
@@ -484,7 +527,7 @@ function searchAllData(ocrFields, azureText, patterns, structure, importFiles, d
         ordname: structure.has_purchase_orders || structure.has_import ? searchOrdname(ocrFields) : null,
         impfnum: structure.has_import ? searchImpfnum(ocrFields, importFiles) : null,
         documents: structure.has_doc ? searchDocuments(ocrFields, azureText, patterns, docsList) : null,
-        vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules) : [],  // ✨ חדש!
+        vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules, azureText) : [],  // ✨ חדש! + fallback ל-AZURE_TEXT
         items: ocrFields.Items || []
     };
 }
@@ -770,7 +813,7 @@ function getCombinations(array, size) {
 // ✨ חדש! פונקציות חילוץ רכבים מתקדם
 // ============================================================================
 
-function extractVehiclesAdvanced(ocrFields, vehicleRules) {
+function extractVehiclesAdvanced(ocrFields, vehicleRules, azureText) {
     // תיקון: בדוק אם יש vehicle_account_mapping במקום enabled
     if (!vehicleRules || !vehicleRules.vehicle_account_mapping) return [];
 
@@ -858,6 +901,31 @@ function extractVehiclesAdvanced(ocrFields, vehicleRules) {
         }
     }
 
+    // ✨ חדש! אם לא נמצאו רכבים, חפש גם ב-AZURE_TEXT
+    if (foundVehicles.length === 0 && azureText) {
+        console.log("⚠️  לא נמצאו רכבים במקומות המובנים - מחפש ב-AZURE_TEXT...");
+        const vehiclePattern = /\d{3}-\d{2}-\d{3}/g;
+        const matches = azureText.match(vehiclePattern) || [];
+
+        matches.forEach(match => {
+            if (!foundVehicles.includes(match)) {
+                // בדוק שזה לא מופיע ליד המילה "כרטיס"
+                const contextStart = Math.max(0, azureText.indexOf(match) - 20);
+                const contextEnd = Math.min(azureText.length, azureText.indexOf(match) + match.length + 20);
+                const context = azureText.substring(contextStart, contextEnd);
+
+                if (!context.includes('כרטיס')) {
+                    foundVehicles.push(match);
+                    console.log(`✅ נמצא רכב ב-AZURE_TEXT: ${match}`);
+                }
+            }
+        });
+    }
+
+    if (foundVehicles.length > 0) {
+        console.log(`🚗 סה"כ נמצאו ${foundVehicles.length} רכבים:`, foundVehicles);
+    }
+
     return [...new Set(foundVehicles)]; // ייחודיים בלבד
 }
 
@@ -886,7 +954,7 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
         // תיקון: תיאור קצר בלבד
         const shortDesc = extractShortDescription(ocrFields, vehicleNum);
 
-        // בניית פריט - רק שדות שPriority מכיר!
+        // ✨ בניית פריט - רק שדות שPriority מכיר!
         const item = {
             PARTNAME: vehicleRules.output_format?.partname || "car",
             PDES: shortDesc,
@@ -897,14 +965,9 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
             ACCNAME: mapping?.accname || vehicleRules.default_values?.accname || ""
         };
 
-        // BUDCODE - חובה לפי התבנית!
-        if (mapping?.budcode) {
-            item.BUDCODE = mapping.budcode;
-        } else if (vehicleRules.default_values?.budcode) {
-            item.BUDCODE = vehicleRules.default_values.budcode;
-        }
+        // ✨ BUDCODE - בינתיים ריק (לוגיקה לא מאופיינת)
 
-        // SPECIALVATFLAG - רק אם זה Y (לא שדות אחרים!)
+        // ✨ SPECIALVATFLAG - רק אם זה Y (לא שדות אחרים!)
         if (mapping?.vat_pattern?.SPECIALVATFLAG === "Y") {
             item.SPECIALVATFLAG = "Y";
         }
@@ -1139,92 +1202,36 @@ function shouldAddItems(structure, documents, docsList) {
 }
 
 function buildItems(ocrItems, config, structure, template, learnedConfig) {
-    let defaultAccname = "";
-
-    if (template.PINVOICEITEMS_SUBFORM && template.PINVOICEITEMS_SUBFORM.length > 0) {
-        defaultAccname = template.PINVOICEITEMS_SUBFORM[0].ACCNAME || "";
-    }
-
-    if (!defaultAccname && config.document_types && config.document_types.length > 0) {
-        const docType = config.document_types[0];
-        if (docType.accnames && docType.accnames.length > 0) {
-            defaultAccname = docType.accnames[0];
-        }
-    }
-
-    let defaultBudcode = "";
-    if (template.PINVOICEITEMS_SUBFORM && template.PINVOICEITEMS_SUBFORM.length > 0) {
-        defaultBudcode = template.PINVOICEITEMS_SUBFORM[0].BUDCODE || "";
-    }
+    // ✨ תיקון: קח את הפריט הראשון מהתבנית כבסיס
+    const templateItem = template.PINVOICEITEMS_SUBFORM?.[0] || {};
 
     return ocrItems.map(ocrItem => {
+        // ✨ התחל עם השדות מהתבנית (קבועים ללמידה)
         const item = {
-            PARTNAME: extractPartname(ocrItem.ProductCode),
-            PDES: ocrItem.Description || "",
-            TQUANT: ocrItem.Quantity || 1,
-            TUNITNAME: ocrItem.Unit || "יח'",
-            PRICE: ocrItem.UnitPrice || ocrItem.UnitPrice_amount || 0,
-            VATFLAG: "Y",
-            ACCNAME: defaultAccname
+            PARTNAME: templateItem.PARTNAME || "",          // מהתבנית ✅
+            TUNITNAME: templateItem.TUNITNAME || "יח'",     // מהתבנית ✅
+            VATFLAG: templateItem.VATFLAG || "Y",           // מהתבנית ✅
+            ACCNAME: templateItem.ACCNAME || "",            // מהתבנית ✅
+
+            // ✨ דרוס עם נתונים דינמיים מ-OCR
+            PDES: ocrItem.Description || "",                // מ-OCR ✅
+            TQUANT: ocrItem.Quantity || 1,                  // מ-OCR ✅
+            PRICE: ocrItem.UnitPrice || ocrItem.UnitPrice_amount || 0  // מ-OCR ✅
         };
 
-        if (item.PARTNAME === "car" && config.rules.critical_patterns.vehicle_rules) {
-            applyVehicleRules(item, ocrItem.Description, config.rules.critical_patterns.vehicle_rules);
+        // ✨ הוסף SPECIALVATFLAG רק אם זה "Y" בתבנית
+        if (templateItem.SPECIALVATFLAG === "Y") {
+            item.SPECIALVATFLAG = "Y";
         }
 
-        if (config.rules.critical_patterns.partname_rules) {
-            applyPartnameRules(item, config.rules.critical_patterns.partname_rules);
-        }
-
-        if (structure.has_budcode && defaultBudcode) {
-            item.BUDCODE = defaultBudcode;
-        }
+        // ✨ BUDCODE - בינתיים ריק (לוגיקה לא מאופיינת)
 
         return item;
     });
 }
 
-function extractPartname(productCode) {
-    if (!productCode) return "";
-
-    const codes = String(productCode).split('\n');
-    const priorityCode = codes.find(c => /^[A-Z]/.test(c) || /^\d+$/.test(c));
-
-    return priorityCode || codes[0] || "";
-}
-
-function applyVehicleRules(item, description, vehicleRules) {
-    if (!vehicleRules.vehicle_account_mapping) return;
-
-    const vehicleMatch = description.match(/\d{3}-\d{2}-\d{3}/);
-    if (!vehicleMatch) return;
-
-    const vehicleNum = vehicleMatch[0];
-    const mapping = vehicleRules.vehicle_account_mapping[vehicleNum];
-
-    if (mapping) {
-        item.ACCNAME = mapping.accname;
-        item.VATFLAG = mapping.vat_pattern?.VATFLAG || mapping.vatflag || item.VATFLAG;
-
-        if (mapping.vat_pattern?.SPECIALVATFLAG && mapping.vat_pattern.SPECIALVATFLAG !== "varies") {
-            item.SPECIALVATFLAG = mapping.vat_pattern.SPECIALVATFLAG;
-        }
-
-        if (mapping.budcode) {
-            item.BUDCODE = mapping.budcode;
-        }
-    }
-}
-
-function applyPartnameRules(item, partnameRules) {
-    const rule = partnameRules[item.PARTNAME];
-
-    if (rule) {
-        if (rule.accname) item.ACCNAME = rule.accname;
-        if (rule.vatflag) item.VATFLAG = rule.vatflag;
-        if (rule.specialvatflag) item.SPECIALVATFLAG = rule.specialvatflag;
-    }
-}
+// ✨ פונקציות applyVehicleRules() ו-applyPartnameRules() הוסרו
+// הלוגיקה עברה ל-createVehicleItems() ול-buildItems() בהתאמה
 
 // ============================================================================
 // פונקציות עזר - שלב 5 (בקרות)

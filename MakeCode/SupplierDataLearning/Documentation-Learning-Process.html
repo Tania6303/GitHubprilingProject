@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Data Learning - תהליך למידה</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb {
+            background: #f8f9fa;
+            padding: 15px 40px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin: 30px 0 20px 0;
+            font-size: 2em;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+            font-size: 1.5em;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-right: 5px solid #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .flow-step {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-right: 5px solid #667eea;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Supplier Data Learning</h1>
+            <p>שלב 1: למידת הגדרות ספק מתוך מערכת ERP</p>
+        </header>
+
+        <div class="breadcrumb">
+            <a href="../Documentation-Mapping-Rules.html">⬅ חזרה לדף הראשי</a>
+        </div>
+
+        <div class="content">
+            <h2>📋 סקירה</h2>
+            <p>מודול Supplier Data Learning אחראי ללמוד את הדפוסים והחוקים של ספק ספציפי מתוך נתונים היסטוריים במערכת Priority ERP.</p>
+
+            <div class="info-box">
+                <h3>🎯 מטרה</h3>
+                <p>לייצר קובץ <strong>learned_config</strong> שמכיל את כל המידע הדרוש לעיבוד חשבוניות עתידיות מהספק.</p>
+            </div>
+
+            <h2>📥 קלט</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>שדה</th>
+                        <th>תיאור</th>
+                        <th>מקור</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>חשבוניות היסטוריות</strong></td>
+                        <td>חשבוניות קיימות של הספק מ-Priority</td>
+                        <td>טבלת PINVOICES</td>
+                    </tr>
+                    <tr>
+                        <td><strong>פרטי ספק</strong></td>
+                        <td>שם, קוד, מס' עוסק, טלפון, אימייל</td>
+                        <td>טבלת SUPPLIERS</td>
+                    </tr>
+                    <tr>
+                        <td><strong>פריטי חשבוניות</strong></td>
+                        <td>פירוט פריטים (PARTNAME, ACCNAME, BUDCODE וכו')</td>
+                        <td>טבלת PINVOICEITEMS</td>
+                    </tr>
+                    <tr>
+                        <td><strong>רכבים</strong></td>
+                        <td>מיפוי מספרי רכבים לחשבונות (אם רלוונטי)</td>
+                        <td>טבלה מותאמת אישית</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>⚙️ תהליך הלמידה</h2>
+
+            <div class="flow-step">
+                <h3>שלב 1: איסוף נתונים</h3>
+                <p>שליפת כל החשבוניות של הספק (בדרך כלל 50-100 חשבוניות אחרונות) מ-Priority.</p>
+            </div>
+
+            <div class="flow-step">
+                <h3>שלב 2: ניתוח מבנה</h3>
+                <p>זיהוי תבניות שונות לפי:</p>
+                <ul>
+                    <li><strong>יבוא:</strong> האם יש תיקי יבוא (IMPFNUM)?</li>
+                    <li><strong>תעודות:</strong> האם יש תעודות משלוח (DOCNO)?</li>
+                    <li><strong>חיוב/זיכוי:</strong> זיהוי סוג המסמך (D/C)</li>
+                    <li><strong>מלאי:</strong> האם יש ניהול מלאי או לא</li>
+                </ul>
+            </div>
+
+            <div class="flow-step">
+                <h3>שלב 3: למידת דפוסים</h3>
+                <p>חילוץ דפוסים חוזרים:</p>
+                <ul>
+                    <li><strong>BOOKNUM:</strong> אורך ופורמט מספר חשבונית</li>
+                    <li><strong>IVDATE:</strong> פורמט תאריך</li>
+                    <li><strong>PARTNAME:</strong> קודי מוצרים נפוצים</li>
+                    <li><strong>ACCNAME:</strong> חשבונות נפוצים</li>
+                    <li><strong>BUDCODE:</strong> קודי תקציב נפוצים</li>
+                </ul>
+            </div>
+
+            <div class="flow-step">
+                <h3>שלב 4: מיפוי רכבים (אם רלוונטי)</h3>
+                <p>עבור ספקי שירותי רכב:</p>
+                <ul>
+                    <li>זיהוי מספרי רכבים בפורמט XXX-XX-XXX</li>
+                    <li>מיפוי כל רכב לחשבון הנח"ש שלו</li>
+                    <li>שמירת VATFLAG, SPECIALVATFLAG לכל רכב</li>
+                </ul>
+            </div>
+
+            <div class="flow-step">
+                <h3>שלב 5: יצירת קונפיג</h3>
+                <p>בניית קובץ learned_config המלא עם כל החוקים והדפוסים.</p>
+            </div>
+
+            <h2>📤 פלט - learned_config</h2>
+
+            <h3>מבנה הקובץ:</h3>
+            <div class="code-block">
+{
+  "status": "success",
+  "supplier_id": "5014",
+  "supplier_name": "טכומטר-מכון ספידומטרים",
+  "vendor_tax_id_reference": "558117016",
+
+  "config": {
+    "supplier_config": {
+      "supplier_code": "5014",
+      "supplier_name": "טכומטר-מכון ספידומטרים"
+    },
+
+    "structure": [
+      {
+        "has_import": false,
+        "has_doc": false,
+        "debit_type": "D",
+        "inventory_management": "not_managed_inventory"
+      }
+    ],
+
+    "rules": {
+      "critical_patterns": {
+        "vehicle_rules": {
+          "vehicle_account_mapping": {
+            "741-69-103": {
+              "accname": "66979",
+              "budcode": "1.100-109",
+              "vat_pattern": {
+                "VATFLAG": "Y",
+                "SPECIALVATFLAG": "Y"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "template": {
+    "PINVOICES": [
+      {
+        "SUPNAME": "5014",
+        "CODE": "ש\"ח",
+        "DEBIT": "D",
+        "PINVOICEITEMS_SUBFORM": [
+          {
+            "PARTNAME": "car",
+            "TUNITNAME": "יח'",
+            "VATFLAG": "Y",
+            "ACCNAME": "66979",
+            "SPECIALVATFLAG": "Y",
+            "BUDCODE": "1.100-109"
+          }
+        ]
+      }
+    ]
+  }
+}
+            </div>
+
+            <h2>🔑 רכיבים עיקריים</h2>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>רכיב</th>
+                        <th>תיאור</th>
+                        <th>שימוש</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>supplier_config</strong></td>
+                        <td>פרטי ספק בסיסיים</td>
+                        <td>זיהוי וולידציה</td>
+                    </tr>
+                    <tr>
+                        <td><strong>structure</strong></td>
+                        <td>מערך תבניות אפשריות לספק</td>
+                        <td>בחירת תבנית מתאימה בזמן עיבוד</td>
+                    </tr>
+                    <tr>
+                        <td><strong>rules</strong></td>
+                        <td>חוקי עיבוד (רכבים, PARTNAME וכו')</td>
+                        <td>מיפוי נכון של שדות</td>
+                    </tr>
+                    <tr>
+                        <td><strong>template</strong></td>
+                        <td>תבנית JSON בסיסית</td>
+                        <td>בסיס לבניית חשבונית חדשה</td>
+                    </tr>
+                    <tr>
+                        <td><strong>vehicle_account_mapping</strong></td>
+                        <td>מיפוי רכבים לחשבונות</td>
+                        <td>קביעת ACCNAME לכל רכב</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <h3>⚠️ שים לב</h3>
+                <ul>
+                    <li>הלמידה תלויה באיכות הנתונים ההיסטוריים</li>
+                    <li>ספק עם חשבוניות לא אחידות עלול לדרוש למידה ידנית נוספת</li>
+                    <li>רכבים חדשים צריכים להתווסף ידנית למיפוי</li>
+                    <li>BUDCODE כרגע לא מיושם במלואו</li>
+                </ul>
+            </div>
+
+            <h2>🔄 חיבור לשלב הבא</h2>
+            <p>קובץ learned_config משמש כקלט ל-<strong>Processing Invoice</strong> שם הוא מנוצל ליצירת תבנית מאוחדת לכל חשבונית חדשה.</p>
+            <p><a href="../Processing Invoice/Documentation-Processing-Rules.html" style="color: #667eea; font-weight: bold;">➜ לדוקומנטציה של Processing Invoice</a></p>
+        </div>
+
+        <footer>
+            <p>📅 עודכן לאחרונה: נובמבר 2025</p>
+            <p>🔧 גרסה: 1.2</p>
+        </footer>
+    </div>
+</body>
+</html>
