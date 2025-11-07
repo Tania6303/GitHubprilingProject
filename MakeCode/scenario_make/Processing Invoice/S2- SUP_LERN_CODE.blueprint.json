@@ -1,0 +1,3001 @@
+{
+    "name": "S2- SUP_LERN_CODE",
+    "flow": [
+        {
+            "id": 7,
+            "module": "json:ParseJSON",
+            "version": 1,
+            "parameters": {
+                "type": 476984
+            },
+            "mapper": {
+                "json": "{{var.input.ALL}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 300
+                },
+                "restore": {
+                    "parameters": {
+                        "type": {
+                            "label": "My data structure"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "type",
+                        "type": "udt",
+                        "label": "Data structure"
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "json",
+                        "type": "text",
+                        "label": "JSON string",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "help": "",
+                        "name": "array",
+                        "spec": {
+                            "spec": [
+                                {
+                                    "help": "",
+                                    "name": "conf",
+                                    "spec": [
+                                        {
+                                            "help": "",
+                                            "name": "status",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "supplier_id",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "supplier_name",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "vendor_tax_id_reference",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "supplier_phone",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "supplier_email",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "json_files_analyzed",
+                                            "type": "number",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "templates_detected",
+                                            "type": "number",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "config",
+                                            "spec": [
+                                                {
+                                                    "help": "",
+                                                    "name": "supplier_config",
+                                                    "spec": [
+                                                        {
+                                                            "help": "",
+                                                            "name": "supplier_code",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "supplier_name",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "vendor_tax_id_reference",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        }
+                                                    ],
+                                                    "type": "collection",
+                                                    "label": null,
+                                                    "required": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "structure",
+                                                    "spec": {
+                                                        "spec": [
+                                                            {
+                                                                "help": "",
+                                                                "name": "has_import",
+                                                                "type": "boolean",
+                                                                "label": null,
+                                                                "required": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "has_purchase_orders",
+                                                                "type": "boolean",
+                                                                "label": null,
+                                                                "required": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "has_doc",
+                                                                "type": "boolean",
+                                                                "label": null,
+                                                                "required": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "has_date_range",
+                                                                "type": "boolean",
+                                                                "label": null,
+                                                                "required": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "has_budcode",
+                                                                "type": "boolean",
+                                                                "label": null,
+                                                                "required": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "has_pdaccname",
+                                                                "type": "boolean",
+                                                                "label": null,
+                                                                "required": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "inventory_management",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "debit_type",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            }
+                                                        ],
+                                                        "type": "collection",
+                                                        "required": false
+                                                    },
+                                                    "type": "array",
+                                                    "label": null,
+                                                    "required": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "rules",
+                                                    "spec": [
+                                                        {
+                                                            "help": "",
+                                                            "name": "invoice_date_format",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "doc_variation",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "validation_data",
+                                                            "spec": [
+                                                                {
+                                                                    "help": "",
+                                                                    "name": "TOTQUANT",
+                                                                    "type": "number",
+                                                                    "label": null,
+                                                                    "default": null,
+                                                                    "required": false
+                                                                }
+                                                            ],
+                                                            "type": "collection",
+                                                            "label": null,
+                                                            "required": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "critical_patterns",
+                                                            "spec": [
+                                                                {
+                                                                    "help": "",
+                                                                    "name": "vehicle_rules",
+                                                                    "spec": [],
+                                                                    "type": "collection",
+                                                                    "label": null,
+                                                                    "required": false
+                                                                },
+                                                                {
+                                                                    "help": "",
+                                                                    "name": "partname_rules",
+                                                                    "spec": [],
+                                                                    "type": "collection",
+                                                                    "label": null,
+                                                                    "required": false
+                                                                }
+                                                            ],
+                                                            "type": "collection",
+                                                            "label": null,
+                                                            "required": false
+                                                        }
+                                                    ],
+                                                    "type": "collection",
+                                                    "label": null,
+                                                    "required": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "document_types",
+                                                    "spec": {
+                                                        "spec": [
+                                                            {
+                                                                "help": "",
+                                                                "name": "type",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "accnames",
+                                                                "spec": {
+                                                                    "type": "text",
+                                                                    "default": null,
+                                                                    "required": false,
+                                                                    "multiline": false
+                                                                },
+                                                                "type": "array",
+                                                                "label": null,
+                                                                "required": false
+                                                            }
+                                                        ],
+                                                        "type": "collection",
+                                                        "required": false
+                                                    },
+                                                    "type": "array",
+                                                    "label": null,
+                                                    "required": false
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "template",
+                                            "spec": [
+                                                {
+                                                    "help": "",
+                                                    "name": "PINVOICES",
+                                                    "spec": {
+                                                        "spec": [
+                                                            {
+                                                                "help": "",
+                                                                "name": "SUPNAME",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "CODE",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "DEBIT",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "IVDATE",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "BOOKNUM",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "DOCNO",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "PIVDOC_SUBFORM",
+                                                                "spec": {
+                                                                    "spec": [
+                                                                        {
+                                                                            "help": "",
+                                                                            "name": "DOCNO",
+                                                                            "type": "text",
+                                                                            "label": null,
+                                                                            "default": null,
+                                                                            "required": false,
+                                                                            "multiline": false
+                                                                        },
+                                                                        {
+                                                                            "help": "",
+                                                                            "name": "BOOKNUM",
+                                                                            "type": "text",
+                                                                            "label": null,
+                                                                            "default": null,
+                                                                            "required": false,
+                                                                            "multiline": false
+                                                                        }
+                                                                    ],
+                                                                    "type": "collection",
+                                                                    "required": false
+                                                                },
+                                                                "type": "array",
+                                                                "label": null,
+                                                                "required": false
+                                                            }
+                                                        ],
+                                                        "type": "collection",
+                                                        "required": false
+                                                    },
+                                                    "type": "array",
+                                                    "label": null,
+                                                    "required": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "document_types_count",
+                                                    "type": "number",
+                                                    "label": null,
+                                                    "default": null,
+                                                    "required": false
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "recommended_samples",
+                                            "spec": [
+                                                {
+                                                    "help": "",
+                                                    "name": "samples",
+                                                    "spec": {
+                                                        "spec": [
+                                                            {
+                                                                "help": "",
+                                                                "name": "sample_ivnum",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "sample_booknum",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "sample_impfnum",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "sample_supname",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            }
+                                                        ],
+                                                        "type": "collection",
+                                                        "required": false
+                                                    },
+                                                    "type": "array",
+                                                    "label": null,
+                                                    "required": false
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": null,
+                                            "required": false
+                                        }
+                                    ],
+                                    "type": "collection",
+                                    "label": null,
+                                    "required": false
+                                },
+                                {
+                                    "help": "",
+                                    "name": "docs",
+                                    "spec": [
+                                        {
+                                            "help": "",
+                                            "name": "list_of_docs",
+                                            "spec": {
+                                                "type": "text",
+                                                "default": null,
+                                                "required": false,
+                                                "multiline": false
+                                            },
+                                            "type": "array",
+                                            "label": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "DOC_YES_NO",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        }
+                                    ],
+                                    "type": "collection",
+                                    "label": null,
+                                    "required": false
+                                },
+                                {
+                                    "help": "",
+                                    "name": "imfp",
+                                    "spec": [
+                                        {
+                                            "help": "",
+                                            "name": "IMPFILES",
+                                            "spec": {
+                                                "type": "text",
+                                                "default": null,
+                                                "required": false,
+                                                "multiline": false
+                                            },
+                                            "type": "array",
+                                            "label": null,
+                                            "required": false
+                                        }
+                                    ],
+                                    "type": "collection",
+                                    "label": null,
+                                    "required": false
+                                },
+                                {
+                                    "help": "",
+                                    "name": "azuretext",
+                                    "type": "text",
+                                    "label": null,
+                                    "default": null,
+                                    "required": false,
+                                    "multiline": false
+                                },
+                                {
+                                    "help": "",
+                                    "name": "AZURE_RESULT",
+                                    "spec": [
+                                        {
+                                            "help": "",
+                                            "name": "structure",
+                                            "spec": [
+                                                {
+                                                    "help": "",
+                                                    "name": "docType",
+                                                    "type": "text",
+                                                    "label": null,
+                                                    "default": null,
+                                                    "required": false,
+                                                    "multiline": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "fields",
+                                                    "spec": [
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_houseNumber",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_road",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_streetAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_house",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddressRecipient",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_houseNumber",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_road",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_streetAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_house",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddressRecipient",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerName",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerTaxId",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "DueDate",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceDate",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceId",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceTotal_amount",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceTotal_currency",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "PaymentTerm",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "SubTotal_amount",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "SubTotal_currency",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "TotalTax_amount",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "TotalTax_currency",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorAddress_house",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorAddressRecipient",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorName",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorTaxId",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorTel",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorFax",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorEmail",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "UnidentifiedNumbers",
+                                                            "spec": {
+                                                                "type": "text",
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            "type": "array",
+                                                            "label": null,
+                                                            "required": false
+                                                        }
+                                                    ],
+                                                    "type": "collection",
+                                                    "label": null,
+                                                    "required": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "Items",
+                                                    "spec": {
+                                                        "spec": [
+                                                            {
+                                                                "help": "",
+                                                                "name": "Amount_amount",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "Amount_currency",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "Description",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "ProductCode",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "Quantity",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "Unit",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "UnitPrice_amount",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            {
+                                                                "help": "",
+                                                                "name": "UnitPrice_currency",
+                                                                "type": "text",
+                                                                "label": null,
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            }
+                                                        ],
+                                                        "type": "collection",
+                                                        "required": false
+                                                    },
+                                                    "type": "array",
+                                                    "label": null,
+                                                    "required": false
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "data",
+                                            "spec": [
+                                                {
+                                                    "help": "",
+                                                    "name": "docType",
+                                                    "type": "text",
+                                                    "label": null,
+                                                    "default": null,
+                                                    "required": false,
+                                                    "multiline": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "fields",
+                                                    "spec": [
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_houseNumber",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_road",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_streetAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddress_house",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "BillingAddressRecipient",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_houseNumber",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_road",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_streetAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddress_house",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerAddressRecipient",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerName",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "CustomerTaxId",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "DueDate",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceDate",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceId",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceTotal_amount",
+                                                            "type": "number",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "InvoiceTotal_currency",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "Items",
+                                                            "spec": {
+                                                                "spec": [
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "Amount_amount",
+                                                                        "type": "number",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false
+                                                                    },
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "Amount_currency",
+                                                                        "type": "text",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false,
+                                                                        "multiline": false
+                                                                    },
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "Description",
+                                                                        "type": "text",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false,
+                                                                        "multiline": false
+                                                                    },
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "ProductCode",
+                                                                        "type": "text",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false,
+                                                                        "multiline": false
+                                                                    },
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "Quantity",
+                                                                        "type": "number",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false
+                                                                    },
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "Unit",
+                                                                        "type": "text",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false,
+                                                                        "multiline": false
+                                                                    },
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "UnitPrice_amount",
+                                                                        "type": "number",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false
+                                                                    },
+                                                                    {
+                                                                        "help": "",
+                                                                        "name": "UnitPrice_currency",
+                                                                        "type": "text",
+                                                                        "label": null,
+                                                                        "default": null,
+                                                                        "required": false,
+                                                                        "multiline": false
+                                                                    }
+                                                                ],
+                                                                "type": "collection",
+                                                                "required": false
+                                                            },
+                                                            "type": "array",
+                                                            "label": null,
+                                                            "required": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "PaymentTerm",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "SubTotal_amount",
+                                                            "type": "number",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "SubTotal_currency",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "TotalTax_amount",
+                                                            "type": "number",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "TotalTax_currency",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorAddress",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorAddress_house",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorAddressRecipient",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorName",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorTaxId",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorTel",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorFax",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "VendorEmail",
+                                                            "type": "text",
+                                                            "label": null,
+                                                            "default": null,
+                                                            "required": false,
+                                                            "multiline": false
+                                                        },
+                                                        {
+                                                            "help": "",
+                                                            "name": "UnidentifiedNumbers",
+                                                            "spec": {
+                                                                "type": "text",
+                                                                "default": null,
+                                                                "required": false,
+                                                                "multiline": false
+                                                            },
+                                                            "type": "array",
+                                                            "label": null,
+                                                            "required": false
+                                                        }
+                                                    ],
+                                                    "type": "collection",
+                                                    "label": null,
+                                                    "required": false
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "metadata",
+                                            "spec": [
+                                                {
+                                                    "help": "",
+                                                    "name": "modelId",
+                                                    "type": "text",
+                                                    "label": null,
+                                                    "default": null,
+                                                    "required": false,
+                                                    "multiline": false
+                                                },
+                                                {
+                                                    "help": "",
+                                                    "name": "totalFields",
+                                                    "type": "number",
+                                                    "label": null,
+                                                    "default": null,
+                                                    "required": false
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": null,
+                                            "required": false
+                                        },
+                                        {
+                                            "help": "",
+                                            "name": "status",
+                                            "type": "text",
+                                            "label": null,
+                                            "default": null,
+                                            "required": false,
+                                            "multiline": false
+                                        }
+                                    ],
+                                    "type": "collection",
+                                    "label": null,
+                                    "required": false
+                                }
+                            ],
+                            "type": "collection",
+                            "required": false
+                        },
+                        "type": "array",
+                        "label": "Array",
+                        "required": false
+                    },
+                    {
+                        "help": "",
+                        "name": "__IMTAGGLENGTH__",
+                        "type": "number",
+                        "label": "  imtagglength  ",
+                        "default": null,
+                        "required": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 46,
+            "module": "http:ActionSendDataAPIKeyAuth",
+            "version": 3,
+            "parameters": {
+                "auth": 146147,
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://raw.githubusercontent.com/Tania6303/GitHubprilingProject/refs/heads/{{var.input.branch}}/MakeCode/Processing%20Invoice/v4.2-COMPLETE.js",
+                "serializeUrl": false,
+                "method": "get",
+                "headers": [
+                    {
+                        "name": "Accept",
+                        "value": "application/vnd.github.v3.raw"
+                    }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "timeout": "",
+                "shareCookies": false,
+                "ca": "",
+                "rejectUnauthorized": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "gzip": true,
+                "useMtls": false,
+                "contentType": "application/json",
+                "data": "",
+                "followAllRedirects": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 300
+                },
+                "restore": {
+                    "parameters": {
+                        "auth": {
+                            "label": "prilinq_GitHub"
+                        }
+                    },
+                    "expect": {
+                        "method": {
+                            "mode": "chose",
+                            "label": "GET"
+                        },
+                        "headers": {
+                            "mode": "chose",
+                            "items": [
+                                null
+                            ]
+                        },
+                        "qs": {
+                            "mode": "chose"
+                        },
+                        "bodyType": {
+                            "label": "Raw"
+                        },
+                        "contentType": {
+                            "label": "JSON (application/json)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "auth",
+                        "type": "keychain:apikeyauth",
+                        "label": "Credentials",
+                        "required": true
+                    },
+                    {
+                        "name": "handleErrors",
+                        "type": "boolean",
+                        "label": "Evaluate all states as errors (except for 2xx and 3xx )",
+                        "required": true
+                    },
+                    {
+                        "name": "useNewZLibDeCompress",
+                        "type": "hidden"
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "url",
+                        "type": "url",
+                        "label": "URL",
+                        "required": true
+                    },
+                    {
+                        "name": "serializeUrl",
+                        "type": "boolean",
+                        "label": "Serialize URL",
+                        "required": true
+                    },
+                    {
+                        "name": "method",
+                        "type": "select",
+                        "label": "Method",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "get",
+                                "head",
+                                "post",
+                                "put",
+                                "patch",
+                                "delete",
+                                "options"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "headers",
+                        "type": "array",
+                        "label": "Headers",
+                        "spec": [
+                            {
+                                "name": "name",
+                                "label": "Name",
+                                "type": "text",
+                                "required": true
+                            },
+                            {
+                                "name": "value",
+                                "label": "Value",
+                                "type": "text"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "qs",
+                        "type": "array",
+                        "label": "Query String",
+                        "spec": [
+                            {
+                                "name": "name",
+                                "label": "Name",
+                                "type": "text",
+                                "required": true
+                            },
+                            {
+                                "name": "value",
+                                "label": "Value",
+                                "type": "text"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "bodyType",
+                        "type": "select",
+                        "label": "Body type",
+                        "validate": {
+                            "enum": [
+                                "raw",
+                                "x_www_form_urlencoded",
+                                "multipart_form_data"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "parseResponse",
+                        "type": "boolean",
+                        "label": "Parse response",
+                        "required": true
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "uinteger",
+                        "label": "Timeout",
+                        "validate": {
+                            "max": 300,
+                            "min": 1
+                        }
+                    },
+                    {
+                        "name": "shareCookies",
+                        "type": "boolean",
+                        "label": "Share cookies with other HTTP modules",
+                        "required": true
+                    },
+                    {
+                        "name": "ca",
+                        "type": "cert",
+                        "label": "Self-signed certificate"
+                    },
+                    {
+                        "name": "rejectUnauthorized",
+                        "type": "boolean",
+                        "label": "Reject connections that are using unverified (self-signed) certificates",
+                        "required": true
+                    },
+                    {
+                        "name": "followRedirect",
+                        "type": "boolean",
+                        "label": "Follow redirect",
+                        "required": true
+                    },
+                    {
+                        "name": "useQuerystring",
+                        "type": "boolean",
+                        "label": "Disable serialization of multiple same query string keys as arrays",
+                        "required": true
+                    },
+                    {
+                        "name": "gzip",
+                        "type": "boolean",
+                        "label": "Request compressed content",
+                        "required": true
+                    },
+                    {
+                        "name": "useMtls",
+                        "type": "boolean",
+                        "label": "Use Mutual TLS",
+                        "required": true
+                    },
+                    {
+                        "name": "contentType",
+                        "type": "select",
+                        "label": "Content type",
+                        "validate": {
+                            "enum": [
+                                "text/plain",
+                                "application/json",
+                                "application/xml",
+                                "text/xml",
+                                "text/html",
+                                "custom"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "data",
+                        "type": "buffer",
+                        "label": "Request content"
+                    },
+                    {
+                        "name": "followAllRedirects",
+                        "type": "boolean",
+                        "label": "Follow all redirect",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 10,
+            "module": "code:ExecuteCode",
+            "version": 0,
+            "parameters": {},
+            "mapper": {
+                "input": [
+                    {
+                        "name": "learned_config",
+                        "value": "{{7.conf}}"
+                    },
+                    {
+                        "name": "docs_list",
+                        "value": "{{7.docs}}"
+                    },
+                    {
+                        "name": "import_files",
+                        "value": "{{7.imfp}}"
+                    },
+                    {
+                        "name": "AZURE_RESULT",
+                        "value": "{{7.AZURE_RESULT}}"
+                    },
+                    {
+                        "name": "AZURE_TEXT",
+                        "value": "{{7.azuretext}}"
+                    }
+                ],
+                "language": "javascript",
+                "inputFormat": "string",
+                "dependencies": [],
+                "codeStringJavascript": "{{46.data}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 300,
+                    "name": "Processing Invoice"
+                },
+                "restore": {
+                    "expect": {
+                        "input": {
+                            "items": [
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                            ]
+                        },
+                        "language": {
+                            "mode": "chose",
+                            "label": "JavaScript"
+                        },
+                        "inputFormat": {
+                            "label": "Mapped code (useful for AI)"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "language",
+                        "type": "select",
+                        "label": "Language",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "javascript",
+                                "python"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "input",
+                        "spec": {
+                            "name": "value",
+                            "spec": [
+                                {
+                                    "name": "name",
+                                    "type": "text",
+                                    "label": "Name",
+                                    "required": true,
+                                    "validate": {
+                                        "max": 32,
+                                        "min": 1,
+                                        "pattern": "^[a-zA-Z0-9_]{1,32}$"
+                                    }
+                                },
+                                {
+                                    "name": "value",
+                                    "type": "any",
+                                    "label": "Value",
+                                    "required": true
+                                }
+                            ],
+                            "type": "collection",
+                            "label": "Variable"
+                        },
+                        "type": "array",
+                        "label": "Input"
+                    },
+                    {
+                        "name": "dependencies",
+                        "spec": {
+                            "name": "value",
+                            "type": "text",
+                            "label": "Dependency",
+                            "required": true,
+                            "validate": {
+                                "max": 214,
+                                "min": 1,
+                                "pattern": "^[A-Za-z0-9_@\\./<>\\=\\!~\\^+\\-]{1,214}$"
+                            }
+                        },
+                        "type": "array",
+                        "label": "Additional dependencies (Enterprise plans only)"
+                    },
+                    {
+                        "name": "inputFormat",
+                        "type": "select",
+                        "label": "Input format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "editor",
+                                "string"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "codeStringJavascript",
+                        "type": "text",
+                        "label": "Code",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 34,
+            "module": "datastore:AddRecord",
+            "version": 1,
+            "parameters": {
+                "datastore": 130395
+            },
+            "mapper": {
+                "key": "{{7.conf.supplier_id}}",
+                "data": {
+                    "LERN_ALL": [
+                        "{{10.result}}"
+                    ]
+                },
+                "overwrite": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 300
+                },
+                "restore": {
+                    "expect": {
+                        "data": {
+                            "nested": {
+                                "LERN_ALL": {
+                                    "mode": "chose",
+                                    "items": [
+                                        null
+                                    ]
+                                }
+                            }
+                        },
+                        "overwrite": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "datastore": {
+                            "label": "LERN_ALL"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "datastore",
+                        "type": "datastore",
+                        "label": "Data store",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "key",
+                        "type": "text",
+                        "label": "Key"
+                    },
+                    {
+                        "name": "overwrite",
+                        "type": "boolean",
+                        "label": "Overwrite an existing record",
+                        "required": true
+                    },
+                    {
+                        "name": "data",
+                        "spec": [
+                            {
+                                "name": "LERN_ALL",
+                                "spec": {
+                                    "name": "value",
+                                    "type": "text"
+                                },
+                                "type": "array",
+                                "label": null
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Record"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 54,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 1200,
+                    "y": 300
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 33,
+                            "module": "scenario-service:ReturnData",
+                            "version": 2,
+                            "parameters": {},
+                            "filter": {
+                                "name": "",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "1",
+                                            "b": "1",
+                                            "o": "text:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "SUPNAME": "{{7.conf.supplier_id}}",
+                                "SUPPLIER_ID": "{{7.conf.vendor_tax_id_reference}}",
+                                "LEARN_RESULTS": "{{10.result}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 0
+                                },
+                                "restore": {},
+                                "expect": [
+                                    {
+                                        "name": "LEARN_RESULTS",
+                                        "type": "dynamicCollection",
+                                        "label": ""
+                                    },
+                                    {
+                                        "name": "SUPNAME",
+                                        "type": "text",
+                                        "label": ""
+                                    },
+                                    {
+                                        "name": "SUPPLIER_ID",
+                                        "type": "text",
+                                        "label": ""
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 55,
+                            "module": "http:ActionSendDataAPIKeyAuth",
+                            "version": 3,
+                            "parameters": {
+                                "auth": 146147,
+                                "handleErrors": false,
+                                "useNewZLibDeCompress": true
+                            },
+                            "filter": {
+                                "name": "",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "1",
+                                            "b": "2",
+                                            "o": "text:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "ca": "",
+                                "qs": [],
+                                "url": "https://api.github.com/repos/Tania6303/GitHubprilingProject/contents/MakeCode/Processing Invoice/EXEMPTS/input-{{formatDate(now; \"HH:MM-YYYY-MM-DD\")}}.js",
+                                "data": "{\r\n  \"message\": \"יצירה אוטומטית מתוך MakeCode\",\r\n  \"content\": \"{{base64(\"'\" + 7.AZURE_RESULT + \"'\")}}\",\r\n  \"branch\": \"{{var.input.branch}}\"\r\n}",
+                                "gzip": true,
+                                "method": "put",
+                                "headers": [
+                                    {
+                                        "name": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "name": "Authorization",
+                                        "value": "Bearer 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"
+                                    }
+                                ],
+                                "timeout": "",
+                                "useMtls": false,
+                                "bodyType": "raw",
+                                "contentType": "application/json",
+                                "serializeUrl": false,
+                                "shareCookies": false,
+                                "parseResponse": true,
+                                "followRedirect": true,
+                                "useQuerystring": false,
+                                "followAllRedirects": false,
+                                "rejectUnauthorized": true
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 300,
+                                    "name": "INPUT"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "qs": {
+                                            "mode": "chose"
+                                        },
+                                        "method": {
+                                            "mode": "chose",
+                                            "label": "PUT"
+                                        },
+                                        "headers": {
+                                            "mode": "chose",
+                                            "items": [
+                                                null,
+                                                null
+                                            ]
+                                        },
+                                        "bodyType": {
+                                            "label": "Raw"
+                                        },
+                                        "contentType": {
+                                            "label": "JSON (application/json)"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "auth": {
+                                            "label": "prilinq_GitHub"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "auth",
+                                        "type": "keychain:apikeyauth",
+                                        "label": "Credentials",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "handleErrors",
+                                        "type": "boolean",
+                                        "label": "Evaluate all states as errors (except for 2xx and 3xx )",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useNewZLibDeCompress",
+                                        "type": "hidden"
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "url",
+                                        "type": "url",
+                                        "label": "URL",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "serializeUrl",
+                                        "type": "boolean",
+                                        "label": "Serialize URL",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "method",
+                                        "type": "select",
+                                        "label": "Method",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "get",
+                                                "head",
+                                                "post",
+                                                "put",
+                                                "patch",
+                                                "delete",
+                                                "options"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "headers",
+                                        "spec": [
+                                            {
+                                                "name": "name",
+                                                "type": "text",
+                                                "label": "Name",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "text",
+                                                "label": "Value"
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Headers"
+                                    },
+                                    {
+                                        "name": "qs",
+                                        "spec": [
+                                            {
+                                                "name": "name",
+                                                "type": "text",
+                                                "label": "Name",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "text",
+                                                "label": "Value"
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Query String"
+                                    },
+                                    {
+                                        "name": "bodyType",
+                                        "type": "select",
+                                        "label": "Body type",
+                                        "validate": {
+                                            "enum": [
+                                                "raw",
+                                                "x_www_form_urlencoded",
+                                                "multipart_form_data"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "parseResponse",
+                                        "type": "boolean",
+                                        "label": "Parse response",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "timeout",
+                                        "type": "uinteger",
+                                        "label": "Timeout",
+                                        "validate": {
+                                            "max": 300,
+                                            "min": 1
+                                        }
+                                    },
+                                    {
+                                        "name": "shareCookies",
+                                        "type": "boolean",
+                                        "label": "Share cookies with other HTTP modules",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "ca",
+                                        "type": "cert",
+                                        "label": "Self-signed certificate"
+                                    },
+                                    {
+                                        "name": "rejectUnauthorized",
+                                        "type": "boolean",
+                                        "label": "Reject connections that are using unverified (self-signed) certificates",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "followRedirect",
+                                        "type": "boolean",
+                                        "label": "Follow redirect",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useQuerystring",
+                                        "type": "boolean",
+                                        "label": "Disable serialization of multiple same query string keys as arrays",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "gzip",
+                                        "type": "boolean",
+                                        "label": "Request compressed content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useMtls",
+                                        "type": "boolean",
+                                        "label": "Use Mutual TLS",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "contentType",
+                                        "type": "select",
+                                        "label": "Content type",
+                                        "validate": {
+                                            "enum": [
+                                                "text/plain",
+                                                "application/json",
+                                                "application/xml",
+                                                "text/xml",
+                                                "text/html",
+                                                "custom"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "data",
+                                        "type": "buffer",
+                                        "label": "Request content"
+                                    },
+                                    {
+                                        "name": "followAllRedirects",
+                                        "type": "boolean",
+                                        "label": "Follow all redirect",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 56,
+                            "module": "http:ActionSendDataAPIKeyAuth",
+                            "version": 3,
+                            "parameters": {
+                                "auth": 146147,
+                                "handleErrors": false,
+                                "useNewZLibDeCompress": true
+                            },
+                            "filter": {
+                                "name": "",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "1",
+                                            "b": "2",
+                                            "o": "text:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "ca": "",
+                                "qs": [],
+                                "url": "https://api.github.com/repos/Tania6303/GitHubprilingProject/contents/MakeCode/Processing Invoice/EXEMPTS/output-{{formatDate(now; \"HH:MM-YYYY-MM-DD\")}}.js",
+                                "data": "{\r\n  \"message\": \"יצירה אוטומטית מתוך MakeCode\",\r\n  \"content\": \"{{base64(\"'\" + 10.result + \"'\")}}\",\r\n  \"branch\": \"claude/processing-invoice-examples-011CUpWHx3PNZGyhu4GRp2z4\"\r\n}",
+                                "gzip": true,
+                                "method": "put",
+                                "headers": [
+                                    {
+                                        "name": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "name": "Authorization",
+                                        "value": "Bearer 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"
+                                    }
+                                ],
+                                "timeout": "",
+                                "useMtls": false,
+                                "bodyType": "raw",
+                                "contentType": "application/json",
+                                "serializeUrl": false,
+                                "shareCookies": false,
+                                "parseResponse": true,
+                                "followRedirect": true,
+                                "useQuerystring": false,
+                                "followAllRedirects": false,
+                                "rejectUnauthorized": true
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 600,
+                                    "name": "OUTPUT"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "qs": {
+                                            "mode": "chose"
+                                        },
+                                        "method": {
+                                            "mode": "chose",
+                                            "label": "PUT"
+                                        },
+                                        "headers": {
+                                            "mode": "chose",
+                                            "items": [
+                                                null,
+                                                null
+                                            ]
+                                        },
+                                        "bodyType": {
+                                            "label": "Raw"
+                                        },
+                                        "contentType": {
+                                            "label": "JSON (application/json)"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "auth": {
+                                            "label": "prilinq_GitHub"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "auth",
+                                        "type": "keychain:apikeyauth",
+                                        "label": "Credentials",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "handleErrors",
+                                        "type": "boolean",
+                                        "label": "Evaluate all states as errors (except for 2xx and 3xx )",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useNewZLibDeCompress",
+                                        "type": "hidden"
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "url",
+                                        "type": "url",
+                                        "label": "URL",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "serializeUrl",
+                                        "type": "boolean",
+                                        "label": "Serialize URL",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "method",
+                                        "type": "select",
+                                        "label": "Method",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "get",
+                                                "head",
+                                                "post",
+                                                "put",
+                                                "patch",
+                                                "delete",
+                                                "options"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "headers",
+                                        "spec": [
+                                            {
+                                                "name": "name",
+                                                "type": "text",
+                                                "label": "Name",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "text",
+                                                "label": "Value"
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Headers"
+                                    },
+                                    {
+                                        "name": "qs",
+                                        "spec": [
+                                            {
+                                                "name": "name",
+                                                "type": "text",
+                                                "label": "Name",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "text",
+                                                "label": "Value"
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Query String"
+                                    },
+                                    {
+                                        "name": "bodyType",
+                                        "type": "select",
+                                        "label": "Body type",
+                                        "validate": {
+                                            "enum": [
+                                                "raw",
+                                                "x_www_form_urlencoded",
+                                                "multipart_form_data"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "parseResponse",
+                                        "type": "boolean",
+                                        "label": "Parse response",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "timeout",
+                                        "type": "uinteger",
+                                        "label": "Timeout",
+                                        "validate": {
+                                            "max": 300,
+                                            "min": 1
+                                        }
+                                    },
+                                    {
+                                        "name": "shareCookies",
+                                        "type": "boolean",
+                                        "label": "Share cookies with other HTTP modules",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "ca",
+                                        "type": "cert",
+                                        "label": "Self-signed certificate"
+                                    },
+                                    {
+                                        "name": "rejectUnauthorized",
+                                        "type": "boolean",
+                                        "label": "Reject connections that are using unverified (self-signed) certificates",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "followRedirect",
+                                        "type": "boolean",
+                                        "label": "Follow redirect",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useQuerystring",
+                                        "type": "boolean",
+                                        "label": "Disable serialization of multiple same query string keys as arrays",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "gzip",
+                                        "type": "boolean",
+                                        "label": "Request compressed content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useMtls",
+                                        "type": "boolean",
+                                        "label": "Use Mutual TLS",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "contentType",
+                                        "type": "select",
+                                        "label": "Content type",
+                                        "validate": {
+                                            "enum": [
+                                                "text/plain",
+                                                "application/json",
+                                                "application/xml",
+                                                "text/xml",
+                                                "text/html",
+                                                "custom"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "data",
+                                        "type": "buffer",
+                                        "label": "Request content"
+                                    },
+                                    {
+                                        "name": "followAllRedirects",
+                                        "type": "boolean",
+                                        "label": "Follow all redirect",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": [
+                [
+                    {
+                        "id": 57,
+                        "module": "http:ActionSendDataAPIKeyAuth",
+                        "version": 3,
+                        "parameters": {
+                            "auth": 146147,
+                            "handleErrors": false,
+                            "useNewZLibDeCompress": true
+                        },
+                        "mapper": {
+                            "ca": "",
+                            "qs": [],
+                            "url": "https://raw.githubusercontent.com/Tania6303/GitHubprilingProject/refs/heads/claude/processing-invoice-examples-011CUpWHx3PNZGyhu4GRp2z4/MakeCode/TextStandardization/standardize-text.js",
+                            "data": "",
+                            "gzip": true,
+                            "method": "get",
+                            "headers": [
+                                {
+                                    "name": "Accept",
+                                    "value": "application/vnd.github.v3.raw"
+                                }
+                            ],
+                            "timeout": "",
+                            "useMtls": false,
+                            "bodyType": "raw",
+                            "contentType": "application/json",
+                            "serializeUrl": false,
+                            "shareCookies": false,
+                            "parseResponse": false,
+                            "followRedirect": true,
+                            "useQuerystring": false,
+                            "followAllRedirects": false,
+                            "rejectUnauthorized": true
+                        },
+                        "metadata": {
+                            "designer": {
+                                "x": 0,
+                                "y": 900,
+                                "name": "CodeTextStandardization",
+                                "messages": [
+                                    {
+                                        "category": "link",
+                                        "severity": "warning",
+                                        "message": "The module is not connected to the data flow."
+                                    }
+                                ]
+                            },
+                            "restore": {
+                                "expect": {
+                                    "qs": {
+                                        "mode": "chose"
+                                    },
+                                    "method": {
+                                        "mode": "chose",
+                                        "label": "GET"
+                                    },
+                                    "headers": {
+                                        "mode": "chose",
+                                        "items": [
+                                            null
+                                        ]
+                                    },
+                                    "bodyType": {
+                                        "label": "Raw"
+                                    },
+                                    "contentType": {
+                                        "label": "JSON (application/json)"
+                                    }
+                                },
+                                "parameters": {
+                                    "auth": {
+                                        "label": "prilinq_GitHub"
+                                    }
+                                }
+                            },
+                            "parameters": [
+                                {
+                                    "name": "auth",
+                                    "type": "keychain:apikeyauth",
+                                    "label": "Credentials",
+                                    "required": true
+                                },
+                                {
+                                    "name": "handleErrors",
+                                    "type": "boolean",
+                                    "label": "Evaluate all states as errors (except for 2xx and 3xx )",
+                                    "required": true
+                                },
+                                {
+                                    "name": "useNewZLibDeCompress",
+                                    "type": "hidden"
+                                }
+                            ],
+                            "expect": [
+                                {
+                                    "name": "url",
+                                    "type": "url",
+                                    "label": "URL",
+                                    "required": true
+                                },
+                                {
+                                    "name": "serializeUrl",
+                                    "type": "boolean",
+                                    "label": "Serialize URL",
+                                    "required": true
+                                },
+                                {
+                                    "name": "method",
+                                    "type": "select",
+                                    "label": "Method",
+                                    "required": true,
+                                    "validate": {
+                                        "enum": [
+                                            "get",
+                                            "head",
+                                            "post",
+                                            "put",
+                                            "patch",
+                                            "delete",
+                                            "options"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "headers",
+                                    "spec": [
+                                        {
+                                            "name": "name",
+                                            "type": "text",
+                                            "label": "Name",
+                                            "required": true
+                                        },
+                                        {
+                                            "name": "value",
+                                            "type": "text",
+                                            "label": "Value"
+                                        }
+                                    ],
+                                    "type": "array",
+                                    "label": "Headers"
+                                },
+                                {
+                                    "name": "qs",
+                                    "spec": [
+                                        {
+                                            "name": "name",
+                                            "type": "text",
+                                            "label": "Name",
+                                            "required": true
+                                        },
+                                        {
+                                            "name": "value",
+                                            "type": "text",
+                                            "label": "Value"
+                                        }
+                                    ],
+                                    "type": "array",
+                                    "label": "Query String"
+                                },
+                                {
+                                    "name": "bodyType",
+                                    "type": "select",
+                                    "label": "Body type",
+                                    "validate": {
+                                        "enum": [
+                                            "raw",
+                                            "x_www_form_urlencoded",
+                                            "multipart_form_data"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "parseResponse",
+                                    "type": "boolean",
+                                    "label": "Parse response",
+                                    "required": true
+                                },
+                                {
+                                    "name": "timeout",
+                                    "type": "uinteger",
+                                    "label": "Timeout",
+                                    "validate": {
+                                        "max": 300,
+                                        "min": 1
+                                    }
+                                },
+                                {
+                                    "name": "shareCookies",
+                                    "type": "boolean",
+                                    "label": "Share cookies with other HTTP modules",
+                                    "required": true
+                                },
+                                {
+                                    "name": "ca",
+                                    "type": "cert",
+                                    "label": "Self-signed certificate"
+                                },
+                                {
+                                    "name": "rejectUnauthorized",
+                                    "type": "boolean",
+                                    "label": "Reject connections that are using unverified (self-signed) certificates",
+                                    "required": true
+                                },
+                                {
+                                    "name": "followRedirect",
+                                    "type": "boolean",
+                                    "label": "Follow redirect",
+                                    "required": true
+                                },
+                                {
+                                    "name": "useQuerystring",
+                                    "type": "boolean",
+                                    "label": "Disable serialization of multiple same query string keys as arrays",
+                                    "required": true
+                                },
+                                {
+                                    "name": "gzip",
+                                    "type": "boolean",
+                                    "label": "Request compressed content",
+                                    "required": true
+                                },
+                                {
+                                    "name": "useMtls",
+                                    "type": "boolean",
+                                    "label": "Use Mutual TLS",
+                                    "required": true
+                                },
+                                {
+                                    "name": "contentType",
+                                    "type": "select",
+                                    "label": "Content type",
+                                    "validate": {
+                                        "enum": [
+                                            "text/plain",
+                                            "application/json",
+                                            "application/xml",
+                                            "text/xml",
+                                            "text/html",
+                                            "custom"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "data",
+                                    "type": "buffer",
+                                    "label": "Request content"
+                                },
+                                {
+                                    "name": "followAllRedirects",
+                                    "type": "boolean",
+                                    "label": "Follow all redirect",
+                                    "required": true
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": 58,
+                        "module": "code:ExecuteCode",
+                        "version": 0,
+                        "parameters": {},
+                        "mapper": {
+                            "input": [
+                                {
+                                    "name": "AZURE_TEXT",
+                                    "value": "1"
+                                }
+                            ],
+                            "language": "javascript",
+                            "inputFormat": "string",
+                            "dependencies": [],
+                            "codeStringJavascript": "{{57.data}}"
+                        },
+                        "metadata": {
+                            "designer": {
+                                "x": 300,
+                                "y": 900,
+                                "name": "TextStandardization"
+                            },
+                            "restore": {
+                                "expect": {
+                                    "input": {
+                                        "items": [
+                                            null
+                                        ]
+                                    },
+                                    "language": {
+                                        "mode": "chose",
+                                        "label": "JavaScript"
+                                    },
+                                    "inputFormat": {
+                                        "label": "Mapped code (useful for AI)"
+                                    }
+                                }
+                            },
+                            "expect": [
+                                {
+                                    "name": "language",
+                                    "type": "select",
+                                    "label": "Language",
+                                    "required": true,
+                                    "validate": {
+                                        "enum": [
+                                            "javascript",
+                                            "python"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "input",
+                                    "spec": {
+                                        "name": "value",
+                                        "spec": [
+                                            {
+                                                "name": "name",
+                                                "type": "text",
+                                                "label": "Name",
+                                                "required": true,
+                                                "validate": {
+                                                    "max": 32,
+                                                    "min": 1,
+                                                    "pattern": "^[a-zA-Z0-9_]{1,32}$"
+                                                }
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "any",
+                                                "label": "Value",
+                                                "required": true
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "Variable"
+                                    },
+                                    "type": "array",
+                                    "label": "Input"
+                                },
+                                {
+                                    "name": "dependencies",
+                                    "spec": {
+                                        "name": "value",
+                                        "type": "text",
+                                        "label": "Dependency",
+                                        "required": true,
+                                        "validate": {
+                                            "max": 214,
+                                            "min": 1,
+                                            "pattern": "^[A-Za-z0-9_@\\./<>\\=\\!~\\^+\\-]{1,214}$"
+                                        }
+                                    },
+                                    "type": "array",
+                                    "label": "Additional dependencies (Enterprise plans only)"
+                                },
+                                {
+                                    "name": "inputFormat",
+                                    "type": "select",
+                                    "label": "Input format",
+                                    "required": true,
+                                    "validate": {
+                                        "enum": [
+                                            "editor",
+                                            "string"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "codeStringJavascript",
+                                    "type": "text",
+                                    "label": "Code",
+                                    "required": true
+                                }
+                            ]
+                        }
+                    }
+                ]
+            ]
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    },
+    "io": {
+        "input_spec": [
+            {
+                "help": "",
+                "name": "ALL",
+                "spec": {
+                    "type": "text",
+                    "default": "",
+                    "required": false,
+                    "multiline": false
+                },
+                "type": "array",
+                "label": "",
+                "required": false
+            },
+            {
+                "help": "",
+                "name": "URL_GIT",
+                "type": "text",
+                "label": "",
+                "default": "https://raw.githubusercontent.com/Tania6303/GitHubprilingProject/refs/heads/main/MakeCode/Processing%20Invoice/v4.2-COMPLETE.js",
+                "required": false,
+                "multiline": false
+            },
+            {
+                "help": "",
+                "name": "branch",
+                "type": "text",
+                "label": "",
+                "default": "main",
+                "required": false,
+                "multiline": false
+            }
+        ],
+        "output_spec": [
+            {
+                "help": "",
+                "name": "LEARN_RESULTS",
+                "type": "dynamicCollection",
+                "label": "",
+                "default": "",
+                "required": false
+            },
+            {
+                "help": "",
+                "name": "SUPNAME",
+                "type": "text",
+                "label": "",
+                "default": "",
+                "required": false,
+                "multiline": false
+            },
+            {
+                "help": "",
+                "name": "SUPPLIER_ID",
+                "type": "text",
+                "label": "",
+                "default": "",
+                "required": false,
+                "multiline": false
+            }
+        ]
+    }
+}
