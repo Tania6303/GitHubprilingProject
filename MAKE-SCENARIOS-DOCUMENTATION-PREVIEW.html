@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תיעוד תהליכי MAKE - פרויקט ניהול חשבוניות</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .version {
+            background: rgba(255,255,255,0.2);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 20px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 60px;
+        }
+
+        h2 {
+            color: #FF6B6B;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #FF6B6B;
+        }
+
+        h3 {
+            color: #4ECDC4;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #2c3e50;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        .scenario-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            border-right: 5px solid #FF6B6B;
+        }
+
+        .scenario-number {
+            display: inline-block;
+            background: #FF6B6B;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 50px;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .step-box {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-right: 4px solid #4ECDC4;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #4ECDC4;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .sub-scenario {
+            background: #fff3cd;
+            border-right: 4px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0 10px 20px;
+        }
+
+        .sub-scenario-title {
+            color: #856404;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: right;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f5f7fa;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border-right: 4px solid #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .warning-box {
+            background: #f8d7da;
+            border-right: 4px solid #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-right: 4px solid #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .flow-diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            overflow-x: auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        pre {
+            direction: ltr;
+            text-align: left;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        ul, ol {
+            margin: 10px 0 10px 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .preview-notice {
+            background: linear-gradient(135deg, #FFD93D 0%, #F7B731 100%);
+            color: #333;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 8px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 תיעוד תהליכי MAKE</h1>
+            <p>מערכת אוטומציה לניהול חשבוניות ספקים</p>
+            <div class="version">גרסת תצוגה מקדימה | נובמבר 2025</div>
+        </header>
+
+        <div class="preview-notice">
+            ⚠️ זהו מסמך תצוגה מקדימה לאישור - תהליך S1 בלבד ⚠️
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="#overview">סקירה כללית</a></li>
+                <li><a href="#s1">S1 - למידת ספקים</a></li>
+                <li><a href="#architecture">ארכיטקטורה</a></li>
+                <li><a href="#data-flow">זרימת נתונים</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <!-- Overview Section -->
+            <section id="overview">
+                <h2>📋 סקירה כללית</h2>
+
+                <div class="info-box">
+                    <h4>מטרת המערכת</h4>
+                    <p>מערכת תהליכי MAKE מנהלת את מחזור החיים המלא של חשבוניות ספקים - מאיסוף נתונים ראשוני מ-Priority, דרך למידה ועיבוד, ועד ליצירת חשבוניות סופיות מאושרות.</p>
+                </div>
+
+                <h3>שלושת התהליכים העיקריים</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>תהליך</th>
+                            <th>שם קובץ</th>
+                            <th>מטרה</th>
+                            <th>תהליכים משניים</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="highlight">S1</span></td>
+                            <td>S1-PriLernSup.blueprint.json</td>
+                            <td>למידת נתוני ספקים מ-Priority</td>
+                            <td>6 תהליכים</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight">S2</span></td>
+                            <td>S2-SUP_LERN_CODE.blueprint.json</td>
+                            <td>עיבוד ודירוג קודי ספקים</td>
+                            <td>3 תהליכים</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight">P0+P1</span></td>
+                            <td>P0-AZURE + P1-PriProductionInvoice</td>
+                            <td>יצירת חשבוניות סופיות</td>
+                            <td>4 תהליכים</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="flow-diagram">
+                    <h4>זרימה כללית של המערכת</h4>
+                    <pre>
+┌────────────────────────────────────────┐
+│      Priority System (מקור נתונים)      │
+│           PINVOICES Form               │
+└───────────────┬────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────────┐
+│  S1 - Supplier Data Learning          │
+│  ├─ קריאת חשבוניות מ-Priority         │
+│  ├─ חילוץ נתוני משנה (subforms)       │
+│  └─ קריאה ל-6 תהליכים משניים           │
+└───────────────┬────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────────┐
+│  S2 - Processing Invoice              │
+│  ├─ עיבוד קודים                       │
+│  ├─ דירוג ספקים                       │
+│  └─ טיהור נתונים                      │
+└───────────────┬────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────────┐
+│  P0 + P1 - Production Invoice         │
+│  ├─ חיפוש PDF בגוגל דרייב             │
+│  ├─ עיבוד Azure                       │
+│  ├─ יצירת מסמכים ב-Priority           │
+│  └─ שליחה למערכות חיצוניות            │
+└────────────────────────────────────────┘
+                    </pre>
+                </div>
+            </section>
+
+            <!-- S1 Section -->
+            <section id="s1">
+                <h2>🎯 S1 - Supplier Data Learning (למידת נתוני ספקים)</h2>
+
+                <div class="scenario-card">
+                    <span class="scenario-number">S1</span>
+                    <h3 style="display: inline; margin-right: 15px;">PriLernSup - תהליך למידת ספקים</h3>
+
+                    <div class="info-box" style="margin-top: 20px;">
+                        <h4>📌 מטרת התהליך</h4>
+                        <p><strong>איסוף מלא של נתוני ספקים וחשבוניותיהם ממערכת Priority</strong></p>
+                        <p>תהליך זה הוא נקודת הכניסה המרכזית למערכת - הוא מחלץ את כל המידע הדרוש על ספק מסוים, כולל היסטוריית חשבוניות, פריטים, תעודות קבלה, וקבצים מצורפים.</p>
+                    </div>
+
+                    <h3>📥 קלטים (Input)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>שם משתנה</th>
+                                <th>תיאור</th>
+                                <th>חובה/אופציונלי</th>
+                                <th>ברירת מחדל</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>SUPNAME</code></td>
+                                <td>מספר/שם ספק</td>
+                                <td>חובה</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>LIMIT</code></td>
+                                <td>מספר מקסימלי של חשבוניות</td>
+                                <td>אופציונלי</td>
+                                <td>כל החשבוניות</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>📤 פלטים (Output)</h3>
+                    <ul>
+                        <li>רשימה מלאה של חשבוניות הספק</li>
+                        <li>פרטי חשבוניות (PINVOICESCONT_SUBFORM)</li>
+                        <li>תעודות קבלה מקושרות (PIVDOC_SUBFORM)</li>
+                        <li>פריטי חשבונית (PINVOICEITEMS_SUBFORM)</li>
+                        <li>קבצי PDF מצורפים (EXTFILES_SUBFORM)</li>
+                        <li>הערות פנימיות (INTERNALDIALOGTEXT_SUBFORM)</li>
+                        <li>קודים מעובדים ודירוגי ספק</li>
+                    </ul>
+
+                    <h3>🔄 שלבי התהליך</h3>
+
+                    <div class="step-box">
+                        <span class="step-number">1</span>
+                        <h4 style="display: inline; margin-right: 10px;">קריאת נתונים מ-Priority</h4>
+                        <p><strong>מודול:</strong> <code>app#leonai-priority:getItemsForms</code></p>
+                        <p><strong>תיאור:</strong> שליפת חשבוניות מטופס PINVOICES לפי שם ספק</p>
+                        <ul>
+                            <li>סינון לפי: <code>SUPNAME = {{var.input.SUPNAME}}</code></li>
+                            <li>מיון לפי: תאריך חשבונית (IVDATE) - יורד</li>
+                            <li>הגבלה: עד {{var.input.LIMIT}} רשומות</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-box">
+                        <span class="step-number">2</span>
+                        <h4 style="display: inline; margin-right: 10px;">הרחבת נתוני משנה (Subforms)</h4>
+                        <p><strong>תיאור:</strong> לכל חשבונית, מחלץ 5 טבלאות משניות</p>
+
+                        <table style="margin-top: 10px;">
+                            <thead>
+                                <tr>
+                                    <th>Subform</th>
+                                    <th>מה זה</th>
+                                    <th>שדות מרכזיים</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>PINVOICESCONT_SUBFORM</code></td>
+                                    <td>פרטים נוספים על החשבונית</td>
+                                    <td>פרטי תשלום, תנאים, הנחות</td>
+                                </tr>
+                                <tr>
+                                    <td><code>PIVDOC_SUBFORM</code></td>
+                                    <td>תעודות קבלה (GRN)</td>
+                                    <td>מספר תעודה, תאריך, כמות</td>
+                                </tr>
+                                <tr>
+                                    <td><code>PINVOICEITEMS_SUBFORM</code></td>
+                                    <td>שורות החשבונית</td>
+                                    <td>פריט, כמות, מחיר, סה"כ</td>
+                                </tr>
+                                <tr>
+                                    <td><code>EXTFILES_SUBFORM</code></td>
+                                    <td>קבצים מצורפים (PDF בלבד)</td>
+                                    <td>שם קובץ, נתיב, תיאור</td>
+                                </tr>
+                                <tr>
+                                    <td><code>INTERNALDIALOGTEXT_SUBFORM</code></td>
+                                    <td>הערות פנימיות</td>
+                                    <td>טקסט הערה, משתמש, תאריך</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="step-box">
+                        <span class="step-number">3</span>
+                        <h4 style="display: inline; margin-right: 10px;">איגום נתונים ל-JSON</h4>
+                        <p><strong>מודול:</strong> <code>json:AggregateToJSON</code></p>
+                        <p><strong>תיאור:</strong> המרת כל הנתונים למבנה JSON מאוחד</p>
+                        <p>משתנים מרכזיים שנאספים:</p>
+                        <ul style="columns: 2;">
+                            <li>IVNUM - מספר חשבונית</li>
+                            <li>SUPNAME - שם ספק</li>
+                            <li>IVDATE - תאריך</li>
+                            <li>TOTPRICE - סכום</li>
+                            <li>VAT - מע"ם</li>
+                            <li>STATDES - סטטוס</li>
+                            <li>FNCNUM - מספר פנימי</li>
+                            <li>DOCNO - מספר מסמך</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-box">
+                        <span class="step-number">4</span>
+                        <h4 style="display: inline; margin-right: 10px;">שליחה לעיבוד חיצוני</h4>
+                        <p><strong>מודול:</strong> <code>http:ActionSendDataAPIKeyAuth</code></p>
+                        <p><strong>תיאור:</strong> שליחת הנתונים ל-API חיצוני לעיבוד נוסף</p>
+                        <p>הנתונים נשלחים למערכת קוד (המתועדת ב-COMPLETE-SYSTEM-DOCUMENTATION.html) לעיבוד והחזרת מידע מנותח.</p>
+                    </div>
+
+                    <div class="step-box">
+                        <span class="step-number">5</span>
+                        <h4 style="display: inline; margin-right: 10px;">קריאה לתהליכים משניים (SubScenarios)</h4>
+                        <p><strong>מודול:</strong> <code>scenario-service:CallSubscenario</code></p>
+                        <p><strong>תיאור:</strong> הפעלת 6 תהליכים משניים לבדיקות ועיבודים נוספים</p>
+
+                        <div class="sub-scenario">
+                            <div class="sub-scenario-title">🔹 SCN_7803653 - בדיקות ראשוניות</div>
+                            <p>בדיקת תקינות נתונים, וולידציה בסיסית של שדות חובה</p>
+                        </div>
+
+                        <div class="sub-scenario">
+                            <div class="sub-scenario-title">🔹 SCN_7775130 - בדיקות תאימות</div>
+                            <p>בדיקת התאמה בין חשבוניות לתעודות קבלה, בדיקת כפילויות</p>
+                        </div>
+
+                        <div class="sub-scenario">
+                            <div class="sub-scenario-title">🔹 SCN_7831155 - בדיקות בטיחות עסקית</div>
+                            <p>בדיקת מגבלות, אישורים, ותקרות לפי מדיניות החברה</p>
+                        </div>
+
+                        <div class="sub-scenario">
+                            <div class="sub-scenario-title">🔹 SCN_7860051 - קריאה ל-S2 (SUP_LERN_CODE)</div>
+                            <p><strong>⭐ תהליך מרכזי:</strong> מעביר את הנתונים ל-S2 לעיבוד קודים ודירוגים</p>
+                            <p>זהו הגשר בין S1 ל-S2!</p>
+                        </div>
+
+                        <div class="sub-scenario">
+                            <div class="sub-scenario-title">🔹 SCN_7779086 - סינון וניקוי נתונים</div>
+                            <p>הסרת רשומות לא תקינות, תיקון פורמטים, ניקוי טקסטים</p>
+                        </div>
+
+                        <div class="sub-scenario">
+                            <div class="sub-scenario-title">🔹 SCN_7877436 - עיבוד נוסף</div>
+                            <p>שלב עיבוד אחרון לפני פלט סופי</p>
+                        </div>
+                    </div>
+
+                    <div class="step-box">
+                        <span class="step-number">6</span>
+                        <h4 style="display: inline; margin-right: 10px;">אחסון ושיתוף תוצאות</h4>
+                        <p><strong>מודולים:</strong></p>
+                        <ul>
+                            <li><code>google-drive:uploadAFile</code> - העלאה לגוגל דרייב</li>
+                            <li><code>http:ActionSendData</code> - שליחה למערכות נוספות</li>
+                        </ul>
+                        <p>התוצאות הסופיות נשמרות בגוגל דרייב ונשלחות למערכות המשך (P0/P1).</p>
+                    </div>
+
+                    <h3>🔗 קשרים עם תהליכים אחרים</h3>
+
+                    <div class="success-box">
+                        <h4>⬅️ קלטים מ:</h4>
+                        <ul>
+                            <li><strong>Priority System</strong> - מקור נתונים עיקרי</li>
+                            <li><strong>Google Drive</strong> - קבצי PDF מצורפים</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-box">
+                        <h4>➡️ פלטים אל:</h4>
+                        <ul>
+                            <li><strong>S2-SUP_LERN_CODE</strong> (דרך SCN_7860051) - לעיבוד קודים</li>
+                            <li><strong>Google Drive</strong> - שמירת נתונים מעובדים</li>
+                            <li><strong>מערכות API חיצוניות</strong> - סינכרון נתונים</li>
+                        </ul>
+                    </div>
+
+                    <h3>📊 סטטיסטיקות</h3>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><strong>גודל קובץ Blueprint</strong></td>
+                                <td>647 KB (8,676 שורות JSON)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>מספר מודולים</strong></td>
+                                <td>~50 מודולים</td>
+                            </tr>
+                            <tr>
+                                <td><strong>תהליכים משניים</strong></td>
+                                <td>6 SubScenarios</td>
+                            </tr>
+                            <tr>
+                                <td><strong>זמן ריצה משוער</strong></td>
+                                <td>2-5 דקות (תלוי במספר חשבוניות)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Architecture Section -->
+            <section id="architecture">
+                <h2>🏗️ ארכיטקטורה של המערכת</h2>
+
+                <div class="flow-diagram">
+                    <h4>מפת התהליכים המלאה</h4>
+                    <pre>
+┌─────────────────────────────────────────┐
+│         Priority System (מקור)          │
+│         PINVOICES Form                  │
+└────────────────┬────────────────────────┘
+                 │
+    ┌────────────▼────────────┐
+    │                         │
+    │  S1-PriLernSup          │  ◄── מה שתיעדנו עכשיו
+    │  (Supplier Learning)    │
+    │  - איסוף נתונים         │
+    │  - 5 subforms           │
+    │  - 6 בדיקות             │
+    │                         │
+    └────────────┬────────────┘
+         ┌───────┘
+         │
+         ├──→ SCN_7803653 (בדיקות ראשוניות)
+         ├──→ SCN_7775130 (תאימות)
+         ├──→ SCN_7831155 (בטיחות)
+         │
+         ├──→ SCN_7860051 ──→ S2-SUP_LERN_CODE  ◄── הבא בתור
+         │                    (Processing)
+         │                    - עיבוד קודים
+         │                    - דירוגים
+         │
+         ├──→ SCN_7779086 (סינון)
+         └──→ SCN_7877436 (עיבוד נוסף)
+         │
+         ├──→ Google Drive (שמירה)
+         │
+         └──→ P0-AZURE_Production_Invoice  ◄── יתועד בהמשך
+              (חשבוניות מ-Azure)
+              │
+              └──→ P1-PriProductionInvoice  ◄── יתועד בהמשך
+                   (חשבוניות סופיות)
+                    </pre>
+                </div>
+            </section>
+
+            <!-- Data Flow Section -->
+            <section id="data-flow">
+                <h2>📊 זרימת נתונים - S1</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>שלב</th>
+                            <th>מקור</th>
+                            <th>יעד</th>
+                            <th>פורמט</th>
+                            <th>נפח משוער</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Input משתמש</td>
+                            <td>Priority Query</td>
+                            <td>Parameters</td>
+                            <td>2 שדות</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Priority PINVOICES</td>
+                            <td>S1 Memory</td>
+                            <td>SQL Result</td>
+                            <td>10-100 חשבוניות</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Priority Subforms</td>
+                            <td>S1 Memory</td>
+                            <td>5 טבלאות משניות</td>
+                            <td>500-5000 שורות</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>S1 Aggregation</td>
+                            <td>JSON Object</td>
+                            <td>JSON</td>
+                            <td>50-500 KB</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>S1 JSON</td>
+                            <td>6 SubScenarios</td>
+                            <td>JSON</td>
+                            <td>6 העתקות</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>S1 + SubScenarios</td>
+                            <td>S2-SUP_LERN_CODE</td>
+                            <td>JSON</td>
+                            <td>100-1000 KB</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>S1 Final Output</td>
+                            <td>Google Drive</td>
+                            <td>Files (CSV/JSON)</td>
+                            <td>1-10 MB</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Next Steps -->
+            <section id="next-steps">
+                <h2>⏭️ הצעדים הבאים</h2>
+
+                <div class="warning-box">
+                    <h4>🔍 האם התיעוד נכון?</h4>
+                    <p>זהו מסמך תצוגה מקדימה לבדיקה. אנא בדקי:</p>
+                    <ul>
+                        <li>✅ האם רמת הפירוט מתאימה?</li>
+                        <li>✅ האם המבנה ברור ונוח לקריאה?</li>
+                        <li>✅ האם התיאורים מדויקים?</li>
+                        <li>✅ האם חסר משהו חשוב?</li>
+                    </ul>
+                </div>
+
+                <div class="info-box">
+                    <h4>📝 לאחר אישור, אמשיך לתייעד:</h4>
+                    <ol>
+                        <li><strong>S2 - Processing Invoice (SUP_LERN_CODE)</strong>
+                            <ul>
+                                <li>תהליך עיבוד קודים</li>
+                                <li>דירוג ספקים</li>
+                                <li>3 תהליכים משניים</li>
+                            </ul>
+                        </li>
+                        <li><strong>P0 - AZURE Production Invoice</strong>
+                            <ul>
+                                <li>חיפוש קבצים בגוגל דרייב</li>
+                                <li>עיבוד חשבוניות מ-Azure</li>
+                                <li>2 תהליכים משניים</li>
+                            </ul>
+                        </li>
+                        <li><strong>P1 - Pri Production Invoice</strong>
+                            <ul>
+                                <li>יצירת חשבוניות סופיות</li>
+                                <li>Webhook handling</li>
+                                <li>שליחה למערכות חיצוניות</li>
+                            </ul>
+                        </li>
+                        <li><strong>מסמך סיכום כולל</strong>
+                            <ul>
+                                <li>מפת קשרים מלאה</li>
+                                <li>זרימת נתונים אינטגרטיבית</li>
+                                <li>FAQ ופתרון בעיות</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+        </div>
+
+        <footer style="background: #2c3e50; color: white; padding: 20px; text-align: center;">
+            <p>תיעוד נוצר על ידי Claude | נובמבר 2025</p>
+            <p>נתיב קבצים: <code>/home/user/GitHubprilingProject/MakeCode/scenario_make</code></p>
+        </footer>
+    </div>
+
+    <script>
+        // Add any interactive features if needed
+        console.log('MAKE Scenarios Documentation Preview Loaded');
+    </script>
+</body>
+</html>
