@@ -1,0 +1,1061 @@
+{
+    "name": "IMPFILES(PALYAM)",
+    "flow": [
+        {
+            "id": 6,
+            "module": "json:ParseJSON",
+            "version": 1,
+            "parameters": {
+                "type": 476505
+            },
+            "mapper": {
+                "json": "{{var.input.LIST_IMPFNUM}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "type": {
+                            "label": "My data structure"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "type",
+                        "type": "udt",
+                        "label": "Data structure"
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "json",
+                        "type": "text",
+                        "label": "JSON string",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "help": "",
+                        "name": "sample_ivnum",
+                        "type": "text",
+                        "label": "Sample ivnum",
+                        "default": null,
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "sample_booknum",
+                        "type": "text",
+                        "label": "Sample booknum",
+                        "default": null,
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "sample_impfnum",
+                        "type": "text",
+                        "label": "Sample impfnum",
+                        "default": null,
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "sample_supname",
+                        "type": "text",
+                        "label": "Sample supname",
+                        "default": null,
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "__IMTINDEX__",
+                        "type": "number",
+                        "label": "  imtindex  ",
+                        "default": null,
+                        "required": false
+                    },
+                    {
+                        "help": "",
+                        "name": "__IMTLENGTH__",
+                        "type": "number",
+                        "label": "  imtlength  ",
+                        "default": null,
+                        "required": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 7,
+            "module": "util:SetVariables",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "scope": "roundtrip",
+                "variables": [
+                    {
+                        "name": "IMPFNUM",
+                        "value": "{{6.sample_impfnum}}"
+                    }
+                ]
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "scope": {
+                            "label": "One cycle"
+                        },
+                        "variables": {
+                            "items": [
+                                null
+                            ]
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "variables",
+                        "spec": [
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "label": "Variable name",
+                                "required": true
+                            },
+                            {
+                                "name": "value",
+                                "type": "any",
+                                "label": "Variable value"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Variables"
+                    },
+                    {
+                        "name": "scope",
+                        "type": "select",
+                        "label": "Variable lifetime",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "roundtrip",
+                                "execution"
+                            ]
+                        }
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "IMPFNUM",
+                        "type": "any",
+                        "label": "IMPFNUM"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 5,
+            "module": "app#leonai-priority:getItemsForms",
+            "version": 1,
+            "parameters": {
+                "__IMTCONN__": 12563223
+            },
+            "filter": {
+                "name": "",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{7.IMPFNUM}}",
+                            "o": "exist"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "form": "IMPFILES",
+                "sort": "desc",
+                "limit": "50",
+                "column": [
+                    [
+                        {
+                            "a": "IMPFNUM::text",
+                            "b": "{{7.IMPFNUM}}",
+                            "o": "eq"
+                        }
+                    ]
+                ],
+                "orderby": "CURDATE"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "form": {
+                            "mode": "chose",
+                            "label": "תיקי יבוא"
+                        },
+                        "sort": {
+                            "mode": "chose",
+                            "label": "Descending"
+                        },
+                        "orderby": {
+                            "mode": "chose",
+                            "label": "ת. פתיחה"
+                        },
+                        "selection": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "app#leonai-priority3"
+                            },
+                            "label": "palyam (a011204, tabula.ini)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:app#leonai-priority3",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "limit",
+                        "type": "number",
+                        "label": "Limit",
+                        "required": true
+                    },
+                    {
+                        "name": "skip",
+                        "type": "number",
+                        "label": "Skip"
+                    },
+                    {
+                        "name": "form",
+                        "type": "select",
+                        "label": "Form",
+                        "required": true
+                    },
+                    {
+                        "name": "hevra",
+                        "type": "text",
+                        "label": "Company \\ Environment"
+                    },
+                    {
+                        "name": "column",
+                        "type": "filter",
+                        "label": "Filters",
+                        "options": {
+                            "store": [
+                                {
+                                    "label": "ת. פתיחה",
+                                    "value": "CURDATE::date"
+                                },
+                                {
+                                    "label": "תיק יבוא",
+                                    "value": "IMPFNUM::text"
+                                },
+                                {
+                                    "label": "תאריך הצהרה",
+                                    "value": "CUSTOMSDATE::date"
+                                },
+                                {
+                                    "label": "הצהרת יבוא",
+                                    "value": "CUSTOMSNUM::text"
+                                },
+                                {
+                                    "label": "סטטוס",
+                                    "value": "STATDES::text"
+                                },
+                                {
+                                    "label": "לטיפול",
+                                    "value": "OWNERLOGIN::text"
+                                },
+                                {
+                                    "label": "הזמנה",
+                                    "value": "ORDNAME::text"
+                                },
+                                {
+                                    "label": "סניף",
+                                    "value": "BRANCHNAME::text"
+                                },
+                                {
+                                    "label": "תאור הסניף",
+                                    "value": "BRANCHDES::text"
+                                },
+                                {
+                                    "label": "מס' ספק",
+                                    "value": "SUPNAME::text"
+                                },
+                                {
+                                    "label": "שם ספק",
+                                    "value": "SUPDES::text"
+                                },
+                                {
+                                    "label": "מטבע תיק היבוא",
+                                    "value": "CODE::text"
+                                },
+                                {
+                                    "label": "תנאי יבוא",
+                                    "value": "IMPTERMNAME::text"
+                                },
+                                {
+                                    "label": "סגור",
+                                    "value": "CLOSED::text"
+                                },
+                                {
+                                    "label": "איש קשר ליבוא",
+                                    "value": "IMPORTERNAME::text"
+                                },
+                                {
+                                    "label": "איש קשר לשילוח",
+                                    "value": "SHIPCONTNAME::text"
+                                },
+                                {
+                                    "label": "חברת הובלה/תע/ספ",
+                                    "value": "SHIPPERNAME::text"
+                                },
+                                {
+                                    "label": "שם ח. הובלה/תע/ספ",
+                                    "value": "SHIPPERDES::text"
+                                },
+                                {
+                                    "label": "מספר טיסה/אוניה",
+                                    "value": "LORRYNUM::text"
+                                },
+                                {
+                                    "label": "קוד משלוח",
+                                    "value": "STCODE::text"
+                                },
+                                {
+                                    "label": "תאור משלוח",
+                                    "value": "STDES::text"
+                                },
+                                {
+                                    "label": "מס. שטר מטען",
+                                    "value": "LOADDOCNUM::text"
+                                },
+                                {
+                                    "label": "ת. שטר מטען",
+                                    "value": "LOADDOCDATE::date"
+                                },
+                                {
+                                    "label": "נמל מוצא",
+                                    "value": "PORTNAME::text"
+                                },
+                                {
+                                    "label": "שם נמל מוצא",
+                                    "value": "PORTDES::text"
+                                },
+                                {
+                                    "label": "נמל יעד",
+                                    "value": "TOPORTNAME::text"
+                                },
+                                {
+                                    "label": "שם נמל יעד",
+                                    "value": "TOPORTDES::text"
+                                },
+                                {
+                                    "label": "ת. יציאה",
+                                    "value": "EXITDATE::date"
+                                },
+                                {
+                                    "label": "ת. הגעה",
+                                    "value": "ENTRYDATE::date"
+                                },
+                                {
+                                    "label": "פרטים",
+                                    "value": "DETAILS::text"
+                                },
+                                {
+                                    "label": "אסמכתא",
+                                    "value": "REFERENCE::text"
+                                },
+                                {
+                                    "label": "חברת שילוח עמילות",
+                                    "value": "SUPNAME2::text"
+                                },
+                                {
+                                    "label": "שם חברת שילוח",
+                                    "value": "SUPDES2::text"
+                                },
+                                {
+                                    "label": "מחסן ערובה",
+                                    "value": "WARHSNAME::text"
+                                },
+                                {
+                                    "label": "איתור",
+                                    "value": "LOCNAME::text"
+                                },
+                                {
+                                    "label": "גוש",
+                                    "value": "BLOCK::text"
+                                },
+                                {
+                                    "label": "מספר מכולות",
+                                    "value": "NUMOFCONTAINERS::number"
+                                },
+                                {
+                                    "label": "נפח כולל",
+                                    "value": "TOTVOLUME::number"
+                                },
+                                {
+                                    "label": "יח' נפח",
+                                    "value": "VUNITNAME::text"
+                                },
+                                {
+                                    "label": "חתימה",
+                                    "value": "USERLOGIN::text"
+                                },
+                                {
+                                    "label": "ת. חתימה",
+                                    "value": "UDATE::date"
+                                },
+                                {
+                                    "label": "קוד תנאי תשלום",
+                                    "value": "Y_1804_5_ESHB::text"
+                                },
+                                {
+                                    "label": "תנאי יבוא (מס' ספק)",
+                                    "value": "Y_10486_5_ESHB::text"
+                                },
+                                {
+                                    "label": "קוד תנאי תשלום (הזמנ",
+                                    "value": "Y_1804_6_ESHB::text"
+                                },
+                                {
+                                    "label": "תנאי תשלום",
+                                    "value": "PAYDES::text"
+                                },
+                                {
+                                    "label": "שם קובץ לסריקה",
+                                    "value": "SCAN_ATTACHFN::text"
+                                },
+                                {
+                                    "label": "תאריך הפלגה",
+                                    "value": "SOF_CRUISEDATE::date"
+                                },
+                                {
+                                    "label": "תאריך תשלום מקדמה",
+                                    "value": "SOF_DEPOSITDATE::date"
+                                },
+                                {
+                                    "label": "מקדמה שולמה ?",
+                                    "value": "SOF_DEPOSIT::text"
+                                },
+                                {
+                                    "label": "מקדמה הועברה לתשלום?",
+                                    "value": "SOF_DEPOSIT_B::text"
+                                },
+                                {
+                                    "label": "תאריך תשלום יתרה",
+                                    "value": "SOF_PAYDATE::date"
+                                },
+                                {
+                                    "label": "יתרה שולמה ?",
+                                    "value": "SOF_PAID::text"
+                                },
+                                {
+                                    "label": "יתרה הועברה לתשלום ?",
+                                    "value": "SOF_PAID_B::text"
+                                },
+                                {
+                                    "label": "מספר תיק (ID)",
+                                    "value": "IMPFILE::number"
+                                }
+                            ],
+                            "operators": [
+                                {
+                                    "label": "Basic operators",
+                                    "options": [
+                                        {
+                                            "label": "Exists",
+                                            "value": "exist"
+                                        },
+                                        {
+                                            "label": "Does not exist",
+                                            "value": "notexist"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Text operators",
+                                    "options": [
+                                        {
+                                            "label": "Equal to",
+                                            "value": "eq"
+                                        },
+                                        {
+                                            "label": "Not equal to",
+                                            "value": "ne"
+                                        },
+                                        {
+                                            "label": "Contains",
+                                            "value": "contains"
+                                        },
+                                        {
+                                            "label": "Does not Contain",
+                                            "value": "notcontains"
+                                        },
+                                        {
+                                            "label": "Start with",
+                                            "value": "startwith"
+                                        },
+                                        {
+                                            "label": "Does not start with",
+                                            "value": "notstartwith"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Numbers operators",
+                                    "options": [
+                                        {
+                                            "label": "Equal to",
+                                            "value": "eq"
+                                        },
+                                        {
+                                            "label": "Not equal to",
+                                            "value": "ne"
+                                        },
+                                        {
+                                            "label": "Greater than",
+                                            "value": "gt"
+                                        },
+                                        {
+                                            "label": "Less than",
+                                            "value": "lt"
+                                        },
+                                        {
+                                            "label": "Greater than or equal to",
+                                            "value": "ge"
+                                        },
+                                        {
+                                            "label": "Less than or equal to",
+                                            "value": "le"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Datetime operators",
+                                    "options": [
+                                        {
+                                            "label": "Equal to",
+                                            "value": "eq"
+                                        },
+                                        {
+                                            "label": "Not equal to",
+                                            "value": "ne"
+                                        },
+                                        {
+                                            "label": "Greater than",
+                                            "value": "gt"
+                                        },
+                                        {
+                                            "label": "Less than",
+                                            "value": "lt"
+                                        },
+                                        {
+                                            "label": "Greater than or equal to",
+                                            "value": "ge"
+                                        },
+                                        {
+                                            "label": "Less than or equal to",
+                                            "value": "le"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "orderby",
+                        "type": "select",
+                        "label": "Order by"
+                    },
+                    {
+                        "name": "since",
+                        "type": "text",
+                        "label": "Modified Since"
+                    },
+                    {
+                        "name": "selection",
+                        "type": "select",
+                        "label": "Get specified field\\s",
+                        "multiple": true
+                    },
+                    {
+                        "name": "subforms",
+                        "spec": [
+                            {
+                                "name": "table",
+                                "type": "select",
+                                "label": "Sub-Form",
+                                "dynamic": true,
+                                "options": {
+                                    "store": []
+                                },
+                                "required": true
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Sub-Forms Expend"
+                    },
+                    {
+                        "name": "sort",
+                        "type": "select",
+                        "label": "Sort order",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "__IMTLENGTH__",
+                        "type": "uinteger",
+                        "label": "Total number of bundles"
+                    },
+                    {
+                        "name": "__IMTINDEX__",
+                        "type": "uinteger",
+                        "label": "Bundle order position"
+                    },
+                    {
+                        "name": "CURDATE",
+                        "type": "date",
+                        "label": "‫ת. פתיחה‬"
+                    },
+                    {
+                        "name": "IMPFNUM",
+                        "type": "text",
+                        "label": "‫תיק יבוא‬"
+                    },
+                    {
+                        "name": "CUSTOMSDATE",
+                        "type": "date",
+                        "label": "‫תאריך הצהרה‬"
+                    },
+                    {
+                        "name": "CUSTOMSNUM",
+                        "type": "text",
+                        "label": "‫הצהרת יבוא‬"
+                    },
+                    {
+                        "name": "STATDES",
+                        "type": "text",
+                        "label": "‫סטטוס‬"
+                    },
+                    {
+                        "name": "OWNERLOGIN",
+                        "type": "text",
+                        "label": "‫לטיפול‬"
+                    },
+                    {
+                        "name": "ORDNAME",
+                        "type": "text",
+                        "label": "‫הזמנה‬"
+                    },
+                    {
+                        "name": "BRANCHNAME",
+                        "type": "text",
+                        "label": "‫סניף‬"
+                    },
+                    {
+                        "name": "BRANCHDES",
+                        "type": "text",
+                        "label": "‫תאור הסניף‬"
+                    },
+                    {
+                        "name": "SUPNAME",
+                        "type": "text",
+                        "label": "‫מס' ספק‬"
+                    },
+                    {
+                        "name": "SUPDES",
+                        "type": "text",
+                        "label": "‫שם ספק‬"
+                    },
+                    {
+                        "name": "CODE",
+                        "type": "text",
+                        "label": "‫מטבע תיק היבוא‬"
+                    },
+                    {
+                        "name": "IMPTERMNAME",
+                        "type": "text",
+                        "label": "‫תנאי יבוא‬"
+                    },
+                    {
+                        "name": "CLOSED",
+                        "type": "text",
+                        "label": "‫סגור‬"
+                    },
+                    {
+                        "name": "IMPORTERNAME",
+                        "type": "text",
+                        "label": "‫איש קשר ליבוא‬"
+                    },
+                    {
+                        "name": "SHIPCONTNAME",
+                        "type": "text",
+                        "label": "‫איש קשר לשילוח‬"
+                    },
+                    {
+                        "name": "SHIPPERNAME",
+                        "type": "text",
+                        "label": "‫חברת הובלה/תע/ספ‬"
+                    },
+                    {
+                        "name": "SHIPPERDES",
+                        "type": "text",
+                        "label": "‫שם ח. הובלה/תע/ספ‬"
+                    },
+                    {
+                        "name": "LORRYNUM",
+                        "type": "text",
+                        "label": "‫מספר טיסה/אוניה‬"
+                    },
+                    {
+                        "name": "STCODE",
+                        "type": "text",
+                        "label": "‫קוד משלוח‬"
+                    },
+                    {
+                        "name": "STDES",
+                        "type": "text",
+                        "label": "‫תאור משלוח‬"
+                    },
+                    {
+                        "name": "LOADDOCNUM",
+                        "type": "text",
+                        "label": "‫מס. שטר מטען‬"
+                    },
+                    {
+                        "name": "LOADDOCDATE",
+                        "type": "date",
+                        "label": "‫ת. שטר מטען‬"
+                    },
+                    {
+                        "name": "PORTNAME",
+                        "type": "text",
+                        "label": "‫נמל מוצא‬"
+                    },
+                    {
+                        "name": "PORTDES",
+                        "type": "text",
+                        "label": "‫שם נמל מוצא‬"
+                    },
+                    {
+                        "name": "TOPORTNAME",
+                        "type": "text",
+                        "label": "‫נמל יעד‬"
+                    },
+                    {
+                        "name": "TOPORTDES",
+                        "type": "text",
+                        "label": "‫שם נמל יעד‬"
+                    },
+                    {
+                        "name": "EXITDATE",
+                        "type": "date",
+                        "label": "‫ת. יציאה‬"
+                    },
+                    {
+                        "name": "ENTRYDATE",
+                        "type": "date",
+                        "label": "‫ת. הגעה‬"
+                    },
+                    {
+                        "name": "DETAILS",
+                        "type": "text",
+                        "label": "‫פרטים‬"
+                    },
+                    {
+                        "name": "REFERENCE",
+                        "type": "text",
+                        "label": "‫אסמכתא‬"
+                    },
+                    {
+                        "name": "SUPNAME2",
+                        "type": "text",
+                        "label": "‫חברת שילוח עמילות‬"
+                    },
+                    {
+                        "name": "SUPDES2",
+                        "type": "text",
+                        "label": "‫שם חברת שילוח‬"
+                    },
+                    {
+                        "name": "WARHSNAME",
+                        "type": "text",
+                        "label": "‫מחסן ערובה‬"
+                    },
+                    {
+                        "name": "LOCNAME",
+                        "type": "text",
+                        "label": "‫איתור‬"
+                    },
+                    {
+                        "name": "BLOCK",
+                        "type": "text",
+                        "label": "‫גוש‬"
+                    },
+                    {
+                        "name": "NUMOFCONTAINERS",
+                        "type": "number",
+                        "label": "‫מספר מכולות‬"
+                    },
+                    {
+                        "name": "TOTVOLUME",
+                        "type": "number",
+                        "label": "‫נפח כולל‬"
+                    },
+                    {
+                        "name": "VUNITNAME",
+                        "type": "text",
+                        "label": "‫יח' נפח‬"
+                    },
+                    {
+                        "name": "USERLOGIN",
+                        "type": "text",
+                        "label": "‫חתימה‬"
+                    },
+                    {
+                        "name": "UDATE",
+                        "type": "date",
+                        "label": "‫ת. חתימה‬"
+                    },
+                    {
+                        "name": "Y_1804_5_ESHB",
+                        "type": "text",
+                        "label": "‫קוד תנאי תשלום‬"
+                    },
+                    {
+                        "name": "Y_10486_5_ESHB",
+                        "type": "text",
+                        "label": "‫תנאי יבוא (מס' ספק)‬"
+                    },
+                    {
+                        "name": "Y_1804_6_ESHB",
+                        "type": "text",
+                        "label": "‫קוד תנאי תשלום (הזמנ‬"
+                    },
+                    {
+                        "name": "PAYDES",
+                        "type": "text",
+                        "label": "‫תנאי תשלום‬"
+                    },
+                    {
+                        "name": "SCAN_ATTACHFN",
+                        "type": "text",
+                        "label": "‫שם קובץ לסריקה‬"
+                    },
+                    {
+                        "name": "SOF_CRUISEDATE",
+                        "type": "date",
+                        "label": "‫תאריך הפלגה‬"
+                    },
+                    {
+                        "name": "SOF_DEPOSITDATE",
+                        "type": "date",
+                        "label": "‫תאריך תשלום מקדמה‬"
+                    },
+                    {
+                        "name": "SOF_DEPOSIT",
+                        "type": "text",
+                        "label": "‫מקדמה שולמה ?‬"
+                    },
+                    {
+                        "name": "SOF_DEPOSIT_B",
+                        "type": "text",
+                        "label": "‫מקדמה הועברה לתשלום?‬"
+                    },
+                    {
+                        "name": "SOF_PAYDATE",
+                        "type": "date",
+                        "label": "‫תאריך תשלום יתרה‬"
+                    },
+                    {
+                        "name": "SOF_PAID",
+                        "type": "text",
+                        "label": "‫יתרה שולמה ?‬"
+                    },
+                    {
+                        "name": "SOF_PAID_B",
+                        "type": "text",
+                        "label": "‫יתרה הועברה לתשלום ?‬"
+                    },
+                    {
+                        "name": "IMPFILE",
+                        "type": "number",
+                        "label": "‫מספר תיק (ID)‬"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "builtin:BasicAggregator",
+            "version": 1,
+            "parameters": {
+                "feeder": 7
+            },
+            "filter": {
+                "name": "",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{5.STATDES}}",
+                            "b": "מבוטל",
+                            "o": "text:notequal"
+                        },
+                        {
+                            "a": "{{5.ORDNAME}}",
+                            "o": "exist"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "IMPFNUM": "{{5.IMPFNUM}}",
+                "ORDNAME": "{{5.ORDNAME}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 953,
+                    "y": -26
+                },
+                "restore": {
+                    "extra": {
+                        "feeder": {
+                            "label": "Tools - Set multiple variables [7]"
+                        },
+                        "target": {
+                            "label": "Custom"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "scenario-service:ReturnData",
+            "version": 2,
+            "parameters": {},
+            "mapper": {
+                "IMPFILES": [
+                    "{{3.array}}"
+                ]
+            },
+            "metadata": {
+                "designer": {
+                    "x": 1200,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "IMPFILES": {
+                            "mode": "chose",
+                            "items": [
+                                null
+                            ]
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "IMPFILES",
+                        "spec": {
+                            "type": "text",
+                            "default": "",
+                            "required": false,
+                            "multiline": false
+                        },
+                        "type": "array",
+                        "label": ""
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    },
+    "io": {
+        "input_spec": [
+            {
+                "help": "",
+                "name": "LIST_IMPFNUM",
+                "spec": {
+                    "type": "text",
+                    "default": "",
+                    "required": false,
+                    "multiline": false
+                },
+                "type": "array",
+                "label": "",
+                "required": false
+            }
+        ],
+        "output_spec": [
+            {
+                "help": "",
+                "name": "IMPFILES",
+                "spec": {
+                    "type": "text",
+                    "default": "",
+                    "required": false,
+                    "multiline": false
+                },
+                "type": "array",
+                "label": "",
+                "required": false
+            }
+        ]
+    }
+}
