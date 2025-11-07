@@ -1,0 +1,2247 @@
+{
+    "name": "DOCUMENTS FROM PRIORITY BY IVNUM",
+    "flow": [
+        {
+            "id": 63,
+            "module": "util:SetVariable2",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "name": "IVNUM",
+                "scope": "roundtrip",
+                "value": "{{var.input.LIST_IVNUM}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 300
+                },
+                "restore": {
+                    "expect": {
+                        "scope": {
+                            "label": "One cycle"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "name",
+                        "type": "text",
+                        "label": "Variable name",
+                        "required": true
+                    },
+                    {
+                        "name": "scope",
+                        "type": "select",
+                        "label": "Variable lifetime",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "roundtrip",
+                                "execution"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "value",
+                        "type": "any",
+                        "label": "Variable value"
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "IVNUM",
+                        "type": "any",
+                        "label": "IVNUM"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 13,
+            "module": "app#leonai-priority:getItemsForms",
+            "version": 1,
+            "parameters": {
+                "__IMTCONN__": 12563223
+            },
+            "mapper": {
+                "form": "PINVOICES",
+                "limit": "1",
+                "column": [
+                    [
+                        {
+                            "a": "IVNUM::text",
+                            "b": "{{63.IVNUM}}",
+                            "o": "eq"
+                        }
+                    ]
+                ],
+                "subforms": [
+                    {
+                        "sort2": "asc",
+                        "table": "PIVDOC_SUBFORM",
+                        "orderby2": "DOC"
+                    }
+                ]
+            },
+            "metadata": {
+                "designer": {
+                    "x": 723,
+                    "y": 247
+                },
+                "restore": {
+                    "expect": {
+                        "form": {
+                            "mode": "chose",
+                            "label": "חשבוניות ספק מרכזות"
+                        },
+                        "orderby": {
+                            "mode": "chose"
+                        },
+                        "subforms": {
+                            "items": [
+                                {
+                                    "sort2": {
+                                        "mode": "chose",
+                                        "label": "Ascending"
+                                    },
+                                    "table": {
+                                        "mode": "chose",
+                                        "label": "תעודות קבלה לחשבונית"
+                                    },
+                                    "orderby2": {
+                                        "mode": "chose",
+                                        "label": "תעודה (ID)"
+                                    },
+                                    "selection2": {
+                                        "mode": "chose"
+                                    }
+                                }
+                            ]
+                        },
+                        "selection": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "app#leonai-priority3"
+                            },
+                            "label": "palyam (a011204, tabula.ini)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:app#leonai-priority3",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "limit",
+                        "type": "number",
+                        "label": "Limit",
+                        "required": true
+                    },
+                    {
+                        "name": "skip",
+                        "type": "number",
+                        "label": "Skip"
+                    },
+                    {
+                        "name": "form",
+                        "type": "select",
+                        "label": "Form",
+                        "required": true
+                    },
+                    {
+                        "name": "hevra",
+                        "type": "text",
+                        "label": "Company \\ Environment"
+                    },
+                    {
+                        "name": "column",
+                        "type": "filter",
+                        "label": "Filters",
+                        "options": {
+                            "store": [
+                                {
+                                    "label": "מס' ספק",
+                                    "value": "SUPNAME::text"
+                                },
+                                {
+                                    "label": "שם ספק",
+                                    "value": "SUPDES::text"
+                                },
+                                {
+                                    "label": "תאריך",
+                                    "value": "IVDATE::date"
+                                },
+                                {
+                                    "label": "מס. פנימי",
+                                    "value": "IVNUM::text"
+                                },
+                                {
+                                    "label": "סופית",
+                                    "value": "FINAL::text"
+                                },
+                                {
+                                    "label": "מספר חשבונית",
+                                    "value": "BOOKNUM::text"
+                                },
+                                {
+                                    "label": "לשערך מחירים?",
+                                    "value": "ADJPRICEFLAG::text"
+                                },
+                                {
+                                    "label": "חיוב/זכוי",
+                                    "value": "DEBIT::text"
+                                },
+                                {
+                                    "label": "סטטוס",
+                                    "value": "STATDES::text"
+                                },
+                                {
+                                    "label": "לטיפול",
+                                    "value": "OWNERLOGIN::text"
+                                },
+                                {
+                                    "label": "תעודה",
+                                    "value": "DOCNO::text"
+                                },
+                                {
+                                    "label": "הזמנה",
+                                    "value": "ORDNAME::text"
+                                },
+                                {
+                                    "label": "הזמנת מסגרת",
+                                    "value": "DEALNAME::text"
+                                },
+                                {
+                                    "label": "פרויקט",
+                                    "value": "PROJDOCNO::text"
+                                },
+                                {
+                                    "label": "תאור פרויקט",
+                                    "value": "PROJDES::text"
+                                },
+                                {
+                                    "label": "ת. פרעון",
+                                    "value": "PAYDATE::date"
+                                },
+                                {
+                                    "label": "ת. למאזן",
+                                    "value": "BALDATE::date"
+                                },
+                                {
+                                    "label": "מקדמה?",
+                                    "value": "ADVFLAG::text"
+                                },
+                                {
+                                    "label": "סכום לפני הנחה",
+                                    "value": "QPRICE::number"
+                                },
+                                {
+                                    "label": "הנחה כללית",
+                                    "value": "DISCOUNT::number"
+                                },
+                                {
+                                    "label": "מחיר אחרי הנחה",
+                                    "value": "DISPRICE::number"
+                                },
+                                {
+                                    "label": "סכום מחושב",
+                                    "value": "CALPRICE::number"
+                                },
+                                {
+                                    "label": "הפרש במחיר",
+                                    "value": "DIFF::number"
+                                },
+                                {
+                                    "label": "מע\"מ",
+                                    "value": "VAT::number"
+                                },
+                                {
+                                    "label": "מס נוסף",
+                                    "value": "TAXSUM::number"
+                                },
+                                {
+                                    "label": "סה\"כ לתשלום",
+                                    "value": "TOTPRICE::number"
+                                },
+                                {
+                                    "label": "ניכוי מס במקור",
+                                    "value": "WTAX::number"
+                                },
+                                {
+                                    "label": "סכום אחרי ניכוי",
+                                    "value": "AFTERWTAX::number"
+                                },
+                                {
+                                    "label": "מטבע",
+                                    "value": "CODE::text"
+                                },
+                                {
+                                    "label": "סוג תיק יבוא/יצוא",
+                                    "value": "OTYPE::text"
+                                },
+                                {
+                                    "label": "תיק יבוא/יצוא",
+                                    "value": "IMPFNUM::text"
+                                },
+                                {
+                                    "label": "פרטים",
+                                    "value": "DETAILS::text"
+                                },
+                                {
+                                    "label": "כמות פריטים",
+                                    "value": "TOTQUANT::number"
+                                },
+                                {
+                                    "label": "מס. תנועת היומן",
+                                    "value": "FNCNUM::text"
+                                },
+                                {
+                                    "label": "מבוטל ?",
+                                    "value": "STORNOFLAG::text"
+                                },
+                                {
+                                    "label": "סניף",
+                                    "value": "BRANCHNAME::text"
+                                },
+                                {
+                                    "label": "נספחים?",
+                                    "value": "EXTFILEFLAG::text"
+                                },
+                                {
+                                    "label": "חשבונית פנימית ?",
+                                    "value": "INTERNAL::text"
+                                },
+                                {
+                                    "label": "הוקלד ע\"י",
+                                    "value": "TYPEDBYLOGIN::text"
+                                },
+                                {
+                                    "label": "תאריך הקלדה",
+                                    "value": "TYPEDDATE::date"
+                                },
+                                {
+                                    "label": "Black List ?",
+                                    "value": "BLACKLISTFLAG::text"
+                                },
+                                {
+                                    "label": "קוד רשימת מאשרים",
+                                    "value": "CODENAME::text"
+                                },
+                                {
+                                    "label": "תאור רשימה",
+                                    "value": "CODEDES::text"
+                                },
+                                {
+                                    "label": "החותם הבא",
+                                    "value": "NEXTSIGNUSERLOGIN::text"
+                                },
+                                {
+                                    "label": "מאושרת?",
+                                    "value": "UFLAG::text"
+                                },
+                                {
+                                    "label": "סכום החשבונית",
+                                    "value": "TOTPRICE2::number"
+                                },
+                                {
+                                    "label": "סכום התשלומים",
+                                    "value": "CASHPAYMENT::number"
+                                },
+                                {
+                                    "label": "הפרש תשלומים",
+                                    "value": "DIFF2::number"
+                                },
+                                {
+                                    "label": "שם קובץ לסריקה",
+                                    "value": "SCAN_ATTACHFN::text"
+                                },
+                                {
+                                    "label": "אישור חריגה?",
+                                    "value": "SOXFLAG::text"
+                                },
+                                {
+                                    "label": "משתמש מאשר חריגה",
+                                    "value": "SOXUSERLOGIN::text"
+                                },
+                                {
+                                    "label": "תאריך אישור חריגה",
+                                    "value": "SOXUDATE::date"
+                                },
+                                {
+                                    "label": "מזהה מובנה",
+                                    "value": "UNIQUEID::text"
+                                },
+                                {
+                                    "label": "מזהה רשויות המס",
+                                    "value": "SDINUMIT::text"
+                                },
+                                {
+                                    "label": "קוד רשימת מאשרים",
+                                    "value": "ESHK_APPLISTCODE::text"
+                                },
+                                {
+                                    "label": "תאור רשימה",
+                                    "value": "ESHK_APPLISTCODEDES::text"
+                                },
+                                {
+                                    "label": "מאשר הבא",
+                                    "value": "ESHK_NEXTAPPROVE::text"
+                                },
+                                {
+                                    "label": "מאושרת?",
+                                    "value": "ESHK_UFLAG::text"
+                                },
+                                {
+                                    "label": "נטו באתר",
+                                    "value": "PRIT_SITENET::number"
+                                },
+                                {
+                                    "label": "מע\"מ באתר",
+                                    "value": "PRIT_SITEVAT::number"
+                                },
+                                {
+                                    "label": "ברוטו באתר",
+                                    "value": "PRIT_SITEGROSS::number"
+                                },
+                                {
+                                    "label": "שם קובץ",
+                                    "value": "PRIT_FILENAME::text"
+                                },
+                                {
+                                    "label": "חשבונית (ID)",
+                                    "value": "IV::number"
+                                },
+                                {
+                                    "label": "סוג",
+                                    "value": "IVTYPE::text"
+                                }
+                            ],
+                            "operators": [
+                                {
+                                    "label": "Basic operators",
+                                    "options": [
+                                        {
+                                            "label": "Exists",
+                                            "value": "exist"
+                                        },
+                                        {
+                                            "label": "Does not exist",
+                                            "value": "notexist"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Text operators",
+                                    "options": [
+                                        {
+                                            "label": "Equal to",
+                                            "value": "eq"
+                                        },
+                                        {
+                                            "label": "Not equal to",
+                                            "value": "ne"
+                                        },
+                                        {
+                                            "label": "Contains",
+                                            "value": "contains"
+                                        },
+                                        {
+                                            "label": "Does not Contain",
+                                            "value": "notcontains"
+                                        },
+                                        {
+                                            "label": "Start with",
+                                            "value": "startwith"
+                                        },
+                                        {
+                                            "label": "Does not start with",
+                                            "value": "notstartwith"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Numbers operators",
+                                    "options": [
+                                        {
+                                            "label": "Equal to",
+                                            "value": "eq"
+                                        },
+                                        {
+                                            "label": "Not equal to",
+                                            "value": "ne"
+                                        },
+                                        {
+                                            "label": "Greater than",
+                                            "value": "gt"
+                                        },
+                                        {
+                                            "label": "Less than",
+                                            "value": "lt"
+                                        },
+                                        {
+                                            "label": "Greater than or equal to",
+                                            "value": "ge"
+                                        },
+                                        {
+                                            "label": "Less than or equal to",
+                                            "value": "le"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Datetime operators",
+                                    "options": [
+                                        {
+                                            "label": "Equal to",
+                                            "value": "eq"
+                                        },
+                                        {
+                                            "label": "Not equal to",
+                                            "value": "ne"
+                                        },
+                                        {
+                                            "label": "Greater than",
+                                            "value": "gt"
+                                        },
+                                        {
+                                            "label": "Less than",
+                                            "value": "lt"
+                                        },
+                                        {
+                                            "label": "Greater than or equal to",
+                                            "value": "ge"
+                                        },
+                                        {
+                                            "label": "Less than or equal to",
+                                            "value": "le"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "orderby",
+                        "type": "select",
+                        "label": "Order by"
+                    },
+                    {
+                        "name": "since",
+                        "type": "text",
+                        "label": "Modified Since"
+                    },
+                    {
+                        "name": "selection",
+                        "type": "select",
+                        "label": "Get specified field\\s",
+                        "multiple": true
+                    },
+                    {
+                        "name": "subforms",
+                        "spec": [
+                            {
+                                "name": "table",
+                                "type": "select",
+                                "label": "Sub-Form",
+                                "dynamic": true,
+                                "options": {
+                                    "store": []
+                                },
+                                "required": true
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Sub-Forms Expend"
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "__IMTLENGTH__",
+                        "type": "uinteger",
+                        "label": "Total number of bundles"
+                    },
+                    {
+                        "name": "__IMTINDEX__",
+                        "type": "uinteger",
+                        "label": "Bundle order position"
+                    },
+                    {
+                        "name": "SUPNAME",
+                        "type": "text",
+                        "label": "‫מס' ספק‬"
+                    },
+                    {
+                        "name": "SUPDES",
+                        "type": "text",
+                        "label": "‫שם ספק‬"
+                    },
+                    {
+                        "name": "IVDATE",
+                        "type": "date",
+                        "label": "‫תאריך‬"
+                    },
+                    {
+                        "name": "IVNUM",
+                        "type": "text",
+                        "label": "‫מס. פנימי‬"
+                    },
+                    {
+                        "name": "FINAL",
+                        "type": "text",
+                        "label": "‫סופית‬"
+                    },
+                    {
+                        "name": "BOOKNUM",
+                        "type": "text",
+                        "label": "‫מספר חשבונית‬"
+                    },
+                    {
+                        "name": "ADJPRICEFLAG",
+                        "type": "text",
+                        "label": "‫לשערך מחירים?‬"
+                    },
+                    {
+                        "name": "DEBIT",
+                        "type": "text",
+                        "label": "‫חיוב/זכוי‬"
+                    },
+                    {
+                        "name": "STATDES",
+                        "type": "text",
+                        "label": "‫סטטוס‬"
+                    },
+                    {
+                        "name": "OWNERLOGIN",
+                        "type": "text",
+                        "label": "‫לטיפול‬"
+                    },
+                    {
+                        "name": "DOCNO",
+                        "type": "text",
+                        "label": "‫תעודה‬"
+                    },
+                    {
+                        "name": "ORDNAME",
+                        "type": "text",
+                        "label": "‫הזמנה‬"
+                    },
+                    {
+                        "name": "DEALNAME",
+                        "type": "text",
+                        "label": "‫הזמנת מסגרת‬"
+                    },
+                    {
+                        "name": "PROJDOCNO",
+                        "type": "text",
+                        "label": "‫פרויקט‬"
+                    },
+                    {
+                        "name": "PROJDES",
+                        "type": "text",
+                        "label": "‫תאור פרויקט‬"
+                    },
+                    {
+                        "name": "PAYDATE",
+                        "type": "date",
+                        "label": "‫ת. פרעון‬"
+                    },
+                    {
+                        "name": "BALDATE",
+                        "type": "date",
+                        "label": "‫ת. למאזן‬"
+                    },
+                    {
+                        "name": "ADVFLAG",
+                        "type": "text",
+                        "label": "‫מקדמה?‬"
+                    },
+                    {
+                        "name": "QPRICE",
+                        "type": "number",
+                        "label": "‫סכום לפני הנחה‬"
+                    },
+                    {
+                        "name": "DISCOUNT",
+                        "type": "number",
+                        "label": "‫הנחה כללית‬"
+                    },
+                    {
+                        "name": "DISPRICE",
+                        "type": "number",
+                        "label": "‫מחיר אחרי הנחה‬"
+                    },
+                    {
+                        "name": "CALPRICE",
+                        "type": "number",
+                        "label": "‫סכום מחושב‬"
+                    },
+                    {
+                        "name": "DIFF",
+                        "type": "number",
+                        "label": "‫הפרש במחיר‬"
+                    },
+                    {
+                        "name": "VAT",
+                        "type": "number",
+                        "label": "‫מע\"מ‬"
+                    },
+                    {
+                        "name": "TAXSUM",
+                        "type": "number",
+                        "label": "‫מס נוסף‬"
+                    },
+                    {
+                        "name": "TOTPRICE",
+                        "type": "number",
+                        "label": "‫סה\"כ לתשלום‬"
+                    },
+                    {
+                        "name": "WTAX",
+                        "type": "number",
+                        "label": "‫ניכוי מס במקור‬"
+                    },
+                    {
+                        "name": "AFTERWTAX",
+                        "type": "number",
+                        "label": "‫סכום אחרי ניכוי‬"
+                    },
+                    {
+                        "name": "CODE",
+                        "type": "text",
+                        "label": "‫מטבע‬"
+                    },
+                    {
+                        "name": "OTYPE",
+                        "type": "text",
+                        "label": "‫סוג תיק יבוא/יצוא‬"
+                    },
+                    {
+                        "name": "IMPFNUM",
+                        "type": "text",
+                        "label": "‫תיק יבוא/יצוא‬"
+                    },
+                    {
+                        "name": "DETAILS",
+                        "type": "text",
+                        "label": "‫פרטים‬"
+                    },
+                    {
+                        "name": "TOTQUANT",
+                        "type": "number",
+                        "label": "‫כמות פריטים‬"
+                    },
+                    {
+                        "name": "FNCNUM",
+                        "type": "text",
+                        "label": "‫מס. תנועת היומן‬"
+                    },
+                    {
+                        "name": "STORNOFLAG",
+                        "type": "text",
+                        "label": "‫מבוטל ?‬"
+                    },
+                    {
+                        "name": "BRANCHNAME",
+                        "type": "text",
+                        "label": "‫סניף‬"
+                    },
+                    {
+                        "name": "EXTFILEFLAG",
+                        "type": "text",
+                        "label": "‫נספחים?‬"
+                    },
+                    {
+                        "name": "INTERNAL",
+                        "type": "text",
+                        "label": "‫חשבונית פנימית ?‬"
+                    },
+                    {
+                        "name": "TYPEDBYLOGIN",
+                        "type": "text",
+                        "label": "‫הוקלד ע\"י‬"
+                    },
+                    {
+                        "name": "TYPEDDATE",
+                        "type": "date",
+                        "label": "‫תאריך הקלדה‬"
+                    },
+                    {
+                        "name": "BLACKLISTFLAG",
+                        "type": "text",
+                        "label": "Black List ?"
+                    },
+                    {
+                        "name": "CODENAME",
+                        "type": "text",
+                        "label": "‫קוד רשימת מאשרים‬"
+                    },
+                    {
+                        "name": "CODEDES",
+                        "type": "text",
+                        "label": "‫תאור רשימה‬"
+                    },
+                    {
+                        "name": "NEXTSIGNUSERLOGIN",
+                        "type": "text",
+                        "label": "‫החותם הבא‬"
+                    },
+                    {
+                        "name": "UFLAG",
+                        "type": "text",
+                        "label": "‫מאושרת?‬"
+                    },
+                    {
+                        "name": "TOTPRICE2",
+                        "type": "number",
+                        "label": "‫סכום החשבונית‬"
+                    },
+                    {
+                        "name": "CASHPAYMENT",
+                        "type": "number",
+                        "label": "‫סכום התשלומים‬"
+                    },
+                    {
+                        "name": "DIFF2",
+                        "type": "number",
+                        "label": "‫הפרש תשלומים‬"
+                    },
+                    {
+                        "name": "SCAN_ATTACHFN",
+                        "type": "text",
+                        "label": "‫שם קובץ לסריקה‬"
+                    },
+                    {
+                        "name": "SOXFLAG",
+                        "type": "text",
+                        "label": "‫אישור חריגה?‬"
+                    },
+                    {
+                        "name": "SOXUSERLOGIN",
+                        "type": "text",
+                        "label": "‫משתמש מאשר חריגה‬"
+                    },
+                    {
+                        "name": "SOXUDATE",
+                        "type": "date",
+                        "label": "‫תאריך אישור חריגה‬"
+                    },
+                    {
+                        "name": "UNIQUEID",
+                        "type": "text",
+                        "label": "‫מזהה מובנה‬"
+                    },
+                    {
+                        "name": "SDINUMIT",
+                        "type": "text",
+                        "label": "‫מזהה רשויות המס‬"
+                    },
+                    {
+                        "name": "ESHK_APPLISTCODE",
+                        "type": "text",
+                        "label": "‫קוד רשימת מאשרים‬"
+                    },
+                    {
+                        "name": "ESHK_APPLISTCODEDES",
+                        "type": "text",
+                        "label": "‫תאור רשימה‬"
+                    },
+                    {
+                        "name": "ESHK_NEXTAPPROVE",
+                        "type": "text",
+                        "label": "‫מאשר הבא‬"
+                    },
+                    {
+                        "name": "ESHK_UFLAG",
+                        "type": "text",
+                        "label": "‫מאושרת?‬"
+                    },
+                    {
+                        "name": "PRIT_SITENET",
+                        "type": "number",
+                        "label": "‫נטו באתר‬"
+                    },
+                    {
+                        "name": "PRIT_SITEVAT",
+                        "type": "number",
+                        "label": "‫מע\"מ באתר‬"
+                    },
+                    {
+                        "name": "PRIT_SITEGROSS",
+                        "type": "number",
+                        "label": "‫ברוטו באתר‬"
+                    },
+                    {
+                        "name": "PRIT_FILENAME",
+                        "type": "text",
+                        "label": "‫שם קובץ‬"
+                    },
+                    {
+                        "name": "IV",
+                        "type": "number",
+                        "label": "‫חשבונית (ID)‬"
+                    },
+                    {
+                        "name": "IVTYPE",
+                        "type": "text",
+                        "label": "‫סוג‬"
+                    },
+                    {
+                        "name": "PIVDOC_SUBFORM",
+                        "spec": {
+                            "spec": [
+                                {
+                                    "name": "DOCNO",
+                                    "type": "text",
+                                    "label": "‫תעודה‬"
+                                },
+                                {
+                                    "name": "BOOKNUM",
+                                    "type": "text",
+                                    "label": "‫תעודת משלוח - ספק‬"
+                                },
+                                {
+                                    "name": "CURDATE",
+                                    "type": "date",
+                                    "label": "‫תאריך‬"
+                                },
+                                {
+                                    "name": "SUPNAME",
+                                    "type": "text",
+                                    "label": "‫מס' ספק‬"
+                                },
+                                {
+                                    "name": "DOC",
+                                    "type": "number",
+                                    "label": "‫תעודה (ID)‬"
+                                }
+                            ],
+                            "type": "collection"
+                        },
+                        "type": "array",
+                        "label": "‫תעודות קבלה לחשבונית‬"
+                    }
+                ]
+            },
+            "onerror": [
+                {
+                    "id": 48,
+                    "module": "builtin:Ignore",
+                    "version": 1,
+                    "metadata": {
+                        "designer": {
+                            "x": 927,
+                            "y": 446
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 1227,
+                    "y": 146
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 2,
+                            "module": "app#leonai-priority:getItemsForms",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": 12563223
+                            },
+                            "filter": {
+                                "name": "",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{13.PIVDOC_SUBFORM}}",
+                                            "b": "0",
+                                            "o": "array:lessorequal"
+                                        },
+                                        {
+                                            "a": "{{13.DOCNO}}",
+                                            "o": "exist"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "form": "DOCUMENTS_P",
+                                "limit": "1",
+                                "column": [
+                                    [
+                                        {
+                                            "a": "DOCNO::text",
+                                            "b": "{{13.DOCNO}}",
+                                            "o": "eq"
+                                        },
+                                        {
+                                            "a": "SUPNAME::text",
+                                            "b": "{{13.SUPNAME}}",
+                                            "o": "eq"
+                                        }
+                                    ]
+                                ],
+                                "selection": [
+                                    "CURDATE",
+                                    "DOCNO",
+                                    "ORDNAME",
+                                    "SUPNAME",
+                                    "CDES",
+                                    "BOOKNUM",
+                                    "STATDES",
+                                    "FLAG",
+                                    "IVALL",
+                                    "TOTQUANT"
+                                ]
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 0
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "form": {
+                                            "mode": "chose",
+                                            "label": "קבלות סחורה מספק"
+                                        },
+                                        "orderby": {
+                                            "mode": "chose"
+                                        },
+                                        "selection": {
+                                            "mode": "chose",
+                                            "label": [
+                                                "תאריך",
+                                                "תעודה",
+                                                "הזמנה",
+                                                "מס' ספק",
+                                                "שם ספק",
+                                                "מס. תעודת הספק",
+                                                "סטטוס",
+                                                "לחיוב",
+                                                "חויבה",
+                                                "כמות פריטים"
+                                            ]
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "app#leonai-priority3"
+                                            },
+                                            "label": "palyam (a011204, tabula.ini)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:app#leonai-priority3",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "limit",
+                                        "type": "number",
+                                        "label": "Limit",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "skip",
+                                        "type": "number",
+                                        "label": "Skip"
+                                    },
+                                    {
+                                        "name": "form",
+                                        "type": "select",
+                                        "label": "Form",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "hevra",
+                                        "type": "text",
+                                        "label": "Company \\ Environment"
+                                    },
+                                    {
+                                        "name": "column",
+                                        "type": "filter",
+                                        "label": "Filters",
+                                        "options": {
+                                            "store": [
+                                                {
+                                                    "label": "תאריך",
+                                                    "value": "CURDATE::date"
+                                                },
+                                                {
+                                                    "label": "תעודה",
+                                                    "value": "DOCNO::text"
+                                                },
+                                                {
+                                                    "label": "הזמנה",
+                                                    "value": "ORDNAME::text"
+                                                },
+                                                {
+                                                    "label": "מס' ספק",
+                                                    "value": "SUPNAME::text"
+                                                },
+                                                {
+                                                    "label": "שם ספק",
+                                                    "value": "CDES::text"
+                                                },
+                                                {
+                                                    "label": "איש קשר",
+                                                    "value": "NAME::text"
+                                                },
+                                                {
+                                                    "label": "ד. הרשאה לספק - כללי",
+                                                    "value": "PRIVTYPE::text"
+                                                },
+                                                {
+                                                    "label": "מס. תעודת הספק",
+                                                    "value": "BOOKNUM::text"
+                                                },
+                                                {
+                                                    "label": "עד ת. אספקה",
+                                                    "value": "EDATE::date"
+                                                },
+                                                {
+                                                    "label": "מחסן מקבל",
+                                                    "value": "TOWARHSNAME::text"
+                                                },
+                                                {
+                                                    "label": "איתור",
+                                                    "value": "TOLOCNAME::text"
+                                                },
+                                                {
+                                                    "label": "תאור מחסן",
+                                                    "value": "TOWARHSDES::text"
+                                                },
+                                                {
+                                                    "label": "סטטוס",
+                                                    "value": "STATDES::text"
+                                                },
+                                                {
+                                                    "label": "לטיפול",
+                                                    "value": "OWNERLOGIN::text"
+                                                },
+                                                {
+                                                    "label": "לחיוב",
+                                                    "value": "FLAG::text"
+                                                },
+                                                {
+                                                    "label": "חויבה",
+                                                    "value": "IVALL::text"
+                                                },
+                                                {
+                                                    "label": "קוד משלוח",
+                                                    "value": "STCODE::text"
+                                                },
+                                                {
+                                                    "label": "תאור משלוח",
+                                                    "value": "STDES::text"
+                                                },
+                                                {
+                                                    "label": "תעודת קבלה(לביטולים)",
+                                                    "value": "PDOCNO::text"
+                                                },
+                                                {
+                                                    "label": "תעודת משלוח לקבמ\"ש",
+                                                    "value": "PFDOCNO::text"
+                                                },
+                                                {
+                                                    "label": "תעודת החזרה לספק",
+                                                    "value": "PWDOCNO::text"
+                                                },
+                                                {
+                                                    "label": "תע. קבלה ממחסן ערובה",
+                                                    "value": "PJDOCNO::text"
+                                                },
+                                                {
+                                                    "label": "מחסן ספק",
+                                                    "value": "FROMWARHSNAME::text"
+                                                },
+                                                {
+                                                    "label": "איתור",
+                                                    "value": "FROMLOCNAME::text"
+                                                },
+                                                {
+                                                    "label": "תאור מחסן",
+                                                    "value": "FROMWARHSDES::text"
+                                                },
+                                                {
+                                                    "label": "מס' נהג",
+                                                    "value": "SHIPPERNAME::text"
+                                                },
+                                                {
+                                                    "label": "שם נהג",
+                                                    "value": "SHIPPERDES::text"
+                                                },
+                                                {
+                                                    "label": "פרויקט",
+                                                    "value": "PROJDOCNO::text"
+                                                },
+                                                {
+                                                    "label": "תאור פרויקט",
+                                                    "value": "PROJDES::text"
+                                                },
+                                                {
+                                                    "label": "מנהל הפרויקט",
+                                                    "value": "MUSERLOGIN::text"
+                                                },
+                                                {
+                                                    "label": "חשבונית",
+                                                    "value": "IVBOODNUM::text"
+                                                },
+                                                {
+                                                    "label": "חשבונית - פנימי",
+                                                    "value": "IVNUM::text"
+                                                },
+                                                {
+                                                    "label": "מספר RMA",
+                                                    "value": "RMADOCNO::text"
+                                                },
+                                                {
+                                                    "label": "פרטים",
+                                                    "value": "DETAILS::text"
+                                                },
+                                                {
+                                                    "label": "מחיר כולל",
+                                                    "value": "QPRICE::number"
+                                                },
+                                                {
+                                                    "label": "הנחה כללית (%)",
+                                                    "value": "PERCENT::number"
+                                                },
+                                                {
+                                                    "label": "מחיר אחרי הנחה",
+                                                    "value": "DISPRICE::number"
+                                                },
+                                                {
+                                                    "label": "מע\"מ",
+                                                    "value": "VAT::number"
+                                                },
+                                                {
+                                                    "label": "מחיר כולל מע\"מ",
+                                                    "value": "TOTPRICE::number"
+                                                },
+                                                {
+                                                    "label": "מטבע",
+                                                    "value": "CODE::text"
+                                                },
+                                                {
+                                                    "label": "כמות פריטים",
+                                                    "value": "TOTQUANT::number"
+                                                },
+                                                {
+                                                    "label": "קוד מס",
+                                                    "value": "TAXCODE::text"
+                                                },
+                                                {
+                                                    "label": "לשערך מחירים?",
+                                                    "value": "ADJPRICEFLAG::text"
+                                                },
+                                                {
+                                                    "label": "סניף",
+                                                    "value": "BRANCHNAME::text"
+                                                },
+                                                {
+                                                    "label": "תאור הסניף",
+                                                    "value": "BRANCHDES::text"
+                                                },
+                                                {
+                                                    "label": "נספחים?",
+                                                    "value": "EXTFILEFLAGB::text"
+                                                },
+                                                {
+                                                    "label": "חתימה",
+                                                    "value": "USERLOGIN::text"
+                                                },
+                                                {
+                                                    "label": "ת. חתימה",
+                                                    "value": "UDATE::date"
+                                                },
+                                                {
+                                                    "label": "לטיפול (נייד)",
+                                                    "value": "NGV_USERNAME::text"
+                                                },
+                                                {
+                                                    "label": "שם קובץ לסריקה",
+                                                    "value": "SCAN_ATTACHFN::text"
+                                                },
+                                                {
+                                                    "label": "קוד קו חלוקה",
+                                                    "value": "NGV_DISTRLINECODE::text"
+                                                },
+                                                {
+                                                    "label": "תאור קו חלוקה",
+                                                    "value": "NGV_DISTRLINEDES::text"
+                                                },
+                                                {
+                                                    "label": "תאריך הפצה",
+                                                    "value": "NGV_DISTRDATE::date"
+                                                },
+                                                {
+                                                    "label": "תעודה (ID)",
+                                                    "value": "DOC::number"
+                                                },
+                                                {
+                                                    "label": "טיפוס",
+                                                    "value": "TYPE::text"
+                                                }
+                                            ],
+                                            "operators": [
+                                                {
+                                                    "label": "Basic operators",
+                                                    "options": [
+                                                        {
+                                                            "label": "Exists",
+                                                            "value": "exist"
+                                                        },
+                                                        {
+                                                            "label": "Does not exist",
+                                                            "value": "notexist"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "label": "Text operators",
+                                                    "options": [
+                                                        {
+                                                            "label": "Equal to",
+                                                            "value": "eq"
+                                                        },
+                                                        {
+                                                            "label": "Not equal to",
+                                                            "value": "ne"
+                                                        },
+                                                        {
+                                                            "label": "Contains",
+                                                            "value": "contains"
+                                                        },
+                                                        {
+                                                            "label": "Does not Contain",
+                                                            "value": "notcontains"
+                                                        },
+                                                        {
+                                                            "label": "Start with",
+                                                            "value": "startwith"
+                                                        },
+                                                        {
+                                                            "label": "Does not start with",
+                                                            "value": "notstartwith"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "label": "Numbers operators",
+                                                    "options": [
+                                                        {
+                                                            "label": "Equal to",
+                                                            "value": "eq"
+                                                        },
+                                                        {
+                                                            "label": "Not equal to",
+                                                            "value": "ne"
+                                                        },
+                                                        {
+                                                            "label": "Greater than",
+                                                            "value": "gt"
+                                                        },
+                                                        {
+                                                            "label": "Less than",
+                                                            "value": "lt"
+                                                        },
+                                                        {
+                                                            "label": "Greater than or equal to",
+                                                            "value": "ge"
+                                                        },
+                                                        {
+                                                            "label": "Less than or equal to",
+                                                            "value": "le"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "label": "Datetime operators",
+                                                    "options": [
+                                                        {
+                                                            "label": "Equal to",
+                                                            "value": "eq"
+                                                        },
+                                                        {
+                                                            "label": "Not equal to",
+                                                            "value": "ne"
+                                                        },
+                                                        {
+                                                            "label": "Greater than",
+                                                            "value": "gt"
+                                                        },
+                                                        {
+                                                            "label": "Less than",
+                                                            "value": "lt"
+                                                        },
+                                                        {
+                                                            "label": "Greater than or equal to",
+                                                            "value": "ge"
+                                                        },
+                                                        {
+                                                            "label": "Less than or equal to",
+                                                            "value": "le"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "orderby",
+                                        "type": "select",
+                                        "label": "Order by"
+                                    },
+                                    {
+                                        "name": "since",
+                                        "type": "text",
+                                        "label": "Modified Since"
+                                    },
+                                    {
+                                        "name": "selection",
+                                        "type": "select",
+                                        "label": "Get specified field\\s",
+                                        "multiple": true
+                                    },
+                                    {
+                                        "name": "subforms",
+                                        "spec": [
+                                            {
+                                                "name": "table",
+                                                "type": "select",
+                                                "label": "Sub-Form",
+                                                "dynamic": true,
+                                                "options": {
+                                                    "store": []
+                                                },
+                                                "required": true
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Sub-Forms Expend"
+                                    }
+                                ],
+                                "interface": [
+                                    {
+                                        "name": "__IMTLENGTH__",
+                                        "type": "uinteger",
+                                        "label": "Total number of bundles"
+                                    },
+                                    {
+                                        "name": "__IMTINDEX__",
+                                        "type": "uinteger",
+                                        "label": "Bundle order position"
+                                    },
+                                    {
+                                        "name": "CURDATE",
+                                        "type": "date",
+                                        "label": "‫תאריך‬"
+                                    },
+                                    {
+                                        "name": "DOCNO",
+                                        "type": "text",
+                                        "label": "‫תעודה‬"
+                                    },
+                                    {
+                                        "name": "ORDNAME",
+                                        "type": "text",
+                                        "label": "‫הזמנה‬"
+                                    },
+                                    {
+                                        "name": "SUPNAME",
+                                        "type": "text",
+                                        "label": "‫מס' ספק‬"
+                                    },
+                                    {
+                                        "name": "CDES",
+                                        "type": "text",
+                                        "label": "‫שם ספק‬"
+                                    },
+                                    {
+                                        "name": "NAME",
+                                        "type": "text",
+                                        "label": "‫איש קשר‬"
+                                    },
+                                    {
+                                        "name": "PRIVTYPE",
+                                        "type": "text",
+                                        "label": "‫ד. הרשאה לספק - כללי‬"
+                                    },
+                                    {
+                                        "name": "BOOKNUM",
+                                        "type": "text",
+                                        "label": "‫מס. תעודת הספק‬"
+                                    },
+                                    {
+                                        "name": "EDATE",
+                                        "type": "date",
+                                        "label": "‫עד ת. אספקה‬"
+                                    },
+                                    {
+                                        "name": "TOWARHSNAME",
+                                        "type": "text",
+                                        "label": "‫מחסן מקבל‬"
+                                    },
+                                    {
+                                        "name": "TOLOCNAME",
+                                        "type": "text",
+                                        "label": "‫איתור‬"
+                                    },
+                                    {
+                                        "name": "TOWARHSDES",
+                                        "type": "text",
+                                        "label": "‫תאור מחסן‬"
+                                    },
+                                    {
+                                        "name": "STATDES",
+                                        "type": "text",
+                                        "label": "‫סטטוס‬"
+                                    },
+                                    {
+                                        "name": "OWNERLOGIN",
+                                        "type": "text",
+                                        "label": "‫לטיפול‬"
+                                    },
+                                    {
+                                        "name": "FLAG",
+                                        "type": "text",
+                                        "label": "‫לחיוב‬"
+                                    },
+                                    {
+                                        "name": "IVALL",
+                                        "type": "text",
+                                        "label": "‫חויבה‬"
+                                    },
+                                    {
+                                        "name": "STCODE",
+                                        "type": "text",
+                                        "label": "‫קוד משלוח‬"
+                                    },
+                                    {
+                                        "name": "STDES",
+                                        "type": "text",
+                                        "label": "‫תאור משלוח‬"
+                                    },
+                                    {
+                                        "name": "PDOCNO",
+                                        "type": "text",
+                                        "label": "‫תעודת קבלה(לביטולים)‬"
+                                    },
+                                    {
+                                        "name": "PFDOCNO",
+                                        "type": "text",
+                                        "label": "‫תעודת משלוח לקבמ\"ש‬"
+                                    },
+                                    {
+                                        "name": "PWDOCNO",
+                                        "type": "text",
+                                        "label": "‫תעודת החזרה לספק‬"
+                                    },
+                                    {
+                                        "name": "PJDOCNO",
+                                        "type": "text",
+                                        "label": "‫תע. קבלה ממחסן ערובה‬"
+                                    },
+                                    {
+                                        "name": "FROMWARHSNAME",
+                                        "type": "text",
+                                        "label": "‫מחסן ספק‬"
+                                    },
+                                    {
+                                        "name": "FROMLOCNAME",
+                                        "type": "text",
+                                        "label": "‫איתור‬"
+                                    },
+                                    {
+                                        "name": "FROMWARHSDES",
+                                        "type": "text",
+                                        "label": "‫תאור מחסן‬"
+                                    },
+                                    {
+                                        "name": "SHIPPERNAME",
+                                        "type": "text",
+                                        "label": "‫מס' נהג‬"
+                                    },
+                                    {
+                                        "name": "SHIPPERDES",
+                                        "type": "text",
+                                        "label": "‫שם נהג‬"
+                                    },
+                                    {
+                                        "name": "PROJDOCNO",
+                                        "type": "text",
+                                        "label": "‫פרויקט‬"
+                                    },
+                                    {
+                                        "name": "PROJDES",
+                                        "type": "text",
+                                        "label": "‫תאור פרויקט‬"
+                                    },
+                                    {
+                                        "name": "MUSERLOGIN",
+                                        "type": "text",
+                                        "label": "‫מנהל הפרויקט‬"
+                                    },
+                                    {
+                                        "name": "IVBOODNUM",
+                                        "type": "text",
+                                        "label": "‫חשבונית‬"
+                                    },
+                                    {
+                                        "name": "IVNUM",
+                                        "type": "text",
+                                        "label": "‫חשבונית - פנימי‬"
+                                    },
+                                    {
+                                        "name": "RMADOCNO",
+                                        "type": "text",
+                                        "label": "‫מספר RMA‬"
+                                    },
+                                    {
+                                        "name": "DETAILS",
+                                        "type": "text",
+                                        "label": "‫פרטים‬"
+                                    },
+                                    {
+                                        "name": "QPRICE",
+                                        "type": "number",
+                                        "label": "‫מחיר כולל‬"
+                                    },
+                                    {
+                                        "name": "PERCENT",
+                                        "type": "number",
+                                        "label": "‫הנחה כללית (%)‬"
+                                    },
+                                    {
+                                        "name": "DISPRICE",
+                                        "type": "number",
+                                        "label": "‫מחיר אחרי הנחה‬"
+                                    },
+                                    {
+                                        "name": "VAT",
+                                        "type": "number",
+                                        "label": "‫מע\"מ‬"
+                                    },
+                                    {
+                                        "name": "TOTPRICE",
+                                        "type": "number",
+                                        "label": "‫מחיר כולל מע\"מ‬"
+                                    },
+                                    {
+                                        "name": "CODE",
+                                        "type": "text",
+                                        "label": "‫מטבע‬"
+                                    },
+                                    {
+                                        "name": "TOTQUANT",
+                                        "type": "number",
+                                        "label": "‫כמות פריטים‬"
+                                    },
+                                    {
+                                        "name": "TAXCODE",
+                                        "type": "text",
+                                        "label": "‫קוד מס‬"
+                                    },
+                                    {
+                                        "name": "ADJPRICEFLAG",
+                                        "type": "text",
+                                        "label": "‫לשערך מחירים?‬"
+                                    },
+                                    {
+                                        "name": "BRANCHNAME",
+                                        "type": "text",
+                                        "label": "‫סניף‬"
+                                    },
+                                    {
+                                        "name": "BRANCHDES",
+                                        "type": "text",
+                                        "label": "‫תאור הסניף‬"
+                                    },
+                                    {
+                                        "name": "EXTFILEFLAGB",
+                                        "type": "text",
+                                        "label": "‫נספחים?‬"
+                                    },
+                                    {
+                                        "name": "USERLOGIN",
+                                        "type": "text",
+                                        "label": "‫חתימה‬"
+                                    },
+                                    {
+                                        "name": "UDATE",
+                                        "type": "date",
+                                        "label": "‫ת. חתימה‬"
+                                    },
+                                    {
+                                        "name": "NGV_USERNAME",
+                                        "type": "text",
+                                        "label": "‫לטיפול (נייד)‬"
+                                    },
+                                    {
+                                        "name": "SCAN_ATTACHFN",
+                                        "type": "text",
+                                        "label": "‫שם קובץ לסריקה‬"
+                                    },
+                                    {
+                                        "name": "NGV_DISTRLINECODE",
+                                        "type": "text",
+                                        "label": "‫קוד קו חלוקה‬"
+                                    },
+                                    {
+                                        "name": "NGV_DISTRLINEDES",
+                                        "type": "text",
+                                        "label": "‫תאור קו חלוקה‬"
+                                    },
+                                    {
+                                        "name": "NGV_DISTRDATE",
+                                        "type": "date",
+                                        "label": "‫תאריך הפצה‬"
+                                    },
+                                    {
+                                        "name": "DOC",
+                                        "type": "number",
+                                        "label": "‫תעודה (ID)‬"
+                                    },
+                                    {
+                                        "name": "TYPE",
+                                        "type": "text",
+                                        "label": "‫טיפוס‬"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 12,
+                            "module": "util:SetVariable2",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "name": "DOC_NO",
+                                "scope": "roundtrip",
+                                "value": "N"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1800,
+                                    "y": 0
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "scope": {
+                                            "label": "One cycle"
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "name",
+                                        "type": "text",
+                                        "label": "Variable name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "scope",
+                                        "type": "select",
+                                        "label": "Variable lifetime",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "roundtrip",
+                                                "execution"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "value",
+                                        "type": "any",
+                                        "label": "Variable value"
+                                    }
+                                ],
+                                "interface": [
+                                    {
+                                        "name": "DOC_NO",
+                                        "type": "any",
+                                        "label": "DOC_NO"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 24,
+                            "module": "util:SetVariables",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "scope": "roundtrip",
+                                "variables": [
+                                    {
+                                        "name": "DOCNO",
+                                        "value": "{{2.DOCNO}}"
+                                    },
+                                    {
+                                        "name": "BOOKNUM",
+                                        "value": "{{2.BOOKNUM}}"
+                                    },
+                                    {
+                                        "name": "TOTQUANT",
+                                        "value": "{{2.TOTQUANT}}"
+                                    }
+                                ]
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 2100,
+                                    "y": 0
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "scope": {
+                                            "label": "One cycle"
+                                        },
+                                        "variables": {
+                                            "items": [
+                                                null,
+                                                null,
+                                                null
+                                            ]
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "variables",
+                                        "spec": [
+                                            {
+                                                "name": "name",
+                                                "type": "text",
+                                                "label": "Variable name",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "any",
+                                                "label": "Variable value"
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Variables"
+                                    },
+                                    {
+                                        "name": "scope",
+                                        "type": "select",
+                                        "label": "Variable lifetime",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "roundtrip",
+                                                "execution"
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "interface": [
+                                    {
+                                        "name": "DOCNO",
+                                        "type": "any",
+                                        "label": "DOCNO"
+                                    },
+                                    {
+                                        "name": "BOOKNUM",
+                                        "type": "any",
+                                        "label": "BOOKNUM"
+                                    },
+                                    {
+                                        "name": "TOTQUANT",
+                                        "type": "any",
+                                        "label": "TOTQUANT"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 17,
+                            "module": "scenario-service:ReturnData",
+                            "version": 2,
+                            "parameters": {},
+                            "mapper": {
+                                "DOC_YES_NO": "N",
+                                "list_of_docs": [
+                                    "{{`24`}}"
+                                ]
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 2400,
+                                    "y": 0
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "list_of_docs": {
+                                            "mode": "chose",
+                                            "items": [
+                                                null
+                                            ]
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "list_of_docs",
+                                        "spec": {
+                                            "type": "text",
+                                            "default": "",
+                                            "required": false,
+                                            "multiline": true
+                                        },
+                                        "type": "array",
+                                        "label": ""
+                                    },
+                                    {
+                                        "name": "DOC_YES_NO",
+                                        "type": "text",
+                                        "label": ""
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 27,
+                            "module": "json:TransformToJSON",
+                            "version": 1,
+                            "parameters": {
+                                "space": ""
+                            },
+                            "filter": {
+                                "name": "",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{13.PIVDOC_SUBFORM}}",
+                                            "b": "0",
+                                            "o": "array:notequal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "object": "{{13.PIVDOC_SUBFORM}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 300
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "space": {
+                                            "label": "Empty"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "space",
+                                        "type": "select",
+                                        "label": "Indentation",
+                                        "validate": {
+                                            "enum": [
+                                                "tab",
+                                                "2",
+                                                "4"
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "object",
+                                        "type": "any",
+                                        "label": "Object"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 61,
+                            "module": "scenario-service:CallSubscenario",
+                            "version": 2,
+                            "parameters": {
+                                "scenario": "SCN_7866658",
+                                "shouldWaitForExecutionEnd": true
+                            },
+                            "mapper": {
+                                "data": {
+                                    "JSON": [
+                                        "{{`27`}}"
+                                    ]
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1800,
+                                    "y": 300
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "data": {
+                                            "nested": {
+                                                "JSON": {
+                                                    "mode": "chose",
+                                                    "items": [
+                                                        null
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "parameters": {
+                                        "scenario": {
+                                            "label": "DOCS_TO STORE "
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "scenario",
+                                        "type": "scenario",
+                                        "label": "Scenario",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "shouldWaitForExecutionEnd",
+                                        "type": "boolean",
+                                        "label": "Wait for subscenario output",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "data",
+                                        "spec": [
+                                            {
+                                                "name": "JSON",
+                                                "spec": {
+                                                    "name": "value",
+                                                    "type": "text"
+                                                },
+                                                "type": "array",
+                                                "label": ""
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "Scenario Inputs"
+                                    }
+                                ],
+                                "interface": [
+                                    {
+                                        "help": "",
+                                        "name": "DOCS",
+                                        "spec": {
+                                            "type": "text",
+                                            "default": "",
+                                            "required": false,
+                                            "multiline": true
+                                        },
+                                        "type": "array",
+                                        "label": "",
+                                        "required": false
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 16,
+                            "module": "scenario-service:ReturnData",
+                            "version": 2,
+                            "parameters": {},
+                            "mapper": {
+                                "DOC_YES_NO": "Y",
+                                "list_of_docs": "{{61.DOCS}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 2149,
+                                    "y": 364
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "list_of_docs": {
+                                            "mode": "edit"
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "list_of_docs",
+                                        "spec": {
+                                            "name": "value",
+                                            "type": "text"
+                                        },
+                                        "type": "array",
+                                        "label": ""
+                                    },
+                                    {
+                                        "name": "DOC_YES_NO",
+                                        "type": "text",
+                                        "label": ""
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 23,
+                            "module": "scenario-service:ReturnData",
+                            "version": 2,
+                            "parameters": {},
+                            "filter": {
+                                "name": "",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{13.DOCNO}}",
+                                            "o": "notexist"
+                                        },
+                                        {
+                                            "a": "{{13.PIVDOC_SUBFORM}}",
+                                            "b": "0",
+                                            "o": "array:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "DOC_YES_NO": "N"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 600
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "list_of_docs": {
+                                            "mode": "chose"
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "list_of_docs",
+                                        "spec": {
+                                            "type": "text",
+                                            "default": "",
+                                            "required": false,
+                                            "multiline": true
+                                        },
+                                        "type": "array",
+                                        "label": ""
+                                    },
+                                    {
+                                        "name": "DOC_YES_NO",
+                                        "type": "text",
+                                        "label": ""
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    },
+    "io": {
+        "input_spec": [
+            {
+                "help": "",
+                "name": "LIST_IVNUM",
+                "type": "text",
+                "label": "",
+                "default": "",
+                "required": false,
+                "multiline": false
+            }
+        ],
+        "output_spec": [
+            {
+                "help": "",
+                "name": "list_of_docs",
+                "spec": {
+                    "type": "text",
+                    "default": "",
+                    "required": false,
+                    "multiline": true
+                },
+                "type": "array",
+                "label": "",
+                "required": false
+            },
+            {
+                "help": "",
+                "name": "DOC_YES_NO",
+                "type": "text",
+                "label": "",
+                "default": "",
+                "required": false,
+                "multiline": false
+            }
+        ]
+    }
+}
