@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Invoice - תיעוד מקיף</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px;
+            text-align: center;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header .version {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin: 0;
+        }
+
+        .toc li {
+            margin: 10px 0;
+        }
+
+        .toc a {
+            color: #764ba2;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            display: block;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .toc a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(-10px);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        section {
+            margin: 40px 0;
+            scroll-margin-top: 20px;
+        }
+
+        h2 {
+            color: #667eea;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+            margin: 40px 0 25px 0;
+            font-size: 2.2em;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 30px 0 15px 0;
+            font-size: 1.7em;
+            border-right: 5px solid #764ba2;
+            padding-right: 15px;
+        }
+
+        h4 {
+            color: #667eea;
+            margin: 20px 0 10px 0;
+            font-size: 1.3em;
+        }
+
+        .field-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-right: 6px solid #667eea;
+        }
+
+        .field-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -25px -25px 20px -25px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .field-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .meta-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-right: 3px solid #667eea;
+        }
+
+        .meta-label {
+            font-weight: bold;
+            color: #764ba2;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .meta-value {
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+            font-size: 0.95em;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-right: 6px solid #2196F3;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-right: 6px solid #ffc107;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-right: 6px solid #28a745;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+        }
+
+        .example-box {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .badge-ocr {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-template {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .badge-calculated {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .badge-search {
+            background: #dc3545;
+            color: white;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .collapsible {
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            width: 100%;
+            border: none;
+            text-align: right;
+            outline: none;
+            font-size: 1.2em;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .collapsible:hover {
+            background: #764ba2;
+        }
+
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: left;
+            margin-left: 5px;
+        }
+
+        .collapsible.active:after {
+            content: "\2212";
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .collapsible-content-inner {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏭 Production Invoice</h1>
+            <p class="version">v1.7.1 - תיעוד מקיף ומלא</p>
+            <p>מסמך מאוחד עם דריל דאון לכל הפרטים</p>
+        </header>
+
+        <div class="toc">
+            <h2>📑 תוכן עניינים</h2>
+            <ul>
+                <li><a href="#overview">1. סקירה כללית</a></li>
+                <li><a href="#invoice-types">2. סוגי חשבוניות</a></li>
+                <li><a href="#fields">3. פירוט שדות (דריל דאון מלא)</a></li>
+                <li><a href="#items">4. פירוט פריטים (PINVOICEITEMS_SUBFORM)</a></li>
+                <li><a href="#validation">5. בקרות ואימות (validation)</a></li>
+                <li><a href="#metadata">6. מטא-דאטה (metadata)</a></li>
+                <li><a href="#field-mapping">7. מיפוי שדות (field_mapping)</a></li>
+                <li><a href="#flow">8. תהליך עיבוד (Flow)</a></li>
+                <li><a href="#examples">9. דוגמאות מלאות</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <!-- Section 1: Overview -->
+            <section id="overview">
+                <h2>1️⃣ סקירה כללית</h2>
+
+                <div class="info-box">
+                    <h3>🎯 מטרת המודול</h3>
+                    <p>Production Invoice הוא השלב האחרון בתהליך עיבוד החשבוניות. המודול מקבל תבנית מאוחדת מ-Processing Invoice ומייצר JSON סופי מוכן לשליחה ל-Priority ERP.</p>
+                </div>
+
+                <h3>📥 קלט</h3>
+                <table>
+                    <tr>
+                        <th>שדה</th>
+                        <th>תיאור</th>
+                        <th>סוג</th>
+                        <th>חובה</th>
+                    </tr>
+                    <tr>
+                        <td><strong>learned_config</strong></td>
+                        <td>תבנית מאוחדת עם all_templates</td>
+                        <td>Object/String</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AZURE_RESULT</strong></td>
+                        <td>נתוני OCR מ-Azure</td>
+                        <td>Object/String</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AZURE_TEXT_CLEAN</strong></td>
+                        <td>טקסט נקי מהחשבונית</td>
+                        <td>String</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>vehicles</strong></td>
+                        <td>רשימת רכבים עם מיפוי חשבונות</td>
+                        <td>String (JSON array)</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>docs_list</strong></td>
+                        <td>רשימת תעודות זמינות</td>
+                        <td>String (JSON array)</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>import_files</strong></td>
+                        <td>קבצי יבוא</td>
+                        <td>Object/String</td>
+                        <td>❌</td>
+                    </tr>
+                </table>
+
+                <h3>📤 פלט</h3>
+                <div class="code-block">
+{
+  "status": "success",
+  "supplier_identification": {
+    "supplier_code": "5014",
+    "supplier_name": "טכומטר",
+    "identification_method": "vendor_tax_id",
+    "confidence": "high"
+  },
+  "invoice_data": {
+    "PINVOICES": [{ ... }]
+  },
+  "validation": { ... },
+  "learning_analysis": { ... },
+  "execution_report": { ... },
+  "metadata": { ... }
+}
+                </div>
+            </section>
+
+            <!-- Section 2: Invoice Types -->
+            <section id="invoice-types">
+                <h2>2️⃣ סוגי חשבוניות</h2>
+
+                <button class="collapsible">🚗 חשבוניות רכבים (Vehicles)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>זיהוי</h4>
+                        <ul>
+                            <li><strong>structure.has_vehicles = true</strong></li>
+                            <li>processing_scenario.all_templates[].check_vehicles = true</li>
+                        </ul>
+
+                        <h4>לוגיקה מיוחדת</h4>
+                        <ul>
+                            <li><strong>PDES:</strong> תיאור מוצרים אמיתיים מה-OCR Items (לא שם חשבון)</li>
+                            <li><strong>DETAILS:</strong> null (לא תיאור כללי)</li>
+                            <li><strong>PRICE:</strong> SubTotal (לפני מעמ) מחולק למספר רכבים</li>
+                            <li><strong>ACCNAME:</strong> ממופה מה-vehicles input לפי מספר רכב</li>
+                        </ul>
+
+                        <h4>חיפוש מספרי רכבים</h4>
+                        <ol>
+                            <li>UnidentifiedNumbers (עם label "רכב")</li>
+                            <li>VehicleNumbers</li>
+                            <li>Items[].Description (fallback)</li>
+                            <li>AZURE_TEXT_CLEAN (fallback אחרון)</li>
+                        </ol>
+
+                        <div class="example-box">
+                            <h4>דוגמה</h4>
+                            <div class="code-block">
+{
+  "PARTNAME": "car",
+  "PDES": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+  "ACCNAME": "66910",
+  "PRICE": 1150,
+  "TQUANT": 1
+}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">📄 חשבוניות עם תעודות (Documents)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>זיהוי</h4>
+                        <ul>
+                            <li><strong>structure.has_doc = true</strong></li>
+                            <li>processing_scenario.all_templates[].check_docs = true</li>
+                        </ul>
+
+                        <h4>לוגיקה מיוחדת</h4>
+                        <ul>
+                            <li>חיפוש תעודות ב-UnidentifiedNumbers</li>
+                            <li>התאמה מול docs_list (BOOKNUM → DOCNO)</li>
+                            <li>אם נמצאו תעודות: <strong>לא יוצר PINVOICEITEMS_SUBFORM</strong></li>
+                            <li>תעודה יחידה: DOCNO בשדה רגיל</li>
+                            <li>מספר תעודות: PIVDOC_SUBFORM</li>
+                        </ul>
+
+                        <div class="example-box">
+                            <h4>דוגמה - תעודה יחידה</h4>
+                            <div class="code-block">
+{
+  "BOOKNUM": "25403318",
+  "DOCNO": "25023118",
+  "ORDNAME": "2501002992"
+}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">📦 חשבוניות עם יבוא (Import)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>זיהוי</h4>
+                        <ul>
+                            <li><strong>structure.has_import = true</strong></li>
+                            <li>processing_scenario.all_templates[].check_import = true</li>
+                        </ul>
+
+                        <h4>לוגיקה מיוחדת</h4>
+                        <ul>
+                            <li>חיפוש IMPFNUM ב-import_files</li>
+                            <li>IMPFNUM מוסף לחשבונית</li>
+                            <li>יוצר PINVOICEITEMS_SUBFORM רגיל</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="collapsible">📝 חשבוניות רגילות (Regular)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>זיהוי</h4>
+                        <ul>
+                            <li>has_vehicles = false</li>
+                            <li>has_doc = false</li>
+                            <li>has_import = false</li>
+                        </ul>
+
+                        <h4>לוגיקה</h4>
+                        <ul>
+                            <li>יוצר PINVOICEITEMS_SUBFORM מה-OCR Items</li>
+                            <li>אם אין items ב-OCR: לוקח מהתבנית</li>
+                            <li>DETAILS מהתבנית או מה-OCR</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Fields Drill-Down -->
+            <section id="fields">
+                <h2>3️⃣ פירוט שדות - דריל דאון מלא</h2>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        SUPNAME - קוד ספק
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-template">Template</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">חובה</div>
+                            <div class="meta-value">✅ כן</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">סוג</div>
+                            <div class="meta-value">String</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">אורך מקסימלי</div>
+                            <div class="meta-value">10 תווים</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת קבלת ערך</h4>
+                    <ol>
+                        <li>template.SUPNAME</li>
+                        <li>config.supplier_config.supplier_code</li>
+                        <li>learnedConfig.supplier_id</li>
+                        <li>learnedConfig.llm_prompt.supplier_code</li>
+                        <li>learnedConfig.technical_config.supplier_code</li>
+                    </ol>
+
+                    <div class="example-box">
+                        <strong>דוגמה:</strong> "5014"
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        CODE - מטבע
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-template">Template</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">חובה</div>
+                            <div class="meta-value">✅ כן</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">ערך ברירת מחדל</div>
+                            <div class="meta-value">"ש\"ח"</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת קבלת ערך</h4>
+                    <div class="code-block">
+CODE: template.CODE || "ש\"ח"
+                    </div>
+
+                    <div class="example-box">
+                        <strong>דוגמה:</strong> "ש\"ח", "USD", "EUR"
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        DEBIT - סוג זיכוי/חיוב
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-calculated">Calculated</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">ערכים אפשריים</div>
+                            <div class="meta-value">"D" (חיוב) / "C" (זיכוי)</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת זיהוי</h4>
+                    <ul>
+                        <li>בודק InvoiceId האם מכיל "זיכוי" או "credit"</li>
+                        <li>בודק InvoiceTotal_amount - אם שלילי = זיכוי</li>
+                        <li>ברירת מחדל: structure.debit_type</li>
+                    </ul>
+
+                    <div class="code-block">
+DEBIT: structure.debit_type || "D"
+                    </div>
+
+                    <div class="example-box">
+                        <strong>דוגמה:</strong> "D" (רוב החשבוניות)
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        IVDATE - תאריך חשבונית
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-ocr">OCR</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">שדה OCR</div>
+                            <div class="meta-value">InvoiceDate</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">פורמט</div>
+                            <div class="meta-value">DD/MM/YY</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת המרה</h4>
+                    <div class="code-block">
+// OCR: "2025-07-08" → "08/07/25"
+function searchIvdate(ocrFields) {
+    const rawDate = ocrFields.InvoiceDate || "";
+    // המרה לפורמט DD/MM/YY
+    return formatDateToPriority(rawDate);
+}
+                    </div>
+
+                    <div class="example-box">
+                        <strong>OCR:</strong> "2025-07-08"<br>
+                        <strong>Priority:</strong> "08/07/25"
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        BOOKNUM - מספר חשבונית
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-ocr">OCR</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">שדה OCR</div>
+                            <div class="meta-value">InvoiceId</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">ניקוי</div>
+                            <div class="meta-value">✅ כן</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת ניקוי</h4>
+                    <div class="code-block">
+function searchBooknum(ocrFields, patterns) {
+    const original = ocrFields.InvoiceId || "";
+    let booknum = String(original);
+
+    // הסר "SI" מהתחלה
+    booknum = booknum.replace(/^SI/i, '');
+
+    // קח רק מספרים ומקפים מהתחלה
+    const match = booknum.match(/^[\d\-\/]+/);
+    if (match) {
+        booknum = match[0];
+    }
+
+    // הסר מקפים ו-slashes מהסוף
+    booknum = booknum.replace(/[\-\/]+$/, '');
+
+    return booknum;
+}
+                    </div>
+
+                    <div class="example-box">
+                        <strong>OCR:</strong> "286015 NS"<br>
+                        <strong>Priority:</strong> "286015"
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        DETAILS - פרטים נוספים
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-ocr">OCR</span> / <span class="badge badge-template">Template</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">חובה</div>
+                            <div class="meta-value">❌ לא</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת קבלת ערך</h4>
+                    <div class="code-block">
+// ברכבים: תמיד null
+if (searchResults.vehicles && searchResults.vehicles.length > 0) {
+    invoice.DETAILS = null;
+}
+
+// בחשבוניות רגילות:
+// - אם יש InvoiceDescription ב-OCR: לוקח אותו
+// - אחרת: שורה שלישית מה-AZURE_TEXT
+// - מסנן "עבודה" כללית
+
+// מרכבים עם קילומטראז' (legacy):
+// DETAILS = "טיפול-103577"
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>⚠️ חשוב:</strong> ברכבים - DETAILS = null (לא תיאור כללי)
+                    </div>
+
+                    <div class="example-box">
+                        <strong>רכבים:</strong> null<br>
+                        <strong>רגילה:</strong> "גשר העץ 20"
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        ORDNAME - מספר הזמנה
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-ocr">OCR</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">שדה OCR</div>
+                            <div class="meta-value">PurchaseOrder</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">חובה</div>
+                            <div class="meta-value">❌ לא</div>
+                        </div>
+                    </div>
+
+                    <div class="example-box">
+                        <strong>דוגמה:</strong> "2501002992"
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        DOCNO - מספר תעודה
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-search">Documents Search</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">תלוי ב</div>
+                            <div class="meta-value">structure.has_doc = true</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת חיפוש</h4>
+                    <ol>
+                        <li>חיפוש מספרים ב-UnidentifiedNumbers</li>
+                        <li>התאמה מול docs_list (BOOKNUM → DOCNO)</li>
+                        <li>Fallback: חיפוש ב-AZURE_TEXT</li>
+                    </ol>
+
+                    <div class="example-box">
+                        <strong>תעודה יחידה:</strong><br>
+                        DOCNO = "25023118" (שדה רגיל)<br><br>
+                        <strong>מספר תעודות:</strong><br>
+                        PIVDOC_SUBFORM = [<br>
+                        &nbsp;&nbsp;{ DOCNO: "25023118", BOOKNUM: "25403318" },<br>
+                        &nbsp;&nbsp;{ DOCNO: "25023119", BOOKNUM: "25403319" }<br>
+                        ]
+                    </div>
+                </div>
+
+                <div class="field-card">
+                    <div class="field-header">
+                        IMPFNUM - מספר קובץ יבוא
+                    </div>
+                    <div class="field-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">מקור</div>
+                            <div class="meta-value"><span class="badge badge-search">Import Files Search</span></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">תלוי ב</div>
+                            <div class="meta-value">structure.has_import = true</div>
+                        </div>
+                    </div>
+
+                    <h4>לוגיקת חיפוש</h4>
+                    <ul>
+                        <li>מחפש ב-import_files.IMPFILES</li>
+                        <li>מתאים לפי תאריך או מספר חשבונית</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 4: Items -->
+            <section id="items">
+                <h2>4️⃣ פירוט פריטים (PINVOICEITEMS_SUBFORM)</h2>
+
+                <div class="info-box">
+                    <h3>קבלת החלטה: מתי יוצר פריטים?</h3>
+                    <div class="code-block">
+const needItems = !structure.has_doc ||
+                  !searchResults.documents ||
+                  searchResults.documents.length === 0;
+
+if (needItems) {
+    // יוצר פריטים
+}
+                    </div>
+                    <p><strong>כלומר:</strong> אם יש תעודות ונמצאו - לא יוצר פריטים!</p>
+                </div>
+
+                <h3>שדות בפריט</h3>
+
+                <table>
+                    <tr>
+                        <th>שדה</th>
+                        <th>מקור (רכבים)</th>
+                        <th>מקור (רגיל)</th>
+                        <th>חובה</th>
+                    </tr>
+                    <tr>
+                        <td><strong>PARTNAME</strong></td>
+                        <td>"car"</td>
+                        <td>"car" / Items[].PartName</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PDES</strong></td>
+                        <td>תיאורי מוצרים מ-Items<br>(ממוין לפי סכום)</td>
+                        <td>Items[].Description</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TQUANT</strong></td>
+                        <td>1</td>
+                        <td>Items[].Quantity</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TUNITNAME</strong></td>
+                        <td>"יח'"</td>
+                        <td>Items[].Unit || "יח'"</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PRICE</strong></td>
+                        <td>SubTotal / vehicle_count</td>
+                        <td>Items[].Amount</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>VATFLAG</strong></td>
+                        <td>mapping.vat_pattern.VATFLAG</td>
+                        <td>template.VATFLAG || "Y"</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ACCNAME</strong></td>
+                        <td>mapping.accname (מ-vehicles)</td>
+                        <td>template.ACCNAME</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SPECIALVATFLAG</strong></td>
+                        <td>mapping.vat_pattern.SPECIALVATFLAG</td>
+                        <td>template.SPECIALVATFLAG</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>BUDCODE</strong></td>
+                        <td>mapping.budcode || default</td>
+                        <td>template.BUDCODE</td>
+                        <td>❌</td>
+                    </tr>
+                </table>
+
+                <h3>לוגיקת PDES ברכבים (v1.7.1)</h3>
+                <div class="code-block">
+// ממיין Items לפי Amount (הגבוה ביותר ראשון)
+const sortedItems = [...ocrItems].sort((a, b) => {
+    const amountA = parseFloat(a.Amount_amount || a.Amount || 0);
+    const amountB = parseFloat(b.Amount_amount || b.Amount || 0);
+    return amountB - amountA;
+});
+
+// מסנן תיאורים כלליים
+const excludeTerms = ['עבודה', 'work', 'labor'];
+const productDescriptions = [];
+
+for (const item of sortedItems) {
+    const desc = item.Description_content || item.Description || '';
+    const isGeneric = excludeTerms.some(term => desc.trim() === term);
+
+    if (desc && !isGeneric && productDescriptions.length < 3) {
+        productDescriptions.push(desc.trim());
+    }
+}
+
+// שילוב עם "+"
+PDES = productDescriptions.join('+ ');
+                </div>
+
+                <div class="success-box">
+                    <h4>✅ דוגמה מוצלחת</h4>
+                    <strong>Items OCR:</strong>
+                    <ul>
+                        <li>עבודה - 150 ₪ (מסונן!)</li>
+                        <li>שלט רמפה אלחוטי GALILO - 650 ₪</li>
+                        <li>מכסה סולר איסוזו - 350 ₪</li>
+                    </ul>
+                    <strong>PDES:</strong> "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו"
+                </div>
+
+                <h3>לוגיקת PRICE ברכבים</h3>
+                <div class="code-block">
+// חישוב SubTotal (לפני מעמ)
+let subtotal = ocrFields.SubTotal_amount || ocrFields.SubTotal || 0;
+
+if (!subtotal && ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount) {
+    subtotal = ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount;
+    console.log(`📊 Calculated SubTotal: ${subtotal}`);
+}
+
+const pricePerVehicle = vehicles.length > 0 ? subtotal / vehicles.length : subtotal;
+                </div>
+
+                <div class="example-box">
+                    <strong>InvoiceTotal:</strong> 1357 ₪<br>
+                    <strong>TotalTax:</strong> 207 ₪<br>
+                    <strong>SubTotal:</strong> 1357 - 207 = 1150 ₪<br>
+                    <strong>Vehicles:</strong> 1<br>
+                    <strong>PRICE:</strong> 1150 ₪
+                </div>
+            </section>
+
+            <!-- Section 5: Validation -->
+            <section id="validation">
+                <h2>5️⃣ בקרות ואימות (validation)</h2>
+
+                <h3>מבנה validation</h3>
+                <div class="code-block">
+{
+  "all_valid": true,
+  "checks": {
+    "required_fields_check": "passed",
+    "invoice_structure_check": "passed",
+    "amount_validation": "passed",
+    "field_mapping": { ... }
+  },
+  "warnings": [
+    "✅ סכום תקין: 1150.00 ש\"ח (0.0% הפרש)"
+  ]
+}
+                </div>
+
+                <h3>בדיקות</h3>
+
+                <h4>1. required_fields_check</h4>
+                <p>בודק נוכחות שדות חובה:</p>
+                <ul>
+                    <li>SUPNAME</li>
+                    <li>CODE</li>
+                    <li>DEBIT</li>
+                    <li>IVDATE</li>
+                    <li>BOOKNUM</li>
+                </ul>
+
+                <h4>2. invoice_structure_check</h4>
+                <p>בודק תקינות מבנה החשבונית</p>
+
+                <h4>3. amount_validation</h4>
+                <p>בודק התאמת סכומים:</p>
+                <div class="code-block">
+// חישוב סכום מהפריטים
+const calculatedTotal = PINVOICEITEMS_SUBFORM.reduce((sum, item) => {
+    return sum + (item.TQUANT || 0) * (item.PRICE || 0);
+}, 0);
+
+// קבלת SubTotal מ-OCR
+let ocrSubtotal = ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
+if (!ocrSubtotal && ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount) {
+    ocrSubtotal = ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount;
+}
+
+// בדיקת הפרש
+const difference = Math.abs(calculatedTotal - ocrSubtotal);
+const percentDiff = (difference / ocrSubtotal) * 100;
+
+if (percentDiff > 5) {
+    warnings.push(`⚠️ הפרש סכומים: ${percentDiff.toFixed(1)}%`);
+} else {
+    warnings.push(`✅ סכום תקין: ${calculatedTotal.toFixed(2)} ש"ח`);
+}
+                </div>
+
+                <div class="warning-box">
+                    <strong>⚠️ חשוב:</strong> השוואה של SubTotal (לפני מעמ) ולא Total!
+                </div>
+            </section>
+
+            <!-- Section 6: Metadata -->
+            <section id="metadata">
+                <h2>6️⃣ מטא-דאטה (metadata)</h2>
+
+                <div class="code-block">
+{
+  "ocr_invoice_id": "286015 NS",
+  "ocr_invoice_date": "2025-07-08",
+  "ocr_total_amount": 1357,
+  "ocr_subtotal": 1150,
+  "ocr_tax": 207,
+  "processing_timestamp": "2025-11-06T11:34:56.706Z",
+  "version": "1.0-production",
+  "template_index": 0,
+  "template_type": "vehicles",
+  "has_vehicles": true,
+  "vehicle_numbers": ["419-29-702"],
+  "vehicle_count": 1,
+  "has_documents": false,
+  "document_count": 0,
+  "has_import": false
+}
+                </div>
+
+                <h3>שדות metadata</h3>
+                <table>
+                    <tr>
+                        <th>שדה</th>
+                        <th>תיאור</th>
+                        <th>מקור</th>
+                    </tr>
+                    <tr>
+                        <td><strong>ocr_invoice_id</strong></td>
+                        <td>מספר חשבונית מקורי מ-OCR</td>
+                        <td>InvoiceId</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ocr_invoice_date</strong></td>
+                        <td>תאריך מקורי מ-OCR</td>
+                        <td>InvoiceDate</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ocr_total_amount</strong></td>
+                        <td>סכום כולל (עם מעמ)</td>
+                        <td>InvoiceTotal_amount</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ocr_subtotal</strong></td>
+                        <td>סכום לפני מעמ</td>
+                        <td>SubTotal או Total - Tax</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ocr_tax</strong></td>
+                        <td>מעמ</td>
+                        <td>TotalTax_amount</td>
+                    </tr>
+                    <tr>
+                        <td><strong>template_type</strong></td>
+                        <td>סוג חשבונית</td>
+                        <td>"vehicles" / "docs_only" / "import_only" / "regular"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>has_vehicles</strong></td>
+                        <td>האם חשבונית רכבים</td>
+                        <td>structure.has_vehicles</td>
+                    </tr>
+                    <tr>
+                        <td><strong>vehicle_numbers</strong></td>
+                        <td>מספרי רכבים שנמצאו</td>
+                        <td>searchResults.vehicles</td>
+                    </tr>
+                    <tr>
+                        <td><strong>vehicle_count</strong></td>
+                        <td>מספר רכבים</td>
+                        <td>vehicles.length</td>
+                    </tr>
+                </table>
+            </section>
+
+            <!-- Section 7: Field Mapping -->
+            <section id="field-mapping">
+                <h2>7️⃣ מיפוי שדות (field_mapping)</h2>
+
+                <div class="info-box">
+                    <h3>🎯 מטרה</h3>
+                    <p>field_mapping מציג לכל שדה בחשבונית:</p>
+                    <ul>
+                        <li><strong>source</strong> - מהיכן הערך הגיע (OCR, Template, Calculated, Search)</li>
+                        <li><strong>field</strong> - שם השדה המקורי ב-OCR (אם רלוונטי)</li>
+                        <li><strong>value</strong> - הערך הסופי</li>
+                        <li><strong>ocr_value</strong> - הערך המקורי מ-OCR (אם שונה)</li>
+                    </ul>
+                </div>
+
+                <h3>דוגמה מלאה</h3>
+                <div class="code-block">
+{
+  "SUPNAME": {
+    "source": "Template",
+    "field": "supplier_code",
+    "value": "5014"
+  },
+  "CODE": {
+    "source": "Template",
+    "value": "ש\"ח"
+  },
+  "DEBIT": {
+    "source": "Template",
+    "value": "D"
+  },
+  "IVDATE": {
+    "source": "OCR",
+    "field": "InvoiceDate",
+    "value": "08/07/25",
+    "ocr_value": "2025-07-08"
+  },
+  "BOOKNUM": {
+    "source": "OCR",
+    "field": "InvoiceId",
+    "value": "286015",
+    "ocr_value": "286015 NS"
+  },
+  "DETAILS": {
+    "source": "OCR",
+    "value": null
+  },
+  "PINVOICEITEMS_SUBFORM": {
+    "source": "Vehicle Items",
+    "vehicle_numbers": ["419-29-702"],
+    "count": 1,
+    "items": [
+      {
+        "PDES": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+        "ACCNAME": "66910",
+        "PRICE": 1150
+      }
+    ]
+  }
+}
+                </div>
+
+                <h3>סוגי source</h3>
+                <ul>
+                    <li><strong>OCR</strong> - נלקח ישירות מ-AZURE_RESULT</li>
+                    <li><strong>Template</strong> - נלקח מהתבנית (learned_config)</li>
+                    <li><strong>Calculated</strong> - חושב מערכים אחרים</li>
+                    <li><strong>Documents Search</strong> - נמצא בחיפוש תעודות</li>
+                    <li><strong>Vehicle Items</strong> - נבנה מפריטי רכבים</li>
+                    <li><strong>OCR Items</strong> - נבנה מפריטי OCR</li>
+                </ul>
+            </section>
+
+            <!-- Section 8: Flow -->
+            <section id="flow">
+                <h2>8️⃣ תהליך עיבוד (Flow)</h2>
+
+                <div class="flow-step">
+                    <h3>שלב 1: פרסור input</h3>
+                    <ul>
+                        <li>פרסור learned_config (string → object)</li>
+                        <li>פרסור AZURE_RESULT (string → object)</li>
+                        <li>פרסור vehicles (string → array → mapping)</li>
+                        <li>פרסור docs_list</li>
+                        <li>פרסור import_files</li>
+                    </ul>
+                </div>
+
+                <div class="flow-step">
+                    <h3>שלב 2: זיהוי סוג ותבנית</h3>
+                    <ul>
+                        <li>בניית structure מ-processing_scenario.all_templates</li>
+                        <li>זיהוי: has_import, has_doc, has_vehicles, debit_type</li>
+                        <li>התאמת template index</li>
+                    </ul>
+                </div>
+
+                <div class="flow-step">
+                    <h3>שלב 3: חיפוש נתונים</h3>
+                    <ul>
+                        <li>searchBooknum() - מספר חשבונית</li>
+                        <li>searchIvdate() - תאריך</li>
+                        <li>searchDetails() - פרטים</li>
+                        <li>searchDocuments() - תעודות (אם has_doc)</li>
+                        <li>extractVehiclesAdvanced() - רכבים (אם has_vehicles)</li>
+                    </ul>
+                </div>
+
+                <div class="flow-step">
+                    <h3>שלב 4: בניית חשבונית</h3>
+                    <ul>
+                        <li>buildInvoiceFromTemplate()</li>
+                        <li>מיפוי שדות מ-template + searchResults</li>
+                        <li>בחירת needItems</li>
+                        <li>יצירת PINVOICEITEMS_SUBFORM</li>
+                    </ul>
+                </div>
+
+                <div class="flow-step">
+                    <h3>שלב 5: בקרות</h3>
+                    <ul>
+                        <li>performValidation()</li>
+                        <li>בדיקת שדות חובה</li>
+                        <li>בדיקת סכומים</li>
+                        <li>בניית field_mapping</li>
+                    </ul>
+                </div>
+
+                <div class="flow-step">
+                    <h3>שלב 6: ניתוח למידה</h3>
+                    <ul>
+                        <li>analyzeLearning()</li>
+                        <li>זיהוי partnames חדשים</li>
+                        <li>זיהוי רכבים חדשים</li>
+                        <li>זיהוי חשבונות לא ידועים</li>
+                    </ul>
+                </div>
+
+                <div class="flow-step">
+                    <h3>שלב 7: ניקוי והחזרה</h3>
+                    <ul>
+                        <li>cleanInvoiceForPriority()</li>
+                        <li>הסרת _learningNote</li>
+                        <li>הסרת undefined values</li>
+                        <li>בניית result סופי</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 9: Examples -->
+            <section id="examples">
+                <h2>9️⃣ דוגמאות מלאות</h2>
+
+                <button class="collapsible">דוגמה 1: חשבונית רכבים</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>Input</h4>
+                        <div class="code-block">
+{
+  "learned_config": { ... },
+  "vehicles": "{[{\"CAR_NUMBER\":\"419-29-702\",\"ACCNAME\":\"66910\",\"ASSDES\":\"419-29-702 אחזקת משאית\"}]}",
+  "AZURE_RESULT": {
+    "documents": [{
+      "fields": {
+        "InvoiceId": { "content": "286015 NS" },
+        "InvoiceDate": { "content": "2025-07-08" },
+        "InvoiceTotal": { "content": "1,357.00" },
+        "TotalTax": { "content": "207.00" },
+        "Items": {
+          "valueArray": [
+            { "valueObject": { "Description": { "content": "עבודה" }, "Amount": { "content": "150.00" } } },
+            { "valueObject": { "Description": { "content": "שלט רמפה אלחוטי GALILO" }, "Amount": { "content": "650.00" } } },
+            { "valueObject": { "Description": { "content": "מכסה סולר איסוזו" }, "Amount": { "content": "350.00" } } }
+          ]
+        }
+      }
+    }]
+  },
+  "AZURE_TEXT_CLEAN": "... 419-29-702 ..."
+}
+                        </div>
+
+                        <h4>Output</h4>
+                        <div class="code-block">
+{
+  "status": "success",
+  "invoice_data": {
+    "PINVOICES": [{
+      "SUPNAME": "5014",
+      "CODE": "ש\"ח",
+      "DEBIT": "D",
+      "IVDATE": "08/07/25",
+      "BOOKNUM": "286015",
+      "DETAILS": null,
+      "PINVOICEITEMS_SUBFORM": [{
+        "PARTNAME": "car",
+        "PDES": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+        "TQUANT": 1,
+        "TUNITNAME": "יח'",
+        "PRICE": 1150,
+        "VATFLAG": "Y",
+        "ACCNAME": "66910"
+      }]
+    }]
+  },
+  "validation": {
+    "all_valid": true,
+    "checks": {
+      "amount_validation": "passed",
+      "field_mapping": {
+        "PINVOICEITEMS_SUBFORM": {
+          "source": "Vehicle Items",
+          "vehicle_numbers": ["419-29-702"]
+        }
+      }
+    },
+    "warnings": ["✅ סכום תקין: 1150.00 ש\"ח (0.0% הפרש)"]
+  },
+  "metadata": {
+    "template_type": "vehicles",
+    "has_vehicles": true,
+    "vehicle_numbers": ["419-29-702"],
+    "vehicle_count": 1,
+    "ocr_subtotal": 1150,
+    "ocr_tax": 207
+  }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">דוגמה 2: חשבונית עם תעודות</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>Input</h4>
+                        <div class="code-block">
+{
+  "learned_config": { ... },
+  "docs_list": "{[{\"BOOKNUM\":\"25403318\",\"DOCNO\":\"25023118\"}]}",
+  "AZURE_RESULT": {
+    "documents": [{
+      "fields": {
+        "InvoiceId": { "content": "25403318" },
+        "UnidentifiedNumbers": [
+          { "value": "25403318", "label": "מספר" }
+        ]
+      }
+    }]
+  }
+}
+                        </div>
+
+                        <h4>Output</h4>
+                        <div class="code-block">
+{
+  "status": "success",
+  "invoice_data": {
+    "PINVOICES": [{
+      "SUPNAME": "5014",
+      "BOOKNUM": "25403318",
+      "DOCNO": "25023118",
+      "ORDNAME": "2501002992"
+      // ⚠️ אין PINVOICEITEMS_SUBFORM - יש תעודות!
+    }]
+  },
+  "metadata": {
+    "template_type": "docs_only",
+    "has_documents": true,
+    "document_count": 1
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <footer>
+            <p>📅 עודכן לאחרונה: 06 נובמבר 2025</p>
+            <p>🔧 גרסה: v1.7.1</p>
+            <p>✅ תיקונים אחרונים: PDES מתיאורי מוצרים + DETAILS=null ברכבים + SubTotal + metadata + field_mapping</p>
+        </footer>
+    </div>
+
+    <script>
+        // Collapsible functionality
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        }
+
+        // Smooth scroll for TOC links
+        document.querySelectorAll('.toc a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

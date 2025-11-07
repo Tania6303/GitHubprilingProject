@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakeCode Invoice Processing System - Complete Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .version {
+            background: rgba(255,255,255,0.2);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 20px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 60px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #2c3e50;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        .module-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            border-right: 5px solid #667eea;
+        }
+
+        .module-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .collapsible {
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            border: none;
+            text-align: right;
+            width: 100%;
+            font-size: 1.1em;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .collapsible:hover {
+            background: #764ba2;
+        }
+
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: left;
+            margin-right: 5px;
+        }
+
+        .collapsible.active:after {
+            content: "\2212";
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #f9f9f9;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .collapsible-content-inner {
+            padding: 20px;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-right: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .warning-box {
+            background: #fff3e0;
+            border-right: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .success-box {
+            background: #e8f5e9;
+            border-right: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .badge-ocr {
+            background: #2196f3;
+            color: white;
+        }
+
+        .badge-template {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .badge-calculated {
+            background: #ff9800;
+            color: white;
+        }
+
+        .badge-search {
+            background: #4caf50;
+            color: white;
+        }
+
+        .architecture-diagram {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flow-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px auto;
+            max-width: 600px;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: right;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .field-list {
+            background: #f5f7fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .field-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 3px;
+            border-right: 3px solid #667eea;
+        }
+
+        .toc {
+            background: #f5f7fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-right: 20px;
+        }
+
+        .toc li {
+            margin: 10px 0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .example-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            background: #fff59d;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🔄 MakeCode Invoice Processing System</h1>
+        <p>מערכת עיבוד חשבוניות אוטומטית מ-OCR ל-Priority ERP</p>
+        <div class="version">גרסה 1.7.2 | 6 נובמבר 2025</div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">סקירה כללית</a></li>
+            <li><a href="#architecture">ארכיטקטורה</a></li>
+            <li><a href="#module1">מודול 1: SupplierDataLearning</a></li>
+            <li><a href="#module2">מודול 2: Processing Invoice</a></li>
+            <li><a href="#module3">מודול 3: Production Invoice</a></li>
+            <li><a href="#workflow">תהליך עבודה</a></li>
+            <li><a href="#examples">דוגמאות</a></li>
+            <li><a href="#troubleshooting">פתרון בעיות</a></li>
+        </ul>
+    </nav>
+
+    <div class="content">
+
+        <!-- TABLE OF CONTENTS -->
+        <section id="toc">
+            <h2>📑 תוכן עניינים</h2>
+            <div class="toc">
+                <ul>
+                    <li><a href="#overview">1. סקירה כללית</a></li>
+                    <li><a href="#architecture">2. ארכיטקטורה ותרשים זרימה</a></li>
+                    <li><a href="#module1">3. מודול 1: SupplierDataLearning - למידה ראשונית</a>
+                        <ul>
+                            <li><a href="#module1-purpose">מטרה ותפקיד</a></li>
+                            <li><a href="#module1-io">קלט ופלט</a></li>
+                            <li><a href="#module1-fields">שדות מפורטים</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#module2">4. מודול 2: Processing Invoice - למידה מדוגמה</a>
+                        <ul>
+                            <li><a href="#module2-purpose">מטרה ותפקיד</a></li>
+                            <li><a href="#module2-io">קלט ופלט</a></li>
+                            <li><a href="#module2-outputs">4 פלטים מפורטים</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#module3">5. מודול 3: Production Invoice - ייצור חשבוניות</a>
+                        <ul>
+                            <li><a href="#module3-purpose">מטרה ותפקיד</a></li>
+                            <li><a href="#module3-io">קלט ופלט</a></li>
+                            <li><a href="#module3-types">סוגי חשבוניות</a></li>
+                            <li><a href="#module3-fields">שדות - Drill Down</a></li>
+                            <li><a href="#module3-items">פריטים - PINVOICEITEMS_SUBFORM</a></li>
+                            <li><a href="#module3-validation">בדיקות ו-Validation</a></li>
+                            <li><a href="#module3-metadata">Metadata</a></li>
+                            <li><a href="#module3-mapping">Field Mapping</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#workflow">6. תהליך עבודה מלא</a></li>
+                    <li><a href="#examples">7. דוגמאות מלאות</a></li>
+                    <li><a href="#troubleshooting">8. פתרון בעיות</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- OVERVIEW -->
+        <section id="overview">
+            <h2>1. 🎯 סקירה כללית</h2>
+
+            <div class="info-box">
+                <strong>מה המערכת עושה?</strong><br>
+                מערכת שלמה שמקבלת תמונה של חשבונית ומייצרת JSON מובנה ל-Priority ERP.
+            </div>
+
+            <h3>שלושת המודולים העיקריים:</h3>
+
+            <div class="module-card">
+                <span class="module-number">1</span>
+                <h4>SupplierDataLearning - למידה ראשונית</h4>
+                <p><strong>תדירות:</strong> פעם אחת לכל ספק חדש</p>
+                <p><strong>מטרה:</strong> ללמוד מדוגמאות קיימות ב-Priority ולייצר learned_config</p>
+                <p><strong>קלט:</strong> חשבוניות שכבר נכנסו למערכת</p>
+                <p><strong>פלט:</strong> learned_config (קונפיגורציה + תבניות)</p>
+            </div>
+
+            <div class="module-card">
+                <span class="module-number">2</span>
+                <h4>Processing Invoice - למידה מדוגמה</h4>
+                <p><strong>תדירות:</strong> פעם אחת לכל ספק (אחרי מודול 1)</p>
+                <p><strong>מטרה:</strong> ללמוד מחשבונית דוגמה ולייצר הנחיות מפורטות</p>
+                <p><strong>קלט:</strong> learned_config + AZURE_RESULT + חשבונית דוגמה</p>
+                <p><strong>פלט:</strong> 4 פלטים - invoice_data, llm_prompt, technical_config, processing_scenario</p>
+            </div>
+
+            <div class="module-card">
+                <span class="module-number">3</span>
+                <h4>Production Invoice - ייצור חשבוניות</h4>
+                <p><strong>תדירות:</strong> כל חשבונית חדשה</p>
+                <p><strong>מטרה:</strong> לייצר JSON סופי מוכן לשליחה ל-Priority</p>
+                <p><strong>קלט:</strong> learned_config + AZURE_RESULT + נתונים חיים (docs_list, vehicles, import_files)</p>
+                <p><strong>פלט:</strong> JSON סופי + validation + execution_report</p>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ גרסה נוכחית:</strong><br>
+                • SupplierDataLearning v1.2<br>
+                • Processing Invoice v4.2<br>
+                • Production Invoice v1.7.2 (עדכון אחרון: 6 נובמבר 2025)
+            </div>
+        </section>
+
+        <!-- ARCHITECTURE -->
+        <section id="architecture">
+            <h2>2. 🏗️ ארכיטקטורה ותרשים זרימה</h2>
+
+            <div class="architecture-diagram">
+                <div class="flow-box">
+                    <h4>Priority ERP - דוגמאות קיימות</h4>
+                    <p>חשבוניות שכבר נכנסו למערכת</p>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="flow-box">
+                    <h4>STEP 1: SupplierDataLearning</h4>
+                    <p>קלט: חשבוניות Priority → פלט: learned_config</p>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="flow-box">
+                    <h4>Azure Document Intelligence</h4>
+                    <p>OCR - זיהוי טקסט מתמונת חשבונית</p>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="flow-box">
+                    <h4>AzureInvoiceProcessor</h4>
+                    <p>עיבוד OCR גולמי → AZURE_RESULT מובנה</p>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="flow-box">
+                    <h4>STEP 2: Processing Invoice</h4>
+                    <p>קלט: learned_config + AZURE_RESULT + דוגמה</p>
+                    <p>פלט: 4 פלטים (הנחיות למשימות הבאות)</p>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="flow-box">
+                    <h4>STEP 3: Production Invoice</h4>
+                    <p>קלט: learned_config + AZURE_RESULT + נתונים חיים</p>
+                    <p>פלט: JSON סופי ל-Priority</p>
+                </div>
+
+                <div class="flow-arrow">⬇️</div>
+
+                <div class="flow-box">
+                    <h4>Priority ERP</h4>
+                    <p>קליטת החשבונית החדשה</p>
+                </div>
+            </div>
+
+            <h3>טבלת השוואה - 3 המודולים</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>מאפיין</th>
+                        <th>Module 1</th>
+                        <th>Module 2</th>
+                        <th>Module 3</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>שם</strong></td>
+                        <td>SupplierDataLearning</td>
+                        <td>Processing Invoice</td>
+                        <td>Production Invoice</td>
+                    </tr>
+                    <tr>
+                        <td><strong>מצב</strong></td>
+                        <td>Initial Learning</td>
+                        <td>Learning + Guide</td>
+                        <td>Production</td>
+                    </tr>
+                    <tr>
+                        <td><strong>מטרה</strong></td>
+                        <td>ללמוד מדוגמאות</td>
+                        <td>ללמוד מדוגמה</td>
+                        <td>להריץ חדש</td>
+                    </tr>
+                    <tr>
+                        <td><strong>קלט</strong></td>
+                        <td>חשבוניות Priority</td>
+                        <td>דוגמה + OCR</td>
+                        <td>OCR + הנחיות</td>
+                    </tr>
+                    <tr>
+                        <td><strong>פלט</strong></td>
+                        <td>learned_config</td>
+                        <td>4 פלטים</td>
+                        <td>JSON סופי</td>
+                    </tr>
+                    <tr>
+                        <td><strong>תדירות</strong></td>
+                        <td>פעם אחת לספק</td>
+                        <td>פעם אחת לספק</td>
+                        <td>כל חשבונית</td>
+                    </tr>
+                    <tr>
+                        <td><strong>תלות</strong></td>
+                        <td>-</td>
+                        <td>Module 1</td>
+                        <td>Module 1 + 2</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- MODULE 1 -->
+        <section id="module1">
+            <h2>3. 📚 מודול 1: SupplierDataLearning</h2>
+
+            <div id="module1-purpose">
+                <h3>מטרה ותפקיד</h3>
+                <p><strong>מודול למידה ראשוני</strong> שמנתח חשבוניות קיימות במערכת Priority ולומד איך לעבד חשבוניות מספק מסוים.</p>
+
+                <div class="info-box">
+                    <strong>⏰ מתי להשתמש?</strong><br>
+                    פעם אחת בלבד לכל ספק חדש - זו נקודת ההתחלה!
+                </div>
+
+                <h4>תהליך הלמידה:</h4>
+                <ol>
+                    <li><strong>קבלת דוגמאות</strong> - חשבוניות שכבר נכנסו ל-Priority</li>
+                    <li><strong>ניתוח תבניות</strong> - מזהה מבנים חוזרים</li>
+                    <li><strong>זיהוי חוקים</strong> - לומד חוקים (תעודות, יבוא, רכבים)</li>
+                    <li><strong>יצירת קונפיג</strong> - מייצר learned_config לשימוש במודולים הבאים</li>
+                </ol>
+            </div>
+
+            <div id="module1-io">
+                <h3>קלט ופלט</h3>
+
+                <button class="collapsible">📥 קלט (Input)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <div class="code-block">
+{
+  // דוגמאות חשבוניות מ-Priority
+  invoices: [
+    {
+      PINVOICES: [{
+        SUPNAME: "2511",
+        BOOKNUM: "60000013",
+        IVDATE: "28/10/25",
+        CODE: "I",
+        DETAILS: "...",
+        PIVDOC_SUBFORM: [...],      // אם יש תעודות
+        PINVOICEITEMS_SUBFORM: [...] // אם יש פירוט פריטים
+      }]
+    },
+    ...  // עוד דוגמאות
+  ]
+}
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">📤 פלט (Output) - learned_config</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <div class="code-block">
+{
+  status: "success",
+  supplier_id: "2511",
+  supplier_name: "פלסאון בע\"מ",
+  vendor_tax_id_reference: "512865254",
+  json_files_analyzed: 10,
+  templates_detected: 2,
+
+  config: {
+    supplier_config: {
+      supplier_code: "2511",
+      supplier_name: "פלסאון בע\"מ",
+      vendor_tax_id_reference: "512865254"
+    },
+
+    structure: [
+      {
+        has_import: false,
+        has_doc: true,
+        has_vehicles: false,
+        debit_type: "D",
+        has_budcode: true,
+        inventory_management: "managed_inventory"
+      }
+      // תבניות נוספות...
+    ],
+
+    rules: {
+      invoice_date_format: "DD/MM/YY",
+      critical_patterns: {
+        vehicle_rules: {...}  // אם יש רכבים
+      }
+    },
+
+    document_types: [
+      {
+        type: "חשבונית עם תעודות",
+        accnames: ["63001"]
+      }
+    ]
+  },
+
+  template: {
+    PINVOICES: [{
+      CODE: "I",
+      DETAILS: "...",
+      ACCNAME: "63001",
+      PIVDOC_SUBFORM: [...]
+    }]
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="module1-fields">
+                <h3>שדות מפורטים - learned_config</h3>
+
+                <div class="field-list">
+                    <div class="field-item">
+                        <strong>supplier_config</strong> - מידע בסיסי על הספק
+                        <ul>
+                            <li>supplier_code - קוד הספק ב-Priority</li>
+                            <li>supplier_name - שם הספק</li>
+                            <li>vendor_tax_id_reference - מספר ח.פ / ע.מ</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>structure</strong> - מערך תבניות אפשריות
+                        <ul>
+                            <li>has_doc - האם יש תעודות משלוח (DOCNO)</li>
+                            <li>has_vehicles - האם יש רכבים</li>
+                            <li>has_import - האם יש יבוא (IMPFNUM)</li>
+                            <li>debit_type - סוג זיכוי/חיוב (D/C)</li>
+                            <li>inventory_management - ניהול מלאי</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>rules</strong> - חוקים לעיבוד
+                        <ul>
+                            <li>invoice_date_format - פורמט תאריך</li>
+                            <li>critical_patterns - תבניות קריטיות (רכבים, תעודות)</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>template</strong> - תבנית JSON לחיקוי
+                        <ul>
+                            <li>PINVOICES - דוגמה לחשבונית תקינה</li>
+                            <li>משמש כבסיס לחשבוניות חדשות</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 2 -->
+        <section id="module2">
+            <h2>4. 🔍 מודול 2: Processing Invoice</h2>
+
+            <div id="module2-purpose">
+                <h3>מטרה ותפקיד</h3>
+                <p><strong>מודול למידה</strong> שמנתח חשבונית דוגמה ויוצר הנחיות מפורטות להפעלת חשבוניות חדשות.</p>
+
+                <div class="warning-box">
+                    <strong>⚠️ חשוב:</strong> מודול זה <strong>לא מיועד לproduction</strong>! הוא רק לומד ונותן הנחיות.
+                </div>
+
+                <h4>תהליך הלמידה:</h4>
+                <ol>
+                    <li><strong>קבלת דוגמה</strong> - חשבונית + AZURE_RESULT + docs_list</li>
+                    <li><strong>זיהוי תבנית</strong> - מזהה אם יש תעודות/יבוא/רכבים</li>
+                    <li><strong>למידה</strong> - לומד מהדוגמה איך לעבד חשבוניות כאלה</li>
+                    <li><strong>יצירת הנחיות</strong> - מייצר 4 פלטים</li>
+                </ol>
+            </div>
+
+            <div id="module2-io">
+                <h3>קלט ופלט</h3>
+
+                <button class="collapsible">📥 קלט (Input)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <div class="code-block">
+{
+  // 1. הגדרות ספק (ממודול SupplierDataLearning)
+  learned_config: {
+    supplier_id: "2511",
+    supplier_name: "פלסאון בע\"מ",
+    config: {
+      supplier_config: {...},
+      structure: [...],    // תבניות אפשריות
+      rules: {...}
+    },
+    template: {...}        // תבנית JSON
+  },
+
+  // 2. נתונים זמינים
+  docs_list: {
+    DOC_YES_NO: "Y",
+    list_of_docs: [...]
+  },
+  import_files: {...},
+  vehicles: {...},
+
+  // 3. ניתוח OCR
+  AZURE_RESULT: {
+    data: {
+      fields: {...},
+      items: [...]
+    }
+  },
+  AZURE_TEXT_CLEAN: "...",
+  AZURE_TEXT: "..."
+}
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">📤 פלט (Output) - 4 פלטים!</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>1. invoice_data - JSON דוגמה</h4>
+                        <div class="code-block">
+{
+  PINVOICES: [{
+    SUPNAME: "2511",
+    BOOKNUM: "60000013",
+    IVDATE: "28/10/25",
+    PIVDOC_SUBFORM: [
+      { DOCNO: "25026849", BOOKNUM: "108379736" },
+      ...
+    ]
+  }]
+}
+                        </div>
+
+                        <h4>2. llm_prompt - הנחיות בשפה טבעית</h4>
+                        <div class="code-block">
+"עבור ספק 2511 - פלסאון:
+1. חפש BOOKNUM ב-UnidentifiedNumbers
+2. התאם עם docs_list
+3. יצור PIVDOC_SUBFORM
+..."
+                        </div>
+
+                        <h4>3. technical_config - קונפיג טכני</h4>
+                        <div class="code-block">
+{
+  extraction_rules: {
+    booknum: {
+      search_in: ["fields.InvoiceId", "UnidentifiedNumbers"],
+      ...
+    },
+    ivdate: {
+      search_in: ["fields.InvoiceDate"],
+      ...
+    },
+    documents: {
+      search_in: ["fields.UnidentifiedNumbers"],
+      matching: {
+        field_to_match: "BOOKNUM",
+        docs_list_path: "list_of_docs"
+      }
+    }
+  }
+}
+                        </div>
+
+                        <h4>4. processing_scenario - מה לשלוף</h4>
+                        <div class="code-block">
+{
+  all_templates: [
+    {
+      check_docs: true,
+      check_import: false,
+      check_vehicles: false,
+      debit_type: "D"
+    }
+  ]
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="module2-outputs">
+                <h3>4 הפלטים - פירוט מלא</h3>
+
+                <div class="field-list">
+                    <div class="field-item">
+                        <strong>1. invoice_data</strong>
+                        <p>JSON לדוגמה - <strong>לא לשליחה ל-Priority!</strong> רק למידה</p>
+                        <ul>
+                            <li>משמש כהדגמה למודול Production</li>
+                            <li>כולל את כל השדות שנמצאו</li>
+                            <li>מסמן שדות שנלמדו מהדוגמה</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>2. llm_prompt</strong>
+                        <p>הנחיות בשפה טבעית - ל-LLM או למפתח</p>
+                        <ul>
+                            <li>מסביר את התהליך צעד אחר צעד</li>
+                            <li>מתאר איפה למצוא מידע</li>
+                            <li>נותן דוגמאות קונקרטיות</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>3. technical_config</strong>
+                        <p>קונפיג טכני מפורט - למודול Production</p>
+                        <ul>
+                            <li>חוקי חיפוש לכל שדה</li>
+                            <li>התאמות ומיפויים</li>
+                            <li>טיפול בשגיאות</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>4. processing_scenario</strong>
+                        <p>מה לשלוף מהמערכת</p>
+                        <ul>
+                            <li>check_docs - האם לשלוף תעודות</li>
+                            <li>check_import - האם לשלוף יבוא</li>
+                            <li>check_vehicles - האם לשלוף רכבים</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3 -->
+        <section id="module3">
+            <h2>5. ⚙️ מודול 3: Production Invoice</h2>
+
+            <div id="module3-purpose">
+                <h3>מטרה ותפקיד</h3>
+                <p><strong>מודול ייצור</strong> שמקבל חשבונית חדשה ומייצר JSON סופי מוכן לשליחה ל-Priority ERP.</p>
+
+                <div class="success-box">
+                    <strong>✅ זה המודול שרץ בproduction!</strong><br>
+                    כל חשבונית חדשה עוברת כאן ומקבלת JSON תקני.
+                </div>
+
+                <h4>תהליך העיבוד:</h4>
+                <ol>
+                    <li><strong>קבלת קלט</strong> - learned_config + AZURE_RESULT + נתונים חיים</li>
+                    <li><strong>זיהוי תבנית</strong> - מזהה איזו תבנית מתאימה</li>
+                    <li><strong>חיפוש נתונים</strong> - מחפש תעודות/רכבים/יבוא</li>
+                    <li><strong>בניית JSON</strong> - יוצר JSON תקני</li>
+                    <li><strong>בדיקות</strong> - מאמת נכונות</li>
+                    <li><strong>החזרת פלט</strong> - JSON + דוח + metadata</li>
+                </ol>
+
+                <div class="info-box">
+                    <strong>גרסה נוכחית:</strong> v1.7.2 (6 נובמבר 2025)<br>
+                    <strong>תיקונים אחרונים:</strong><br>
+                    • DETAILS לפי שורה 1 PDES<br>
+                    • PDES מתיאור מוצרים אמיתיים (לא שמות חשבונות)<br>
+                    • PRICE = SubTotal (לפני מעמ)<br>
+                    • metadata מורחב<br>
+                    • field_mapping מפורט
+                </div>
+            </div>
+
+            <div id="module3-io">
+                <h3>קלט ופלט</h3>
+
+                <button class="collapsible">📥 קלט (Input)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <div class="code-block">
+{
+  input: [
+    { name: "learned_config", value: {...} },
+    { name: "docs_list", value: {...} },
+    { name: "import_files", value: {...} },
+    { name: "vehicles", value: {...} },
+    { name: "AZURE_RESULT", value: {...} },
+    { name: "AZURE_TEXT_CLEAN", value: "..." },
+    { name: "AZURE_TEXT", value: "..." }
+  ]
+}
+                        </div>
+
+                        <h4>פירוט שדות קלט:</h4>
+                        <ul>
+                            <li><strong>learned_config</strong> - ממודול 1 (SupplierDataLearning)</li>
+                            <li><strong>docs_list</strong> - תעודות זמינות מהמערכת</li>
+                            <li><strong>import_files</strong> - קבצי יבוא זמינים</li>
+                            <li><strong>vehicles</strong> - רשימת רכבים + מיפוי חשבונות</li>
+                            <li><strong>AZURE_RESULT</strong> - תוצאות OCR מעובדות</li>
+                            <li><strong>AZURE_TEXT_CLEAN</strong> - טקסט נקי</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="collapsible">📤 פלט (Output)</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <div class="code-block">
+{
+  status: "success",
+  supplier_identification: {
+    supplier_code: "5014",
+    supplier_name: "..."
+  },
+  invoice_data: {
+    PINVOICES: [{
+      SUPNAME: "5014",
+      CODE: "ש\"ח",
+      DEBIT: "D",
+      IVDATE: "08/07/25",
+      BOOKNUM: "286015",
+      DETAILS: "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+      PINVOICEITEMS_SUBFORM: [...]
+    }]
+  },
+  validation: {
+    all_valid: true,
+    checks: {
+      required_fields_check: "passed",
+      invoice_structure_check: "passed",
+      amount_validation: "passed",
+      field_mapping: {...}
+    }
+  },
+  execution_report: {...},
+  metadata: {...}
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="module3-types">
+                <h3>סוגי חשבוניות</h3>
+
+                <button class="collapsible">🚗 חשבוניות רכבים</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>מאפיינים:</h4>
+                        <ul>
+                            <li>check_vehicles: true ב-processing_scenario</li>
+                            <li>vehicles input עם מיפוי רכבים</li>
+                            <li>PINVOICEITEMS_SUBFORM עם פריט לכל רכב</li>
+                            <li>DETAILS = PDES של שורה 1</li>
+                        </ul>
+
+                        <h4>לוגיקה מיוחדת:</h4>
+                        <ul>
+                            <li><strong>PDES</strong> - תיאור מוצרים אמיתיים (לא "עבודה")</li>
+                            <li><strong>ACCNAME</strong> - מיפוי לפי מספר רכב</li>
+                            <li><strong>PRICE</strong> - SubTotal / כמות רכבים</li>
+                            <li><strong>DETAILS</strong> - PDES של הפריט הראשון</li>
+                        </ul>
+
+                        <div class="code-block">
+{
+  PINVOICES: [{
+    SUPNAME: "5014",
+    IVDATE: "08/07/25",
+    BOOKNUM: "286015",
+    DETAILS: "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+    PINVOICEITEMS_SUBFORM: [{
+      PARTNAME: "car",
+      PDES: "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+      ACCNAME: "66910",
+      TQUANT: 1,
+      PRICE: 1150,
+      VATFLAG: "Y"
+    }]
+  }]
+}
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">📄 חשבוניות עם תעודות</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>מאפיינים:</h4>
+                        <ul>
+                            <li>check_docs: true ב-processing_scenario</li>
+                            <li>docs_list input עם תעודות זמינות</li>
+                            <li>DOCNO או PIVDOC_SUBFORM</li>
+                            <li>ללא PINVOICEITEMS_SUBFORM</li>
+                        </ul>
+
+                        <h4>תעודה יחידה vs מרובות:</h4>
+                        <ul>
+                            <li><strong>תעודה יחידה:</strong> DOCNO בשדה רגיל</li>
+                            <li><strong>תעודות מרובות:</strong> PIVDOC_SUBFORM</li>
+                        </ul>
+
+                        <div class="code-block">
+// תעודות מרובות:
+{
+  PINVOICES: [{
+    SUPNAME: "2511",
+    BOOKNUM: "60000013",
+    PIVDOC_SUBFORM: [
+      { DOCNO: "25026849", BOOKNUM: "108379736" },
+      { DOCNO: "25026850", BOOKNUM: "108379734" }
+    ]
+  }]
+}
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">📦 חשבוניות יבוא</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>מאפיינים:</h4>
+                        <ul>
+                            <li>check_import: true</li>
+                            <li>import_files input</li>
+                            <li>IMPFNUM בשדה רגיל</li>
+                        </ul>
+
+                        <div class="code-block">
+{
+  PINVOICES: [{
+    SUPNAME: "...",
+    IMPFNUM: "2024/12345"
+  }]
+}
+                        </div>
+                    </div>
+                </div>
+
+                <button class="collapsible">📋 חשבוניות רגילות</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <h4>מאפיינים:</h4>
+                        <ul>
+                            <li>ללא תעודות/רכבים/יבוא</li>
+                            <li>PINVOICEITEMS_SUBFORM מ-OCR Items</li>
+                            <li>או ללא פריטים (רק סכום כולל)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="module3-fields">
+                <h3>שדות - Drill Down מלא</h3>
+
+                <div class="field-list">
+                    <div class="field-item">
+                        <strong>SUPNAME</strong> <span class="badge badge-template">Template</span>
+                        <p>קוד ספק ב-Priority</p>
+                        <div class="code-block">SUPNAME: template.SUPNAME || config.supplier_config.supplier_code</div>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>CODE</strong> <span class="badge badge-template">Template</span>
+                        <p>קוד מטבע</p>
+                        <div class="code-block">CODE: template.CODE || "ש\"ח"</div>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>DEBIT</strong> <span class="badge badge-calculated">Calculated</span>
+                        <p>סוג זיכוי/חיוב (D/C)</p>
+                        <ul>
+                            <li>בודק InvoiceId עבור "זיכוי" או "credit"</li>
+                            <li>בודק InvoiceTotal_amount - אם שלילי = זיכוי</li>
+                            <li>ברירת מחדל: structure.debit_type</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>IVDATE</strong> <span class="badge badge-ocr">OCR</span>
+                        <p>תאריך חשבונית (DD/MM/YY)</p>
+                        <div class="code-block">
+// OCR: "2025-07-08" → "08/07/25"
+IVDATE: formatDateToPriority(ocrFields.InvoiceDate)
+                        </div>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>BOOKNUM</strong> <span class="badge badge-ocr">OCR</span>
+                        <p>מספר חשבונית (לאחר ניקוי)</p>
+                        <div class="code-block">
+// OCR: "286015 NS" → "286015"
+BOOKNUM: cleanBooknum(ocrFields.InvoiceId)
+                        </div>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>DETAILS</strong> <span class="badge badge-ocr">First Item PDES</span>
+                        <p>פרטים נוספים</p>
+                        <ul>
+                            <li>ברכבים: PDES של הפריט הראשון</li>
+                            <li>בחשבוניות רגילות: InvoiceDescription מ-OCR או שורה 3 מ-AZURE_TEXT</li>
+                            <li>מסנן "עבודה" כללית</li>
+                        </ul>
+                        <div class="code-block">
+// ברכבים:
+DETAILS = PINVOICEITEMS_SUBFORM[0].PDES
+                        </div>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>ORDNAME</strong> <span class="badge badge-ocr">OCR</span>
+                        <p>מספר הזמנה (אופציונלי)</p>
+                        <div class="code-block">ORDNAME: ocrFields.PurchaseOrder || null</div>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>DOCNO</strong> <span class="badge badge-search">Documents Search</span>
+                        <p>מספר תעודה (אם יש תעודה יחידה)</p>
+                        <ul>
+                            <li>מחפש BOOKNUM ב-UnidentifiedNumbers</li>
+                            <li>מתאים עם docs_list</li>
+                            <li>אם יותר מתעודה אחת → PIVDOC_SUBFORM</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>IMPFNUM</strong> <span class="badge badge-search">Import Search</span>
+                        <p>מספר יבוא (אם יש)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="module3-items">
+                <h3>פריטים - PINVOICEITEMS_SUBFORM</h3>
+
+                <h4>שדות בכל פריט:</h4>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>שדה</th>
+                            <th>תיאור</th>
+                            <th>מקור</th>
+                            <th>דוגמה</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PARTNAME</strong></td>
+                            <td>סוג פריט</td>
+                            <td>תבנית / "car"</td>
+                            <td>"car"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PDES</strong></td>
+                            <td>תיאור פריט</td>
+                            <td>OCR Items / רכב</td>
+                            <td>"שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TQUANT</strong></td>
+                            <td>כמות</td>
+                            <td>OCR / 1</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TUNITNAME</strong></td>
+                            <td>יחידת מידה</td>
+                            <td>תבנית</td>
+                            <td>"יח'"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PRICE</strong></td>
+                            <td>מחיר ליחידה</td>
+                            <td>חישוב</td>
+                            <td>1150</td>
+                        </tr>
+                        <tr>
+                            <td><strong>VATFLAG</strong></td>
+                            <td>מעמ</td>
+                            <td>תבנית / mapping</td>
+                            <td>"Y"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ACCNAME</strong></td>
+                            <td>מספר חשבון</td>
+                            <td>תבנית / mapping</td>
+                            <td>"66910"</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>ברכבים - לוגיקה מיוחדת:</h4>
+
+                <div class="success-box">
+                    <strong>✅ PDES מתיאור מוצרים אמיתיים:</strong><br>
+                    1. לוקח את כל ה-Items מ-OCR<br>
+                    2. ממיין לפי Amount (הגבוה ביותר קודם)<br>
+                    3. מסנן פריטים גנריים ("עבודה", "work", "labor")<br>
+                    4. לוקח עד 3 תיאורים משמעותיים<br>
+                    5. מחבר עם "+"
+                </div>
+
+                <div class="code-block">
+// דוגמה:
+// Items: [
+//   { Description: "עבודה", Amount: 150 },
+//   { Description: "שלט רמפה אלחוטי GALILO", Amount: 650 },
+//   { Description: "מכסה סולר איסוזו", Amount: 350 }
+// ]
+//
+// PDES = "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו"
+                </div>
+
+                <div class="success-box">
+                    <strong>✅ PRICE = SubTotal / כמות רכבים:</strong><br>
+                    1. מחשב SubTotal = InvoiceTotal - TotalTax<br>
+                    2. מחלק בכמות הרכבים<br>
+                    3. זה מבטיח שאימות הסכום יצליח (0% הפרש)
+                </div>
+
+                <div class="code-block">
+// InvoiceTotal = 1357 (כולל מעמ)
+// TotalTax = 207
+// SubTotal = 1150
+// Vehicles = 1
+// PRICE = 1150 / 1 = 1150 ✅
+                </div>
+            </div>
+
+            <div id="module3-validation">
+                <h3>בדיקות ו-Validation</h3>
+
+                <h4>checks - בדיקות אוטומטיות:</h4>
+
+                <div class="field-list">
+                    <div class="field-item">
+                        <strong>required_fields_check</strong>
+                        <p>בודק שכל השדות החובה קיימים:</p>
+                        <ul>
+                            <li>SUPNAME</li>
+                            <li>IVDATE</li>
+                            <li>BOOKNUM</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>invoice_structure_check</strong>
+                        <p>בודק מבנה תקין:</p>
+                        <ul>
+                            <li>יש PINVOICES</li>
+                            <li>PINVOICES הוא array</li>
+                            <li>יש לפחות חשבונית אחת</li>
+                        </ul>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>amount_validation</strong>
+                        <p>משווה סכומים:</p>
+                        <ul>
+                            <li>מחשב סכום כולל מהפריטים</li>
+                            <li>משווה ל-SubTotal מ-OCR</li>
+                            <li>מחשב אחוז הפרש</li>
+                            <li>מאשר אם ההפרש קטן מ-2%</li>
+                        </ul>
+                        <div class="code-block">
+// ✅ סכום תקין: 1150.00 ש"ח (0.0% הפרש)
+// ⚠️ הפרש סכומים: 1200.00 vs 1150.00 (4.3%)
+                        </div>
+                    </div>
+
+                    <div class="field-item">
+                        <strong>field_mapping</strong>
+                        <p>מעקב מקורות נתונים - מראה לכל שדה:</p>
+                        <ul>
+                            <li><strong>source</strong> - מהיכן הגיע הערך</li>
+                            <li><strong>value</strong> - הערך הסופי</li>
+                            <li><strong>ocr_value</strong> - הערך המקורי מ-OCR (אם רלוונטי)</li>
+                            <li><strong>field</strong> - שם השדה במקור</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="collapsible">דוגמה - field_mapping מלא</button>
+                <div class="collapsible-content">
+                    <div class="collapsible-content-inner">
+                        <div class="code-block">
+{
+  "field_mapping": {
+    "SUPNAME": {
+      "source": "Template",
+      "field": "supplier_code",
+      "value": "5014"
+    },
+    "CODE": {
+      "source": "Template",
+      "value": "ש\"ח"
+    },
+    "DEBIT": {
+      "source": "Template",
+      "value": "D"
+    },
+    "IVDATE": {
+      "source": "OCR",
+      "field": "InvoiceDate",
+      "value": "08/07/25",
+      "ocr_value": "2025-07-08"
+    },
+    "BOOKNUM": {
+      "source": "OCR",
+      "field": "InvoiceId",
+      "value": "286015",
+      "ocr_value": "286015 NS"
+    },
+    "DETAILS": {
+      "source": "First Item PDES",
+      "value": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו"
+    },
+    "PINVOICEITEMS_SUBFORM": {
+      "source": "Vehicle Items",
+      "vehicle_numbers": ["419-29-702"],
+      "count": 1,
+      "items": [{
+        "PDES": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+        "ACCNAME": "66910",
+        "PRICE": 1150
+      }]
+    }
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="module3-metadata">
+                <h3>Metadata - מידע נוסף</h3>
+
+                <p>metadata מכיל מידע שימושי לדיבאג ומעקב:</p>
+
+                <div class="field-list">
+                    <div class="field-item">
+                        <strong>ocr_invoice_id</strong> - מספר חשבונית מקורי מ-OCR
+                    </div>
+                    <div class="field-item">
+                        <strong>ocr_invoice_date</strong> - תאריך מקורי מ-OCR
+                    </div>
+                    <div class="field-item">
+                        <strong>ocr_total_amount</strong> - סכום כולל (כולל מעמ)
+                    </div>
+                    <div class="field-item">
+                        <strong>ocr_subtotal</strong> - סכום לפני מעמ
+                    </div>
+                    <div class="field-item">
+                        <strong>ocr_tax</strong> - סכום מעמ
+                    </div>
+                    <div class="field-item">
+                        <strong>processing_timestamp</strong> - זמן עיבוד
+                    </div>
+                    <div class="field-item">
+                        <strong>version</strong> - גרסת הקוד
+                    </div>
+                    <div class="field-item">
+                        <strong>template_index</strong> - איזו תבנית נבחרה
+                    </div>
+                    <div class="field-item">
+                        <strong>template_type</strong> - סוג התבנית (vehicles/docs_only/regular/import)
+                    </div>
+                    <div class="field-item">
+                        <strong>has_vehicles</strong> - האם יש רכבים
+                    </div>
+                    <div class="field-item">
+                        <strong>vehicle_numbers</strong> - רשימת מספרי רכבים
+                    </div>
+                    <div class="field-item">
+                        <strong>vehicle_count</strong> - כמות רכבים
+                    </div>
+                    <div class="field-item">
+                        <strong>has_documents</strong> - האם יש תעודות
+                    </div>
+                    <div class="field-item">
+                        <strong>document_count</strong> - כמות תעודות
+                    </div>
+                    <div class="field-item">
+                        <strong>has_import</strong> - האם יש יבוא
+                    </div>
+                </div>
+            </div>
+
+            <div id="module3-mapping">
+                <h3>Field Mapping - מעקב מקורות</h3>
+
+                <p>field_mapping מספק שקיפות מלאה על מקור כל ערך בJSON:</p>
+
+                <h4>סוגי מקורות:</h4>
+                <ul>
+                    <li><span class="badge badge-ocr">OCR</span> - נלקח ישירות מ-AZURE_RESULT</li>
+                    <li><span class="badge badge-template">Template</span> - נלקח מהתבנית</li>
+                    <li><span class="badge badge-calculated">Calculated</span> - חושב לפי לוגיקה</li>
+                    <li><span class="badge badge-search">Search</span> - נמצא בחיפוש (תעודות/רכבים/יבוא)</li>
+                </ul>
+
+                <h4>מבנה field_mapping:</h4>
+                <div class="code-block">
+{
+  "FIELD_NAME": {
+    "source": "OCR" | "Template" | "Calculated" | "Search",
+    "field": "שם השדה במקור",    // אופציונלי
+    "value": "הערך הסופי",
+    "ocr_value": "ערך מקורי"      // רק ל-OCR
+  }
+}
+                </div>
+
+                <div class="success-box">
+                    <strong>✅ יתרונות:</strong><br>
+                    • שקיפות מלאה על מקור כל נתון<br>
+                    • קל לדיבאג בעיות<br>
+                    • מאפשר מעקב שינויים<br>
+                    • עוזר בלמידה ושיפור
+                </div>
+            </div>
+        </section>
+
+        <!-- WORKFLOW -->
+        <section id="workflow">
+            <h2>6. 🔄 תהליך עבודה מלא</h2>
+
+            <h3>ספק חדש - תהליך מלא:</h3>
+
+            <div class="flow-box">
+                <strong>שלב 0: הכנה (פעם אחת לספק)</strong>
+                <ol>
+                    <li>קבל דוגמאות חשבוניות מ-Priority</li>
+                    <li>הרץ SupplierDataLearning → learned_config</li>
+                    <li>שמור את ה-learned_config</li>
+                </ol>
+            </div>
+
+            <div class="flow-arrow">⬇️</div>
+
+            <div class="flow-box">
+                <strong>שלב 1: למידה מדוגמה (פעם אחת לספק)</strong>
+                <ol>
+                    <li>קבל חשבונית דוגמה</li>
+                    <li>הרץ Azure OCR</li>
+                    <li>הרץ AzureInvoiceProcessor → AZURE_RESULT</li>
+                    <li>הרץ Processing Invoice → 4 פלטים</li>
+                    <li>שמור את ההנחיות</li>
+                </ol>
+            </div>
+
+            <div class="flow-arrow">⬇️</div>
+
+            <div class="flow-box">
+                <strong>שלב 2: ייצור (כל חשבונית חדשה)</strong>
+                <ol>
+                    <li>קבל חשבונית חדשה</li>
+                    <li>הרץ Azure OCR</li>
+                    <li>הרץ AzureInvoiceProcessor → AZURE_RESULT</li>
+                    <li>שלוף נתונים (docs_list, import_files, vehicles)</li>
+                    <li>הרץ Production Invoice → JSON סופי</li>
+                    <li>(אופציונלי) הרץ cleanJson → ניקוי</li>
+                    <li>שלח ל-Priority</li>
+                </ol>
+            </div>
+
+            <h3>דוגמה: ספק 5014 + רכב 419-29-702</h3>
+
+            <button class="collapsible">תהליך מלא - צעד אחר צעד</button>
+            <div class="collapsible-content">
+                <div class="collapsible-content-inner">
+                    <h4>1. קלט:</h4>
+                    <ul>
+                        <li>ספק: 5014</li>
+                        <li>רכב: 419-29-702</li>
+                        <li>חשבונית: 286015</li>
+                        <li>תאריך: 08/07/25</li>
+                        <li>סכום כולל: 1357 (כולל מעמ)</li>
+                        <li>מעמ: 207</li>
+                        <li>פריטים:</li>
+                        <ul>
+                            <li>עבודה - 150 ₪</li>
+                            <li>שלט רמפה אלחוטי GALILO - 650 ₪</li>
+                            <li>מכסה סולר איסוזו - 350 ₪</li>
+                        </ul>
+                    </ul>
+
+                    <h4>2. זיהוי תבנית:</h4>
+                    <p>מצא check_vehicles: true → תבנית רכבים</p>
+
+                    <h4>3. חיפוש רכב:</h4>
+                    <p>מצא "419-29-702" ב-AZURE_TEXT_CLEAN</p>
+                    <p>מיפוי: ACCNAME = 66910</p>
+
+                    <h4>4. בניית PDES:</h4>
+                    <ul>
+                        <li>ממיין פריטים לפי סכום: 650, 350, 150</li>
+                        <li>מסנן "עבודה"</li>
+                        <li>לוקח 2 הראשונים: "שלט רמפה אלחוטי GALILO", "מכסה סולר איסוזו"</li>
+                        <li>מחבר: "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו"</li>
+                    </ul>
+
+                    <h4>5. חישוב PRICE:</h4>
+                    <ul>
+                        <li>SubTotal = 1357 - 207 = 1150</li>
+                        <li>Vehicles = 1</li>
+                        <li>PRICE = 1150 / 1 = 1150</li>
+                    </ul>
+
+                    <h4>6. DETAILS:</h4>
+                    <ul>
+                        <li>DETAILS = PINVOICEITEMS_SUBFORM[0].PDES</li>
+                        <li>DETAILS = "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו"</li>
+                    </ul>
+
+                    <h4>7. אימות:</h4>
+                    <ul>
+                        <li>סכום מהפריטים: 1150</li>
+                        <li>SubTotal מ-OCR: 1150</li>
+                        <li>הפרש: 0.0% ✅</li>
+                    </ul>
+
+                    <h4>8. פלט סופי:</h4>
+                    <div class="code-block">
+{
+  PINVOICES: [{
+    SUPNAME: "5014",
+    CODE: "ש\"ח",
+    DEBIT: "D",
+    IVDATE: "08/07/25",
+    BOOKNUM: "286015",
+    DETAILS: "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+    PINVOICEITEMS_SUBFORM: [{
+      PARTNAME: "car",
+      PDES: "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+      TQUANT: 1,
+      TUNITNAME: "יח'",
+      PRICE: 1150,
+      VATFLAG: "Y",
+      ACCNAME: "66910"
+    }]
+  }]
+}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXAMPLES -->
+        <section id="examples">
+            <h2>7. 📚 דוגמאות מלאות</h2>
+
+            <button class="collapsible">דוגמה 1: ספק 2511 - חשבונית עם 4 תעודות</button>
+            <div class="collapsible-content">
+                <div class="collapsible-content-inner">
+                    <h4>קלט:</h4>
+                    <div class="code-block">
+Supplier: 2511 (פלסאון בע"מ)
+Invoice: 60000013
+Date: 28/10/25
+Total: 50,000 ₪
+
+תעודות שנמצאו ב-UnidentifiedNumbers:
+- 108379736
+- 108379734
+- 108367753
+- 108367755
+
+docs_list מהמערכת:
+[
+  { DOCNO: "25026849", BOOKNUM: "108379736" },
+  { DOCNO: "25026850", BOOKNUM: "108379734" },
+  { DOCNO: "25026832", BOOKNUM: "108367753" },
+  { DOCNO: "25026831", BOOKNUM: "108367755" }
+]
+                    </div>
+
+                    <h4>פלט:</h4>
+                    <div class="code-block">
+{
+  PINVOICES: [{
+    SUPNAME: "2511",
+    CODE: "ש\"ח",
+    DEBIT: "D",
+    IVDATE: "28/10/25",
+    BOOKNUM: "60000013",
+    PIVDOC_SUBFORM: [
+      { DOCNO: "25026849", BOOKNUM: "108379736" },
+      { DOCNO: "25026850", BOOKNUM: "108379734" },
+      { DOCNO: "25026832", BOOKNUM: "108367753" },
+      { DOCNO: "25026831", BOOKNUM: "108367755" }
+    ]
+  }]
+}
+                    </div>
+
+                    <h4>field_mapping:</h4>
+                    <div class="code-block">
+{
+  "PIVDOC_SUBFORM": {
+    "source": "Documents Search",
+    "found_in_ocr": ["108379736", "108379734", "108367753", "108367755"],
+    "matched_from_docs_list": 4,
+    "count": 4
+  }
+}
+                    </div>
+                </div>
+            </div>
+
+            <button class="collapsible">דוגמה 2: ספק 5014 - חשבונית רכב</button>
+            <div class="collapsible-content">
+                <div class="collapsible-content-inner">
+                    <h4>פלט מלא (כפי שראינו קודם):</h4>
+                    <div class="code-block">
+{
+  "status": "success",
+  "supplier_identification": {
+    "supplier_code": "5014",
+    "supplier_name": "..."
+  },
+  "invoice_data": {
+    "PINVOICES": [{
+      "SUPNAME": "5014",
+      "CODE": "ש\"ח",
+      "DEBIT": "D",
+      "IVDATE": "08/07/25",
+      "BOOKNUM": "286015",
+      "DETAILS": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+      "PINVOICEITEMS_SUBFORM": [{
+        "PARTNAME": "car",
+        "PDES": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+        "TQUANT": 1,
+        "TUNITNAME": "יח'",
+        "PRICE": 1150,
+        "VATFLAG": "Y",
+        "ACCNAME": "66910"
+      }]
+    }]
+  },
+  "validation": {
+    "all_valid": true,
+    "checks": {
+      "required_fields_check": "passed",
+      "invoice_structure_check": "passed",
+      "amount_validation": "passed",
+      "field_mapping": {
+        "SUPNAME": {
+          "source": "Template",
+          "field": "supplier_code",
+          "value": "5014"
+        },
+        "DETAILS": {
+          "source": "First Item PDES",
+          "value": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו"
+        },
+        "PINVOICEITEMS_SUBFORM": {
+          "source": "Vehicle Items",
+          "vehicle_numbers": ["419-29-702"],
+          "count": 1,
+          "items": [{
+            "PDES": "שלט רמפה אלחוטי GALILO+ מכסה סולר איסוזו",
+            "ACCNAME": "66910",
+            "PRICE": 1150
+          }]
+        }
+      }
+    },
+    "warnings": [
+      "✅ סכום תקין: 1150.00 ש\"ח (0.0% הפרש)"
+    ]
+  },
+  "metadata": {
+    "ocr_invoice_id": "286015 NS",
+    "ocr_invoice_date": "2025-07-08",
+    "ocr_total_amount": 1357,
+    "ocr_subtotal": 1150,
+    "ocr_tax": 207,
+    "processing_timestamp": "2025-11-06T12:15:00.000Z",
+    "version": "1.7.2",
+    "template_index": 0,
+    "template_type": "vehicles",
+    "has_vehicles": true,
+    "vehicle_numbers": ["419-29-702"],
+    "vehicle_count": 1,
+    "has_documents": false,
+    "document_count": 0,
+    "has_import": false
+  }
+}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TROUBLESHOOTING -->
+        <section id="troubleshooting">
+            <h2>8. 🔧 פתרון בעיות</h2>
+
+            <h3>בעיות נפוצות ופתרונות:</h3>
+
+            <div class="warning-box">
+                <strong>⚠️ בעיה: חשבונית לא מעובדת נכון</strong>
+                <h4>צעדי דיבאג:</h4>
+                <ol>
+                    <li>בדוק AZURE_RESULT - האם ה-OCR תקין?</li>
+                    <li>בדוק learned_config - האם יש תבנית מתאימה?</li>
+                    <li>הרץ Processing Invoice במצב debug</li>
+                    <li>בדוק execution_report</li>
+                    <li>בדוק field_mapping - מאיפה כל ערך בא?</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ בעיה: תעודות לא נמצאות</strong>
+                <h4>פתרון:</h4>
+                <ol>
+                    <li>בדוק AzureInvoiceProcessor - BOOKNUM ב-UnidentifiedNumbers?</li>
+                    <li>בדוק docs_list - התעודות קיימות?</li>
+                    <li>בדוק Production Invoice - ההתאמה עובדת?</li>
+                    <li>בדוק field_mapping.DOCNO או PIVDOC_SUBFORM</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ בעיה: רכבים לא מזוהים</strong>
+                <h4>פתרון:</h4>
+                <ol>
+                    <li>בדוק AZURE_TEXT_CLEAN - מספר הרכב מופיע?</li>
+                    <li>בדוק vehicles input - הרכב במיפוי?</li>
+                    <li>בדוק processing_scenario - check_vehicles: true?</li>
+                    <li>בדוק field_mapping.PINVOICEITEMS_SUBFORM</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ בעיה: הפרש סכומים</strong>
+                <h4>פתרון:</h4>
+                <ol>
+                    <li>בדוק metadata.ocr_subtotal - זה SubTotal (לפני מעמ)?</li>
+                    <li>בדוק metadata.ocr_tax - סכום המעמ נכון?</li>
+                    <li>בדוק PRICE של הפריטים - האם חישוב נכון?</li>
+                    <li>ברכבים: PRICE = SubTotal / כמות רכבים</li>
+                    <li>בדוק validation.checks.amount_validation</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ בעיה: DETAILS ריק או לא הגיוני</strong>
+                <h4>פתרון:</h4>
+                <ol>
+                    <li>ברכבים: DETAILS צריך להיות = PDES של שורה 1</li>
+                    <li>בדוק PINVOICEITEMS_SUBFORM[0].PDES - מה הערך?</li>
+                    <li>בדוק field_mapping.DETAILS - מה המקור?</li>
+                    <li>אם "עבודה" כללית - זה מסונן, צריך PDES אמיתי</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ בעיה: PDES מציג שם חשבון במקום תיאור מוצר</strong>
+                <h4>פתרון:</h4>
+                <ol>
+                    <li>בדוק AZURE_RESULT.data.Items - יש תיאורי מוצרים?</li>
+                    <li>בדוק שהקוד ממיין לפי Amount ולוקח את הגבוהים</li>
+                    <li>בדוק שהקוד מסנן "עבודה" גנרית</li>
+                    <li>PDES צריך להיות מחיבור של תיאורים אמיתיים</li>
+                </ol>
+            </div>
+
+            <h3>טיפים כלליים:</h3>
+
+            <div class="success-box">
+                <strong>✅ שימוש ב-field_mapping:</strong><br>
+                field_mapping הוא הכלי הכי טוב לדיבאג!<br>
+                הוא מראה בדיוק מאיפה כל ערך בא ומה היה הערך המקורי.
+            </div>
+
+            <div class="success-box">
+                <strong>✅ שימוש ב-metadata:</strong><br>
+                metadata מכיל מידע חשוב על העיבוד:<br>
+                • template_type - איזה סוג חשבונית זה<br>
+                • has_vehicles/documents/import - מה נמצא<br>
+                • ocr_subtotal/tax - סכומים מקוריים
+            </div>
+
+            <div class="success-box">
+                <strong>✅ שימוש ב-execution_report:</strong><br>
+                execution_report מכיל לוגים מפורטים של התהליך.<br>
+                עוזר להבין מה קרה בכל שלב.
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p><strong>MakeCode Invoice Processing System</strong></p>
+        <p>גרסה 1.7.2 | עדכון אחרון: 6 נובמבר 2025</p>
+        <p>תיעוד מלא ומקיף לכל 3 המודולים</p>
+    </footer>
+</div>
+
+<script>
+    // Collapsible sections
+    const collapsibles = document.querySelectorAll('.collapsible');
+
+    collapsibles.forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const content = this.nextElementSibling;
+
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        });
+    });
+
+    // Smooth scrolling for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

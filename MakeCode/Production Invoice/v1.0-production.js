@@ -1,6 +1,16 @@
-// Production Invoice v1.6.6 IIFE (21:56 05.11.25) - 49KB ✅ FINAL
-// תיקון קריטי: IIFE מלא + return result בתוך if block (כמו v4.2!)
-// קובץ תוצאות: EXEMPTS/output-[HH:MM]-2025-11-05-*.js (מיין לפי שעה אחרונה)
+// Production Invoice v1.7.5 (06.11.25 - 16:00)
+// מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
+// מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
+// ⚠️ תיקון קריטי 1: needItems - אם has_doc=true לעולם לא ליצור פריטים (גם אם documents.length=0)
+// ⚠️ תיקון קריטי 2: מניעת כפילויות תעודות - כל BOOKNUM מופיע פעם אחת בלבד
+// ⚠️ תיקון קריטי 3: validation על BOOKNUM - דילוג על תעודות עם BOOKNUM קצר מדי (<7 תווים)
+//
+// 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
+// לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
+
+// ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
+// משתמשים ב-var (לא let) כדי ליצור משתנה גלובלי אמיתי
+var result;
 
 (function() {
 
@@ -359,11 +369,15 @@ function processInvoiceComplete(input) {
         errors: []
     };
     try {
-        const inputData = {};
+        let inputData = {};
         if (input.input && Array.isArray(input.input)) {
+            // פורמט Make.com: { input: [{name, value}, ...] }
             input.input.forEach(item => {
                 inputData[item.name] = item.value;
             });
+        } else if (input.learned_config || input.AZURE_RESULT || input.vehicles) {
+            // פורמט ישיר: { learned_config, AZURE_RESULT, vehicles, ... }
+            inputData = input;
         }
         let learnedConfig = inputData.learned_config || {};
         if (typeof learnedConfig === 'string') {
@@ -414,8 +428,19 @@ function processInvoiceComplete(input) {
         let docsList = inputData.docs_list || { DOC_YES_NO: "N", list_of_docs: [] };
         if (typeof docsList === 'string') {
             try {
-                docsList = JSON.parse(docsList);
+                // טיפול בפורמט "{[...]}" - הסר את הסוגריים החיצוניים
+                let cleaned = docsList.trim();
+                if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+                    cleaned = cleaned.slice(1, -1); // הסר { ו-}
+                }
+                const parsedArray = JSON.parse(cleaned);
+                docsList = {
+                    DOC_YES_NO: "Y",
+                    list_of_docs: Array.isArray(parsedArray) ? parsedArray.map(d => JSON.stringify(d)) : []
+                };
+                console.log(`✅ docs_list parsed: ${docsList.list_of_docs.length} תעודות`);
             } catch (e) {
+                console.log('❌ שגיאה בפרסור docs_list:', e.message);
                 docsList = { DOC_YES_NO: "N", list_of_docs: [] };
             }
         }
@@ -427,6 +452,45 @@ function processInvoiceComplete(input) {
                 importFiles = { IMPFILES: [] };
             }
         }
+
+        // Parse vehicles input and build vehicle_account_mapping
+        let vehicleMapping = {};
+        if (inputData.vehicles) {
+            try {
+                let vehiclesData = inputData.vehicles;
+                if (typeof vehiclesData === 'string') {
+                    // טיפול בפורמט "{[...]}" - הסר את הסוגריים החיצוניים
+                    let cleaned = vehiclesData.trim();
+                    if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+                        cleaned = cleaned.slice(1, -1); // הסר { ו-}
+                    }
+                    vehiclesData = JSON.parse(cleaned);
+                }
+                // המרה למבנה vehicle_account_mapping: { "CAR_NUMBER": { accname, assdes, ... } }
+                // אם יש duplicate - לוקח את זה עם ACCNAME הגבוה ביותר
+                if (Array.isArray(vehiclesData)) {
+                    vehiclesData.forEach(v => {
+                        if (v.CAR_NUMBER) {
+                            const existing = vehicleMapping[v.CAR_NUMBER];
+                            // אם אין existing או ACCNAME הנוכחי גבוה יותר - עדכן
+                            if (!existing || (v.ACCNAME && (!existing.accname || v.ACCNAME > existing.accname))) {
+                                vehicleMapping[v.CAR_NUMBER] = {
+                                    accname: v.ACCNAME,
+                                    assdes: v.ASSDES,
+                                    group: v.GROUP,
+                                    vat_pattern: { VATFLAG: "Y" } // default VAT
+                                };
+                            }
+                        }
+                    });
+                    console.log(`✅ vehicles parsed: ${Object.keys(vehicleMapping).length} רכבים`);
+                }
+            } catch (e) {
+                console.log('❌ שגיאה בפרסור vehicles:', e.message);
+                vehicleMapping = {};
+            }
+        }
+
         let azureResult = inputData.AZURE_RESULT || { data: { fields: {} } };
         if (typeof azureResult === 'string') {
             try {
@@ -477,13 +541,71 @@ function processInvoiceComplete(input) {
         const debitType = identifyDebitType(azureResult.data.fields);
         executionReport.found.push(`סוג: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);
         const config = learnedConfig.config || learnedConfig.technical_config || {};
-        const allStructures = config.structure || [{
-            has_import: false,
-            has_doc: false,
-            debit_type: "D",
-            has_budcode: true,
-            inventory_management: "not_managed_inventory"
-        }];
+
+        // Inject vehicle_account_mapping into config if we have vehicles
+        if (Object.keys(vehicleMapping).length > 0) {
+            if (!config.rules) config.rules = {};
+            if (!config.rules.critical_patterns) config.rules.critical_patterns = {};
+            if (!config.rules.critical_patterns.vehicle_rules) {
+                config.rules.critical_patterns.vehicle_rules = {
+                    partname: "car",
+                    vehicle_account_mapping: {},
+                    search_locations: [
+                        { location: "fields.VehicleNumbers", priority: 1 },
+                        { location: "fields.UnidentifiedNumbers", priority: 2, filter_by_label: "רכב" }
+                    ],
+                    output_format: { partname: "car" },
+                    default_values: { budcode: null }
+                };
+            }
+            // Inject the mapping
+            config.rules.critical_patterns.vehicle_rules.vehicle_account_mapping = vehicleMapping;
+            console.log(`✅ Injected ${Object.keys(vehicleMapping).length} vehicles into config`);
+        }
+
+        // בניית allStructures - תמיכה בפורמטים שונים
+        let allStructures = config.structure;
+
+        // אם אין structure, נסה לבנות מ-processing_scenario.all_templates
+        if (!allStructures && learnedConfig.processing_scenario?.all_templates) {
+            console.log('🔧 בונה structure מתוך processing_scenario.all_templates');
+            allStructures = learnedConfig.processing_scenario.all_templates.map(t => ({
+                has_import: t.check_import || false,
+                has_doc: t.check_docs || false,
+                has_vehicles: t.check_vehicles || false,
+                debit_type: t.debit_type || "D",
+                has_budcode: true,
+                inventory_management: "not_managed_inventory"
+            }));
+            console.log(`✅ נבנו ${allStructures.length} structures:`, JSON.stringify(allStructures));
+        }
+
+        // fallback לוגיקה ישנה - technical_config.all_templates
+        if (!allStructures && config.all_templates) {
+            console.log('🔧 בונה structure מתוך technical_config.all_templates');
+            allStructures = config.all_templates.map(t => ({
+                has_import: t.check_import || false,
+                has_doc: t.check_docs || false,
+                has_vehicles: t.check_vehicles || false,
+                debit_type: t.debit_type || "D",
+                has_budcode: true,
+                inventory_management: "not_managed_inventory"
+            }));
+            console.log(`✅ נבנו ${allStructures.length} structures:`, JSON.stringify(allStructures));
+        }
+
+        // fallback אחרון - אם גם זה לא קיים
+        if (!allStructures) {
+            console.log('⚠️ משתמש ב-fallback structure');
+            allStructures = [{
+                has_import: false,
+                has_doc: false,
+                has_vehicles: false,
+                debit_type: "D",
+                has_budcode: true,
+                inventory_management: "not_managed_inventory"
+            }];
+        }
         let allTemplates;
         if (learnedConfig.template?.PINVOICES) {
             allTemplates = learnedConfig.template.PINVOICES;
@@ -555,7 +677,7 @@ function processInvoiceComplete(input) {
             ocrFields
         );
         executionReport.stage = "שלב 5: בקרות";
-        const validation = performValidation(invoice, ocrFields, config, docsList, patterns);
+        const validation = performValidation(invoice, ocrFields, config, docsList, patterns, structure, searchResults, template);
         executionReport.stage = "שלב 6: ניתוח למידה";
         const learningAnalysis = analyzeLearning(invoice, config);
         executionReport.stage = "שלב 7: ניקוי והכנה לפריוריטי";
@@ -584,13 +706,24 @@ function processInvoiceComplete(input) {
                 ocr_invoice_id: ocrFields.InvoiceId || "",
                 ocr_invoice_date: ocrFields.InvoiceDate || "",
                 ocr_total_amount: ocrFields.InvoiceTotal || ocrFields.InvoiceTotal_amount || 0,
+                ocr_subtotal: ocrFields.SubTotal || ocrFields.SubTotal_amount ||
+                             (ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount ?
+                              ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount : null),
+                ocr_tax: ocrFields.TotalTax || ocrFields.TotalTax_amount || 0,
                 processing_timestamp: new Date().toISOString(),
                 version: "1.0-production",
                 template_index: templateIndex,
                 template_type: structure.has_import && structure.has_doc ? "import_with_docs" :
                               structure.has_import ? "import_only" :
                               structure.has_doc ? "docs_only" :
-                              structure.debit_type === "C" ? "credit_note" : "regular"
+                              structure.has_vehicles ? "vehicles" :
+                              structure.debit_type === "C" ? "credit_note" : "regular",
+                has_vehicles: structure.has_vehicles || false,
+                vehicle_numbers: searchResults.vehicles || [],
+                vehicle_count: searchResults.vehicles ? searchResults.vehicles.length : 0,
+                has_documents: structure.has_doc || false,
+                document_count: searchResults.documents ? searchResults.documents.length : 0,
+                has_import: structure.has_import || false
             }
         };
         return removeUndefinedValues(result);
@@ -668,13 +801,20 @@ function extractPatterns(recommendedSamples, docsList) {
 }
 
 function searchAllData(ocrFields, azureText, patterns, structure, importFiles, docsList, vehicleRules) {
+    // חיפוש תעודות אם נדרש
+    let documents = null;
+    if (structure.has_doc) {
+        documents = searchDocuments(ocrFields, azureText, docsList);
+        console.log(`🔍 מחפש תעודות: נמצאו ${documents?.length || 0}`);
+    }
+
     return {
         booknum: searchBooknum(ocrFields, patterns),
         ivdate: searchIvdate(ocrFields),
         details: searchDetails(ocrFields, azureText),
         ordname: null,
         impfnum: null,
-        documents: null,
+        documents: documents,
         vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules) : [],
         items: ocrFields.Items || []
     };
@@ -720,6 +860,100 @@ function searchDetails(ocrFields, azureText) {
         }
     }
     return "";
+}
+
+function searchDocuments(ocrFields, azureText, docsList) {
+    const foundDocs = [];
+
+    if (!docsList || !docsList.list_of_docs || docsList.list_of_docs.length === 0) {
+        console.log('⚠️ docs_list ריק או לא קיים');
+        return foundDocs;
+    }
+
+    let availableDocs = [];
+    try {
+        availableDocs = docsList.list_of_docs.flatMap(d => JSON.parse(d));
+        console.log(`📋 יש ${availableDocs.length} תעודות זמינות`);
+    } catch (e) {
+        console.log('❌ שגיאה בפרסור docs_list:', e.message);
+        return foundDocs;
+    }
+
+    const unidentified = ocrFields.UnidentifiedNumbers || [];
+    console.log(`🔍 מחפש ב-${unidentified.length} UnidentifiedNumbers`);
+
+    // חיפוש ב-UnidentifiedNumbers
+    if (unidentified.length > 0) {
+        if (typeof unidentified[0] === 'object' && unidentified[0].value) {
+            for (const item of unidentified) {
+                const match = availableDocs.find(doc => doc.BOOKNUM === item.value);
+                if (match) {
+                    // בדיקה: האם כבר הוספנו תעודה עם אותו BOOKNUM?
+                    const alreadyExists = foundDocs.some(d => d.BOOKNUM === match.BOOKNUM);
+                    if (!alreadyExists) {
+                        console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
+                        foundDocs.push({
+                            DOCNO: match.DOCNO,
+                            BOOKNUM: match.BOOKNUM,
+                            TOTQUANT: match.TOTQUANT || null
+                        });
+                    } else {
+                        console.log(`⏭️ דילוג: ${match.BOOKNUM} כבר קיים`);
+                    }
+                }
+            }
+        } else {
+            for (const num of unidentified) {
+                const match = availableDocs.find(doc => doc.BOOKNUM === num);
+                if (match) {
+                    // בדיקה: האם כבר הוספנו תעודה עם אותו BOOKNUM?
+                    const alreadyExists = foundDocs.some(d => d.BOOKNUM === match.BOOKNUM);
+                    if (!alreadyExists) {
+                        console.log(`✅ מצאתי תעודה: ${match.BOOKNUM} → ${match.DOCNO}`);
+                        foundDocs.push({
+                            DOCNO: match.DOCNO,
+                            BOOKNUM: match.BOOKNUM,
+                            TOTQUANT: match.TOTQUANT || null
+                        });
+                    } else {
+                        console.log(`⏭️ דילוג: ${match.BOOKNUM} כבר קיים`);
+                    }
+                }
+            }
+        }
+    }
+
+    // Fallback: חיפוש ב-AZURE_TEXT
+    if (foundDocs.length === 0 && azureText) {
+        console.log('🔍 מחפש fallback ב-AZURE_TEXT');
+        for (const doc of availableDocs) {
+            // ⚠️ דלג על BOOKNUM לא תקין (קצר מדי או ריק)
+            // BOOKNUM תקין: 107XXXXXX, 108XXXXXX, 258XXXXXX (מינימום 7 תווים)
+            if (!doc.BOOKNUM || doc.BOOKNUM.length < 7) {
+                console.log(`⚠️ דילוג על תעודה עם BOOKNUM לא תקין: DOCNO=${doc.DOCNO}, BOOKNUM="${doc.BOOKNUM || 'null'}"`);
+                continue;
+            }
+
+            const pattern = new RegExp('\\b' + doc.BOOKNUM + '\\b');
+            if (pattern.test(azureText)) {
+                // בדיקה: האם כבר הוספנו תעודה עם אותו BOOKNUM?
+                const alreadyExists = foundDocs.some(d => d.BOOKNUM === doc.BOOKNUM);
+                if (!alreadyExists) {
+                    console.log(`✅ מצאתי תעודה בטקסט: ${doc.BOOKNUM} → ${doc.DOCNO}`);
+                    foundDocs.push({
+                        DOCNO: doc.DOCNO,
+                        BOOKNUM: doc.BOOKNUM,
+                        TOTQUANT: doc.TOTQUANT || null
+                    });
+                } else {
+                    console.log(`⏭️ דילוג: ${doc.BOOKNUM} כבר קיים`);
+                }
+            }
+        }
+    }
+
+    console.log(`📊 סה"כ תעודות שנמצאו: ${foundDocs.length}`);
+    return foundDocs;
 }
 
 function extractVehiclesAdvanced(ocrFields, vehicleRules) {
@@ -812,34 +1046,39 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         IVDATE: searchResults.ivdate,
         BOOKNUM: searchResults.booknum
     };
-    if (searchResults.vehicles && searchResults.vehicles.length > 0) {
-        const vehicleNum = searchResults.vehicles[0];
-        const shortDesc = extractShortDescription(ocrFields, vehicleNum);
-        let currentMileage = '';
-        const unidentified = ocrFields.UnidentifiedNumbers || [];
-        if (unidentified.length > 0) {
-            const mileageItem = unidentified.find(item => {
-                if (typeof item === 'object') {
-                    const label = item.label || '';
-                    const value = item.value || '';
-                    if (label.includes('ק') || label.includes('קמ') || label.includes('מ')) {
-                        return /^\d{5,6}$/.test(value);
-                    }
-                }
-                return false;
-            });
-            if (mileageItem && typeof mileageItem === 'object') {
-                currentMileage = mileageItem.value;
-            }
+    // DETAILS - יוגדר מאוחר יותר לפי שורה 1 של PDES (אם יש פריטים)
+    // אם זה לא רכבים ויש details מ-OCR
+    if (searchResults.details && searchResults.details.trim() && !searchResults.vehicles) {
+        const isGeneric = ['עבודה', 'work', 'labor'].some(term => searchResults.details.trim() === term);
+        if (!isGeneric) {
+            invoice.DETAILS = searchResults.details;
         }
-        if (!currentMileage && ocrFields.CustomerId && /^\d{5,6}$/.test(ocrFields.CustomerId)) {
-            currentMileage = ocrFields.CustomerId;
-        }
-        invoice.DETAILS = currentMileage ? `${shortDesc}-${currentMileage}` : shortDesc;
-    } else if (searchResults.details) {
-        invoice.DETAILS = searchResults.details;
     }
-    const needItems = true;
+
+    // תעודות (אם נמצאו)
+    if (searchResults.documents && searchResults.documents.length > 0) {
+        console.log(`📄 מוסיף ${searchResults.documents.length} תעודות`);
+        if (searchResults.documents.length === 1) {
+            // תעודה יחידה - שדות רגילים
+            const doc = searchResults.documents[0];
+            invoice.DOCNO = doc.DOCNO;
+            // BOOKNUM נשאר של החשבונית, לא משנים!
+            console.log(`✅ תעודה יחידה: DOCNO=${doc.DOCNO}, doc BOOKNUM=${doc.BOOKNUM}`);
+        } else {
+            // מספר תעודות - תת-טופס
+            invoice.PIVDOC_SUBFORM = searchResults.documents.map(d => ({
+                DOCNO: d.DOCNO,
+                BOOKNUM: d.BOOKNUM
+            }));
+            console.log(`✅ ${searchResults.documents.length} תעודות ב-PIVDOC_SUBFORM`);
+        }
+    }
+
+    // פריטים - רק אם זו לא תבנית תעודות!
+    // אם has_doc=true → לעולם לא צריך פריטים (גם אם לא נמצאו תעודות)
+    const needItems = !structure.has_doc;
+    console.log(`🔧 needItems=${needItems} (has_doc=${structure.has_doc}, found docs=${searchResults.documents?.length || 0})`);
+
     if (needItems) {
         const vehicleRules = config.rules?.critical_patterns?.vehicle_rules;
         if (searchResults.vehicles && searchResults.vehicles.length > 0 && vehicleRules) {
@@ -859,6 +1098,13 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
             invoice.PINVOICEITEMS_SUBFORM = JSON.parse(JSON.stringify(template.PINVOICEITEMS_SUBFORM));
         }
     }
+
+    // DETAILS - לפי PDES של שורה 1 (אם יש פריטים)
+    if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
+        invoice.DETAILS = invoice.PINVOICEITEMS_SUBFORM[0].PDES || null;
+        console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+    }
+
     if (template.PINVOICESCONT_SUBFORM) {
         invoice.PINVOICESCONT_SUBFORM = template.PINVOICESCONT_SUBFORM;
     }
@@ -950,30 +1196,65 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
 function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
     if (!vehicles || vehicles.length === 0) return [];
     const vehicleItems = [];
-    const totalPrice = ocrFields.SubTotal_amount || ocrFields.InvoiceTotal_amount || 0;
-    const pricePerVehicle = vehicles.length > 0 ? totalPrice / vehicles.length : totalPrice;
+
+    // Calculate SubTotal (before VAT)
+    let subtotal = ocrFields.SubTotal_amount || ocrFields.SubTotal || 0;
+    if (!subtotal && ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount) {
+        subtotal = ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount;
+        console.log(`📊 Calculated SubTotal: ${ocrFields.InvoiceTotal_amount} - ${ocrFields.TotalTax_amount} = ${subtotal}`);
+    }
+
+    const pricePerVehicle = vehicles.length > 0 ? subtotal / vehicles.length : subtotal;
+
     vehicles.forEach(vehicleNum => {
         const mapping = vehicleRules.vehicle_account_mapping?.[vehicleNum];
-        const relatedItem = ocrItems.find(item =>
-            (item.VehicleNumber && item.VehicleNumber === vehicleNum) ||
-            (item.Description && item.Description.includes(vehicleNum))
-        );
-        const shortDesc = extractShortDescription(ocrFields, vehicleNum);
-        const pdesWithVehicle = `${vehicleNum} ${shortDesc}`;
+
+        // Build PDES from real product descriptions (not "עבודה")
+        let pdesWithVehicle = vehicleNum;
+
+        // Get product descriptions from Items, excluding generic work descriptions
+        if (ocrItems && ocrItems.length > 0) {
+            const productDescriptions = [];
+            const excludeTerms = ['עבודה', 'work', 'labor'];
+
+            // Sort by amount (highest first) and take meaningful descriptions
+            const sortedItems = [...ocrItems].sort((a, b) => {
+                const amountA = parseFloat(a.Amount_amount || a.Amount || 0);
+                const amountB = parseFloat(b.Amount_amount || b.Amount || 0);
+                return amountB - amountA;
+            });
+
+            for (const item of sortedItems) {
+                const desc = item.Description_content || item.Description || '';
+                const isGeneric = excludeTerms.some(term => desc.trim() === term);
+
+                if (desc && !isGeneric && productDescriptions.length < 3) {
+                    productDescriptions.push(desc.trim());
+                }
+            }
+
+            if (productDescriptions.length > 0) {
+                pdesWithVehicle = productDescriptions.join('+ ');
+                console.log(`🚗 רכב ${vehicleNum}: PDES = "${pdesWithVehicle}"`);
+            }
+        }
+
         let actualMapping = mapping;
         if (Array.isArray(mapping) && mapping.length > 0) {
             console.log(`🚗 רכב ${vehicleNum}: ${mapping.length} bundles, לוקח ראשון`);
             actualMapping = mapping[0];
         }
+
         const item = {
             PARTNAME: vehicleRules.output_format?.partname || "car",
             PDES: pdesWithVehicle,
-            TQUANT: relatedItem?.Quantity || 1,
-            TUNITNAME: relatedItem?.Unit || "יח'",
+            TQUANT: 1,
+            TUNITNAME: "יח'",
             PRICE: pricePerVehicle,
             VATFLAG: actualMapping?.vat_pattern?.VATFLAG || "Y",
             ACCNAME: actualMapping?.accname || ""
         };
+
         if (actualMapping?.budcode) {
             item.BUDCODE = actualMapping.budcode;
         } else if (vehicleRules.default_values?.budcode) {
@@ -992,13 +1273,52 @@ function createVehicleItems(vehicles, ocrItems, vehicleRules, ocrFields) {
     return vehicleItems;
 }
 
-function performValidation(invoice, ocrFields, config, docsList, patterns) {
+function performValidation(invoice, ocrFields, config, docsList, patterns, structure, searchResults, template) {
     const warnings = [];
     const checks = {
         required_fields_check: "passed",
         invoice_structure_check: "passed",
         amount_validation: "not_checked"
     };
+
+    // Build field mapping - shows source and value for each field
+    const fieldMapping = {
+        SUPNAME: { source: "Template", field: "supplier_code", value: invoice.SUPNAME },
+        CODE: { source: "Template", value: invoice.CODE },
+        DEBIT: { source: structure.debit_type === "C" ? "Calculated (Credit)" : "Template", value: invoice.DEBIT },
+        IVDATE: { source: "OCR", field: "InvoiceDate", value: invoice.IVDATE, ocr_value: ocrFields.InvoiceDate },
+        BOOKNUM: { source: "OCR", field: "InvoiceId", value: invoice.BOOKNUM, ocr_value: ocrFields.InvoiceId },
+        DETAILS: {
+            source: invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0
+                ? "First Item PDES"
+                : (searchResults.details ? "OCR" : "Template"),
+            value: invoice.DETAILS
+        }
+    };
+
+    if (structure.has_doc && searchResults.documents && searchResults.documents.length > 0) {
+        fieldMapping.DOCNO = { source: "Documents Search", value: invoice.DOCNO, count: searchResults.documents.length };
+    }
+
+    if (structure.has_vehicles && searchResults.vehicles && searchResults.vehicles.length > 0) {
+        fieldMapping.PINVOICEITEMS_SUBFORM = {
+            source: "Vehicle Items",
+            vehicle_numbers: searchResults.vehicles,
+            count: searchResults.vehicles.length,
+            items: invoice.PINVOICEITEMS_SUBFORM?.map(item => ({
+                PDES: item.PDES,
+                ACCNAME: item.ACCNAME,
+                PRICE: item.PRICE
+            }))
+        };
+    } else if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
+        fieldMapping.PINVOICEITEMS_SUBFORM = {
+            source: "OCR Items",
+            count: invoice.PINVOICEITEMS_SUBFORM.length
+        };
+    }
+
+    checks.field_mapping = fieldMapping;
     const requiredFields = ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"];
     const missingFields = requiredFields.filter(f => !invoice[f]);
     if (missingFields.length > 0) {
@@ -1080,10 +1400,10 @@ function analyzeLearning(invoice, config) {
 }
 
 // Main execution - Make.com runs this automatically
-let result = { status: "error", message: "No input provided" };
+result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.6.6: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v1.7.1: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1109,6 +1429,7 @@ if (typeof input !== 'undefined') {
             learned_config: input.learned_config || {},
             docs_list: input.docs_list || { DOC_YES_NO: "N", list_of_docs: [] },
             import_files: input.import_files || { IMPFILES: [] },
+            vehicles: input.vehicles || "{}",
             AZURE_RESULT: input.AZURE_RESULT || { data: { fields: {} } },
             AZURE_TEXT_CLEAN: input.AZURE_TEXT_CLEAN || "",
             AZURE_TEXT: input.AZURE_TEXT || ""
@@ -1117,16 +1438,20 @@ if (typeof input !== 'undefined') {
             { name: "learned_config", value: processInput.learned_config },
             { name: "docs_list", value: processInput.docs_list },
             { name: "import_files", value: processInput.import_files },
+            { name: "vehicles", value: processInput.vehicles },
             { name: "AZURE_RESULT", value: processInput.AZURE_RESULT },
             { name: "AZURE_TEXT_CLEAN", value: processInput.AZURE_TEXT_CLEAN },
             { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.6.6: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.6.6: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.7.1: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v1.7.1: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v1.7.1: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
     console.log("==========================================");
-    return result;  // ✅ CRITICAL: return INSIDE if block like v4.2!
 }
 
-})();  // End of IIFE - Make.com will get the return value
+})();  // End of IIFE
+
+// ⚠️ CRITICAL: return מחוץ ל-IIFE - Make.com עוטף את הכל בפונקציה!
+return result;

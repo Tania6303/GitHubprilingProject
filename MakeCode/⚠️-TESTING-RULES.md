@@ -31,17 +31,33 @@ MakeCode/
 
 ## 🔍 איך למצוא את הקובץ הנכון לבדיקה?
 
-### ✅ תמיד קח את הקובץ העדכני ביותר!
+### ⚠️ חשוב מאוד: תמיד חפש לפי GIT COMMIT DATE!
 
-**פקודה:**
+**❌ אל תסתמך על:**
+- `ls -lt` (modification time)
+- שם הקובץ
+- filesystem timestamps
+
+**✅ השתמש ב-git log:**
 ```bash
-ls -lt "MakeCode/[MODULE_NAME]/EXEMPTS" | head -5
+cd "MakeCode/[MODULE]/EXEMPTS" && git log --name-only --pretty=format:"%H %ci %s" --all -- . | head -50
 ```
 
-**או בפירוט מלא:**
+**דוגמה:**
 ```bash
-find "MakeCode/[MODULE_NAME]/EXEMPTS" -type f -printf '%T@ %Tc %p\n' | sort -rn | head -5
+cd "MakeCode/Production Invoice/EXEMPTS" && git log --name-only --pretty=format:"%ci %s" --all -- . | head -20
 ```
+
+זה יראה לך:
+```
+2025-11-06 14:33:47 +0200 יצירה אוטומטית מתוך MakeCode
+input-14:11-2025-11-06-0.7707135552764477.js
+
+2025-11-06 14:33:46 +0200 יצירה אוטומטית מתוך MakeCode
+output-14:11-2025-11-06-0.5093925310866825.js
+```
+
+**הקבצים עם התאריך האחרון ביותר = העדכניים!**
 
 ---
 
@@ -54,19 +70,21 @@ find "MakeCode/[MODULE_NAME]/EXEMPTS" -type f -printf '%T@ %Tc %p\n' | sort -rn 
    - Production Invoice? → `MakeCode/Production Invoice/EXEMPTS`
    - SupplierDataLearning? → `MakeCode/SupplierDataLearning/EXEMPTS`
 
-2. **מצא את הקבצים העדכניים:**
+2. **⚠️ מצא את הקבצים העדכניים לפי GIT LOG:**
    ```bash
-   ls -lt "MakeCode/[MODULE]/EXEMPTS" | head -5
+   cd "MakeCode/[MODULE]/EXEMPTS" && git log --name-only --pretty=format:"%ci %s" --all -- . | head -20
    ```
 
-3. **קרא את הקבצים לפי סדר עדכניות:**
-   - הקובץ הראשון ברשימה = העדכני ביותר ✅
-   - בדוק timestamp בשם הקובץ
-   - בדוק גם את ה-processing_timestamp בתוך output
+   **קח את הקבצים עם התאריך האחרון ביותר!**
+
+3. **קרא את הקבצים:**
+   - הקבצים עם commit date האחרון = העדכניים ביותר ✅
+   - **לא** לפי שם הקובץ!
+   - **לא** לפי modification time!
 
 4. **אל תשאל את המשתמש "איפה הקבצים?"**
    - אתה יודע: `EXEMPTS/`
-   - פשוט תמצא ותקרא אותם!
+   - פשוט תמצא ותקרא אותם עם git log!
 
 ---
 
@@ -158,5 +176,58 @@ $ node -e "const fs = require('fs'); ..."
 
 ---
 
+## 📚 עדכון תיעוד אחרי בדיקה
+
+### ⚠️ חוק ברזל:
+**אחרי כל בדיקה או תיקון - עדכן את התיעוד המסכם!**
+
+### 📋 Checklist אחרי בדיקה וקבלת OK מהמשתמש:
+
+1. **עדכנתי את COMPLETE-SYSTEM-DOCUMENTATION.html?**
+   - [ ] הוספתי את התיקון לרשימת "תיקונים אחרונים"
+   - [ ] עדכנתי את הגרסה
+   - [ ] תיעדתי את הבעיה ואת הפתרון
+
+2. **עדכנתי את README של המודול?**
+   - [ ] הוספתי שורת גרסה חדשה
+   - [ ] רשמתי מה תוקן
+   - [ ] הוספתי דוגמה אם רלוונטי
+
+3. **יצרתי test case?**
+   - [ ] השארתי את הקבצים ב-EXEMPTS כדוגמה
+   - [ ] רשמתי את השם והתאריך
+   - [ ] הוספתי הערה מה זה בודק
+
+### 🎯 דוגמה - מה לעדכן אחרי תיקון:
+
+```markdown
+אם תיקנתי bug ב-DETAILS (v1.7.2):
+
+1. COMPLETE-SYSTEM-DOCUMENTATION.html:
+   - סעיף Module 3 → info-box:
+     "גרסה נוכחית: v1.7.2
+      תיקונים אחרונים:
+      • DETAILS לפי שורה 1 PDES ✅"
+
+2. Production Invoice/README.md:
+   - "## עדכונים אחרונים"
+   - "### 6 נובמבר 2025 - v1.7.2"
+   - "תיקון: DETAILS עכשיו לפי PDES של שורה 1"
+
+3. EXEMPTS:
+   - השארתי input-12:11-2025-11-06...js
+   - השארתי DATA_ORIG...js
+   - הוספתי test-vehicle.js
+```
+
+### 💡 למה זה חשוב?
+
+- **למשתמש הבא (כולל אתה בעתיד)** יהיה נוח לראות מה השתנה
+- **התיעוד יישאר עדכני** ולא יישכח
+- **הדוגמאות ב-EXEMPTS** ישמשו כרגרסיה testing
+
+---
+
 📅 נוצר: 2025-11-05
-🎯 מטרה: למנוע בזבוז זמן בשאלות "איפה הקבצים?" וללמוד לקחת אותם אוטומטית
+📅 עדכון: 2025-11-06
+🎯 מטרה: למנוע בזבוז זמן בשאלות "איפה הקבצים?" + שמירה על תיעוד עדכני
