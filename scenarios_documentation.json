@@ -1,0 +1,237 @@
+{
+  "scenarios": [
+    {
+      "id": "S2",
+      "name": "SUP_LERN_CODE",
+      "full_path": "/home/user/GitHubprilingProject/MakeCode/scenario_make/Processing Invoice/S2- SUP_LERN_CODE.blueprint.json",
+      "purpose": "עיבוד וניתוח קונפיגורציה של ספקים. התהליך מקבל מידע שנלמד על ספקים, מוריד ומבצע סקריפט עיבוד מ-GitHub, וכן שומר את התוצאות בדטאסטור כדי ליצור מאגר ידע ממשי.",
+      "inputs": {
+        "table_header": ["שדה", "סוג", "תיאור"],
+        "rows": [
+          ["ALL (JSON)", "JSON", "מערך נתונים עם: conf (תנאים), docs (מסמכים), imfp (קבצי import), AZURE_RESULT, azuretext"],
+          ["branch", "String", "שם ענף ב-GitHub לשליפת הסקריפט"],
+          ["supplier_id", "String", "מזהה הספק עבור מפתח ה-Datastore"]
+        ]
+      },
+      "outputs": [
+        "LERN_ALL: מערך JSON עם תוצאות הניתוח השמור בדטאסטור",
+        "סטטוס עדכון בדטאסטור עם המפתח supplier_id"
+      ],
+      "process_steps": [
+        {
+          "number": 1,
+          "title": "Parse Input JSON",
+          "module": "json:ParseJSON",
+          "description": "פיענוח JSON של הקלט לפי סכימה שהוגדרה עם fields כמו supplier_id, supplier_name, status וכו'"
+        },
+        {
+          "number": 2,
+          "title": "Fetch Processing Script",
+          "module": "http:ActionSendDataAPIKeyAuth",
+          "description": "הורדת סקריפט עיבוד מ-GitHub (v4.2-COMPLETE.js) דרך HTTP GET מהענף שצוין"
+        },
+        {
+          "number": 3,
+          "title": "Execute Processing Logic",
+          "module": "code:ExecuteCode",
+          "description": "הרצת סקריפט ה-JavaScript עם הקלט (learned_config, docs_list, import_files, AZURE_RESULT) ויצירת עיבוד מותאם אישית"
+        },
+        {
+          "number": 4,
+          "title": "Store Results",
+          "module": "datastore:AddRecord",
+          "description": "שמירת התוצאה בדטאסטור עם מפתח הספק (supplier_id) וערך LERN_ALL"
+        },
+        {
+          "number": 5,
+          "title": "Route & Complete",
+          "module": "builtin:BasicRouter",
+          "description": "ניתוב לפי תנאים ואישור סיום התהליך"
+        }
+      ],
+      "subscenarios": [],
+      "relationships": {
+        "receives_from": ["P1 - PriProductionInvoice (via webhook data)"],
+        "sends_to": ["Datastore", "Connected scenarios via return data"]
+      },
+      "statistics": {
+        "file_size": "168 KB",
+        "module_count": 5,
+        "estimated_execution_time": "2-5 seconds",
+        "key_operations": "JSON parsing, GitHub API, Code execution, Datastore write"
+      }
+    },
+    {
+      "id": "P0",
+      "name": "AZURE_Production_Invoice",
+      "full_path": "/home/user/GitHubprilingProject/MakeCode/scenario_make/Production Invoice/P0-AZURE_Production_Invoice.blueprint.json",
+      "purpose": "עיבוד חשבוניות PDF מ-Google Drive דרך Azure Form Recognizer. התהליך מוריד קבצים, שולח לשירותי AI של Azure, מיצוי מידע, ריצת agent AI לזיהוי ספק, אחסון בדטאסטור, וקריאה לתהליכים משניים להמשך.",
+      "inputs": {
+        "table_header": ["שדה", "סוג", "תיאור"],
+        "rows": [
+          ["PDF Files", "File", "קבצי PDF משכבה בGoogle Drive (DOCUMENTS folder)"],
+          ["Azure API Key", "String", "מפתח API ל-Azure Form Recognizer"],
+          ["Supplier Template", "Object", "תבנית ספק שמורה בדטאסטור"]
+        ]
+      },
+      "outputs": [
+        "Supplier data: שם ספק, מספר עסק, מספר מע\"מ",
+        "Invoice analysis: תוכן מושם, מידע מובנה",
+        "Updated Priority link: קישור לדוקומנט שעודכן בPriority",
+        "Webhook response: שליחה לhook לעדכון תהליכים חיצוניים"
+      ],
+      "process_steps": [
+        {
+          "number": 1,
+          "title": "Search PDF Files",
+          "module": "google-drive:searchForFilesFolders",
+          "description": "חיפוש קבצי PDF בתיקייה DOCUMENTS של Google Drive עם מסנן*.pdf"
+        },
+        {
+          "number": 2,
+          "title": "Get File Content",
+          "module": "google-drive:getAFile",
+          "description": "קריאת תוכן הקובץ (בינארי) מהGoogle Drive לעיבוד"
+        },
+        {
+          "number": 3,
+          "title": "Send to Azure",
+          "module": "http:ActionSendData",
+          "description": "שליחת הPDF ל-Azure Form Recognizer API לניתוח (prebuilt-invoice model)"
+        },
+        {
+          "number": 4,
+          "title": "Parse Azure Response",
+          "module": "json:ParseJSON",
+          "description": "פיענוח התשובה מ-Azure ללבניין מובנה עם analyzeResult"
+        },
+        {
+          "number": 5,
+          "title": "Extract Supplier Info",
+          "module": "ai-tools:Extract",
+          "description": "שימוש ב-AI Extract עם prompt בעברית לחילוץ שם ספק, מספרים, אימייל וטלפון"
+        },
+        {
+          "number": 6,
+          "title": "Identify Supplier",
+          "module": "ai-agent:RunAnAIAgent",
+          "description": "הרצת AI Agent לזיהוי מספר ספק בPriority על סמך המידע שנחלץ"
+        }
+      ],
+      "subscenarios": [
+        {
+          "scenario_id": "SCN_7900688",
+          "description": "עדכון מידע הספק בDatastore עם התוצאות"
+        },
+        {
+          "scenario_id": "SCN_7900797",
+          "description": "עדכון סטטוסים וקליטת הנתונים לשלב הבא"
+        }
+      ],
+      "relationships": {
+        "receives_from": ["Google Drive (PDF files)"],
+        "sends_to": ["SCN_7900688", "SCN_7900797", "Datastore", "Webhook"]
+      },
+      "statistics": {
+        "file_size": "206 KB",
+        "module_count": 21,
+        "estimated_execution_time": "5-10 seconds per file",
+        "key_operations": "Google Drive API, Azure Form Recognizer, AI Extract, AI Agent, Datastore"
+      }
+    },
+    {
+      "id": "P1",
+      "name": "PriProductionInvoice",
+      "full_path": "/home/user/GitHubprilingProject/MakeCode/scenario_make/Production Invoice/P1-PriProductionInvoice.blueprint.json",
+      "purpose": "קליטת נתוני חשבוניות דרך webhook, עיבוד טקסט וניקיון נתונים, קריאה לתהליכים משניים להוספה ל-Priority ו-BASE44, ושמירת הנתונים לתמיד. התהליך משלב עבודה עם GitHub ודטאסטור בצורה מורכבת.",
+      "inputs": {
+        "table_header": ["שדה", "סוג", "תיאור"],
+        "rows": [
+          ["Webhook Data", "JSON", "נתונים מ-webhook בעל AZURE (array), DOCS, IMPFILES, SUPNAME, FILENAME, FILE_DATA, SUP_TEMP, FILE_LINK"],
+          ["Branch", "String", "שם ענף Git לשליפת סקריפטים"],
+          ["AZURE Text", "Text", "טקסט לניקיון מ-Azure Form Recognizer"]
+        ]
+      },
+      "outputs": [
+        "Cleaned AZURE text: טקסט מנוקה וממורמט",
+        "Updated Priority document: דוקומנט שנוסף/עודכן בPriority עם IVNUM",
+        "BASE44 entry: כניסה בBASE44 עם סיכום מידע",
+        "GitHub stored exempts: קבצים שנשמרו ב-GitHub עם input/output",
+        "Processed status: סטטוס עדכון המידע"
+      ],
+      "process_steps": [
+        {
+          "number": 1,
+          "title": "Receive Webhook",
+          "module": "gateway:CustomWebHook",
+          "description": "קליטת בקשת webhook עם כל נתוני החשבונית ומטא-דאטה"
+        },
+        {
+          "number": 2,
+          "title": "Parse Main JSON",
+          "module": "json:ParseJSON",
+          "description": "פיענוח ה-JSON הראשי לחלקיו הבסיסיים (AZURE, DOCS, IMPFILES, SUPNAME וכו')"
+        },
+        {
+          "number": 3,
+          "title": "Parse AZURE Data",
+          "module": "json:ParseJSON",
+          "description": "פיענוח מערך AZURE לפורמט מובנה עם מידע מהForm Recognizer"
+        },
+        {
+          "number": 4,
+          "title": "Execute Code (Main Router)",
+          "module": "code:ExecuteCode",
+          "description": "הרצת לוגיקה מרכזית להכנת הנתונים והחלטה על הניתוב"
+        },
+        {
+          "number": 5,
+          "title": "Route Based on Conditions",
+          "module": "builtin:BasicRouter",
+          "description": "ניתוב לשלוש דרכים שונות בהתאם להגדרות וקיום נתונים"
+        },
+        {
+          "number": 6,
+          "title": "Execute Subscenarios",
+          "module": "scenario-service:CallSubscenario",
+          "description": "קריאה לSCN_7779086 (OPEN_PIV_PRIORITY) וSCN_7877436 (TO_BASE44) עם הנתונים"
+        }
+      ],
+      "subscenarios": [
+        {
+          "scenario_id": "SCN_7779086",
+          "name": "OPEN_PIV_PRIORITY",
+          "description": "הוסף/עדכן דוקומנט בפריוריטי עם IV (מספר חשבונית). קבלת JSON, ACTION, IVNUM, ERR, ANSWERS, PRI_LINK וסוג דוקומנט"
+        },
+        {
+          "scenario_id": "SCN_7877436",
+          "name": "TO_BASE44",
+          "description": "שמירת הנתונים בBASE44 עם טקסט, IVNUM, סיכום, שם ספק וקישור Priority"
+        }
+      ],
+      "relationships": {
+        "receives_from": ["Custom Webhook (external trigger)"],
+        "sends_to": ["SCN_7779086 (Priority update)", "SCN_7877436 (BASE44 storage)", "GitHub API (exempts storage)", "Datastore"]
+      },
+      "statistics": {
+        "file_size": "606 KB",
+        "module_count": 6,
+        "nested_routes": 3,
+        "estimated_execution_time": "3-8 seconds",
+        "key_operations": "JSON parsing, code execution, GitHub API, Priority integration, nested subscenarios"
+      }
+    }
+  ],
+  "summary": {
+    "total_scenarios": 3,
+    "total_file_size": "980 KB",
+    "total_modules": 28,
+    "processing_flow": "Webhook/Files -> S2/P0 Processing -> Datastore -> P1 Integration -> Priority/BASE44",
+    "key_connections": [
+      "P1 webhook triggers P0 Azure processing",
+      "P0 results stored in Datastore",
+      "S2 maintains learning config for processing",
+      "P1 calls SCN_7779086 and SCN_7877436 for final updates"
+    ]
+  }
+}

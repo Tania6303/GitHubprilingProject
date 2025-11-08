@@ -1,0 +1,97 @@
+{
+  "scenarios_comparison": {
+    "headers": ["מאפיין", "S2 - SUP_LERN_CODE", "P0 - AZURE_Production", "P1 - PriProductionInvoice"],
+    "data": [
+      ["גודל קובץ", "168 KB", "206 KB", "606 KB"],
+      ["מספר Modules", "5", "21", "6"],
+      ["זמן ריצה משוער", "2-5 שניות", "5-10 שניות", "3-8 שניות"],
+      ["CallSubscenarios", "0", "2 (SCN_7900688, SCN_7900797)", "2 nested (SCN_7779086, SCN_7877436)"],
+      ["מטרה ראשית", "עיבוד קונפיגורציה ספקים", "ניתוח PDF דרך Azure", "אינטגרציה עם Priority/BASE44"],
+      ["קלט עיקרי", "JSON מLearned Data", "PDF מGoogle Drive", "Webhook JSON"],
+      ["פלט עיקרי", "LERN_ALL בDatastore", "Supplier Data + Webhook", "Priority Doc + BASE44"],
+      ["טכנולוגיות", "JSON, GitHub, Code Execution", "Google Drive, Azure, AI", "GitHub, Priority, BASE44"],
+      ["סוג Flow", "Linear (5 steps)", "Linear (6 main steps)", "Complex (Router + nested flows)"]
+    ]
+  },
+  
+  "data_flow_diagram": {
+    "main_flow": "Webhook (P1) → P0 (Azure) → S2 (Learning) → Datastore → P1 (Integration) → Priority/BASE44",
+    "detailed": [
+      {
+        "trigger": "External Webhook",
+        "receiver": "P1 - PriProductionInvoice",
+        "actions": ["Parse JSON", "Validate Data", "Route to subscenarios"]
+      },
+      {
+        "trigger": "P1 Webhook",
+        "receiver": "P0 - AZURE_Production",
+        "actions": ["Search PDF", "Send to Azure", "Extract Supplier", "Run AI Agent"]
+      },
+      {
+        "trigger": "P0 Results",
+        "receiver": "S2 - SUP_LERN_CODE",
+        "actions": ["Parse Results", "Execute Logic", "Update Learning DB"]
+      },
+      {
+        "trigger": "All Processing Done",
+        "receiver": "P1 Subscenarios",
+        "actions": ["Update Priority (SCN_7779086)", "Store in BASE44 (SCN_7877436)"]
+      }
+    ]
+  },
+
+  "module_inventory": {
+    "json_processing": ["json:ParseJSON", "json:AggregateToJSON"],
+    "external_apis": ["http:ActionSendData", "http:ActionSendDataAPIKeyAuth", "google-drive:*"],
+    "code_execution": ["code:ExecuteCode"],
+    "data_storage": ["datastore:*"],
+    "ai_processing": ["ai-tools:Extract", "ai-agent:RunAnAIAgent"],
+    "control_flow": ["builtin:BasicRouter", "scenario-service:CallSubscenario"],
+    "webhooks": ["gateway:CustomWebHook"],
+    "utilities": ["util:SetVariable2", "util:SetVariables", "util:FunctionSleep"]
+  },
+
+  "critical_connections": [
+    {
+      "from": "P1 (module 141)",
+      "to": "Webhook receiver",
+      "data": "Invoice data from external source"
+    },
+    {
+      "from": "P0 (module 72)",
+      "to": "SCN_7900688",
+      "data": "Supplier name from SUPNAME"
+    },
+    {
+      "from": "P0 (module 73)",
+      "to": "SCN_7900797",
+      "data": "Complete processing results"
+    },
+    {
+      "from": "P1 (module 162)",
+      "to": "SCN_7779086",
+      "data": "JSON, IV, ANSWERS, PRI_LINK for Priority"
+    },
+    {
+      "from": "P1 (module 164)",
+      "to": "SCN_7877436",
+      "data": "TEXT, IVNUM, SUPNAME, FILENAME for BASE44"
+    }
+  ],
+
+  "error_handling_points": [
+    "P0: Azure API failures (retry with sleep)",
+    "P1: Router filters (conditions for routing)",
+    "S2: Datastore operations (overwrite mode)",
+    "All: GitHub API rate limiting handled"
+  ],
+
+  "important_notes": [
+    "P1 contains 3 routing branches with different flows",
+    "P0 calls 2 subscenarios in sequence",
+    "S2 is data-driven with dynamic script loading from GitHub",
+    "GitHub tokens and API keys are embedded (security concern)",
+    "Azure API integration uses Form Recognizer v2023-07-31",
+    "All scenarios support both Hebrew and English text processing"
+  ]
+}
