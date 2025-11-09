@@ -1,37 +1,36 @@
 // ================================================================
-// Azure Invoice Processor v2.17 - FIX: isList still broken + noise values
-// עודכן: 9 נובמבר 2025 23:45
+// Azure Invoice Processor v2.18 - FIX: phones, dates, system names
+// עודכן: 10 נובמבר 2025 00:15
 // ================================================================
-// שינויים ב-v2.17:
-// 🔴 FIX: v2.16 isList() לא עבד! + ערכי רעש נוספים
+// שינויים ב-v2.18:
+// 🔴 FIX: עוד בעיות נפוצות - טלפונים, תאריכים, שמות מערכות
 //
 //    בעיות שתוקנו:
-//    1. ✅ תיקון isList() - היה בודק value בלבד, לא השורה המלאה
-//       - לפני: "טלפון: 972-4-9111442+, פקס: 972-4-6271165+" לא נתפס
-//       - הבעיה: value = "972-4-9111442+, פקס: 972-4-6271165+" → רק 1 נקודה-שתיים!
-//       - עכשיו: אם יש פסיק + נקודה-שתיים + מילים (לא קוד) → רשימה!
-//       - זיהוי: /[א-תa-zA-Z]{2,}/ → יש מילים (לא רק ספרות/סימנים)
+//    1. ✅ isList() - הוספת | (pipe) כסימן רשימה
+//       - לפני: "0506371401 | 039015555" לא נתפס כרשימה
+//       - עכשיו: pipe (|) = רשימה (כמו , ו-;)
 //
-//    2. ✅ סינון ערכים שהם רעש
-//       - "=" → ערך קצר מדי (<=2 תווים)
-//       - "WINSERT:..." → מטא-דאטה מהקוד
-//       - "בע"מ @@@" → מטא-דאטה
-//       - "a240210:120825:C:SI25003642:Account2@t-p-y.co.il" → path עם @
+//    2. ✅ cleanNumber() - אל תנרמל תאריכים MM.YY / MM/YY
+//       - לפני: "06.25" → 6.25 (מספר) ❌
+//       - עכשיו: "06.25" נשאר "06.25" (חודש/שנה) ✅
+//       - זיהוי: /^\d{1,2}[.\/]\d{2}$/
 //
-//    3. ✅ תיקון extractAllPureNumbers - מניעת חלקי טלפונים
-//       - לפני: "972-4" מ-"972-4-9111442" נתפס כמספר
-//       - עכשיו: הוספת מקף (-) ל-lookbehind/lookahead
-//       - (?<![.,\-\dA-Za-z]) למנוע תפיסה אם יש מקף לפני/אחרי
+//    3. ✅ extractAllPureNumbers() - דלג על טלפונים
+//       - לפני: "0506371401", "039015555" → "מספר"
+//       - עכשיו: 10 ספרות שמתחילות ב-0 = טלפון → מדולג!
+//       - הוספת pipe (|) ל-lookahead/lookbehind
+//
+//    4. ✅ extractAlphanumericCodes() - דלג על שמות מערכות
+//       - לפני: "Invoice4U" → "קוד" (רק 1 ספרה מ-9 תווים = 11%)
+//       - עכשיו: קוד אמיתי = לפחות 30% ספרות
+//       - "Invoice4U" (11%) → מדולג ✅
+//       - "SI256SP005599" (50%) → נשאר ✅
+//
+// שינויים קודמים (v2.17):
+// 🔴 FIX: isList broken + noise values + phone parts
 //
 // שינויים קודמים (v2.16):
 // 🎯 GENERIC APPROACH + ביטול currentSection
-//
-// שינויים קודמים (v2.14):
-// 🔴 CRITICAL FIX: deduplicateItems() מחק שורות לגיטימיות!
-//
-// שינויים קודמים (v2.13):
-// 1. ✅ הגבלת extractAllPureNumbers ל-6-12 ספרות
-// 2. ✅ הוספת extractDocumentNumbers
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -147,12 +146,13 @@ function standardizeText(text, options) {
  * 1. "X: Y, Z: W" - זוגות מפתח-ערך (פסיק + נקודה-שתיים במילים)
  * 2. "X, Y, Z" - רשימה של ערכים (2+ פסיקים)
  * 3. "X; Y" - נקודה-פסיק
+ * 4. "X | Y" - pipe (קו אנכי)
  */
 function isList(value) {
     if (typeof value !== 'string') return false;
 
-    // רשימה אם יש נקודה-פסיק
-    if (value.includes(';')) return true;
+    // רשימה אם יש נקודה-פסיק או pipe
+    if (value.includes(';') || value.includes('|')) return true;
 
     const commaCount = (value.match(/,/g) || []).length;
 
@@ -219,6 +219,12 @@ function cleanHeader(value) {
 
 function cleanNumber(value) {
     if (typeof value !== 'string') return value;
+
+    // ⚠️ FIX v2.18: אל תנרמל תאריכים בפורמט MM.YY או MM/YY
+    // "06.25" או "06/25" זה חודש/שנה, לא 6.25!
+    if (/^\d{1,2}[.\/]\d{2}$/.test(value.trim())) {
+        return value.trim(); // השאר כמו שהוא - זה תאריך!
+    }
 
     const cleaned = value.replace(/[,\s]/g, '');
 
@@ -1082,13 +1088,20 @@ function extractAllPureNumbers(content, existing, minLen, maxLen) {
     const numbers = [];
 
     // שימוש בפטרן עם negative lookbehind/lookahead למנוע תפיסת חלקים ממחירים וקודים
-    // לא לתפוס מספרים שלפניהם או אחריהם יש: נקודה, פסיק, ספרה, אות, מקף, או פלוס
+    // לא לתפוס מספרים שלפניהם או אחריהם יש: נקודה, פסיק, ספרה, אות, מקף, פלוס, או pipe
     // כך נמנע מלתפוס "256" מ-"SI256SP005599" או "3600" מ-"13.3600" או "972-4" מ-"+972-4-9111442+"
-    const pattern = new RegExp('(?<![.,\\-+\\dA-Za-z])(\\d{' + minLen + ',' + maxLen + '})(?![.,\\-+\\dA-Za-z])', 'g');
+    const pattern = new RegExp('(?<![.,\\-+|\\dA-Za-z])(\\d{' + minLen + ',' + maxLen + '})(?![.,\\-+|\\dA-Za-z])', 'g');
 
     let match;
     while ((match = pattern.exec(content)) !== null) {
         const num = match[1];
+
+        // ⚠️ FIX v2.18: דלג על מספרים שנראים כמו טלפונים
+        // טלפון = 10 ספרות שמתחילות ב-0
+        if (num.length === 10 && num.startsWith('0')) {
+            continue; // "0506371401", "039015555" ← טלפונים!
+        }
+
         if (!isValueExists(num, existing)) {
             numbers.push({label: 'מספר', value: num});
         }
@@ -1108,6 +1121,14 @@ function extractAlphanumericCodes(content, existing, minLen, maxLen) {
         // חייב להכיל גם אותיות וגם ספרות
         if (!/[A-Za-z]/.test(code) || !/\d/.test(code)) {
             continue;
+        }
+
+        // ✅ FIX v2.18: דלג על "קודים" שהם בעיקר אותיות (כמו "Invoice4U")
+        // קוד אמיתי = לפחות 30% ספרות
+        const digitCount = (code.match(/\d/g) || []).length;
+        const digitRatio = digitCount / code.length;
+        if (digitRatio < 0.3) {
+            continue; // "Invoice4U" → 1/9 = 11% ספרות ← לא קוד!
         }
 
         // ✅ FIX v2.15: דלג על קודים שכבר קיימים בשדות אחרים
