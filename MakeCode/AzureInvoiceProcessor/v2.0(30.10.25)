@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.7 - FINAL (Ready for Production)
-// עודכן: 9 נובמבר 2025 19:47
+// Azure Invoice Processor v2.8 - Context-aware label extraction (sections)
+// עודכן: 9 נובמבר 2025 19:59
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -620,22 +620,50 @@ function extractUniqueData(content, existingFields) {
 function extractLabelValuePairs(content, existing) {
     const pairs = [];
     const lines = content.split('\n');
-    const patterns = [
-        /^([א-תA-Za-z\s\.]+):\s*([^\n]+)$/,
-        /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/
-    ];
+
+    // Pattern 1: "תווית: ערך" באותה שורה
+    const labelValuePattern = /^([א-תA-Za-z\s\.]+):\s*([^\n]+)$/;
+    // Pattern 2: תווית עם 2+ רווחים ואז ערך
+    const spacedPattern = /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/;
+    // Pattern 3: זיהוי כותרת (נגמרת ב-: אבל אין ערך, או רק "(לא צויין)" וכו')
+    const sectionHeaderPattern = /^([א-תA-Za-z\s\/]+):?\s*$/;
+
+    let currentSection = null;
+
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (!line || line.length < 5) continue;
-        for (let p = 0; p < patterns.length; p++) {
-            const match = line.match(patterns[p]);
-            if (match) {
-                const label = match[1].trim();
-                const value = match[2].trim();
-                if (!isValueExists(value, existing) && !isCommonLabel(label)) {
-                    pairs.push({label: label, value: value});
-                }
-                break;
+        if (!line || line.length < 3) continue;
+
+        // בדוק אם זו כותרת סקשן
+        const sectionMatch = line.match(sectionHeaderPattern);
+        if (sectionMatch && line.length < 30) { // כותרות בדרך כלל קצרות
+            currentSection = sectionMatch[1].trim();
+            continue;
+        }
+
+        // בדוק "תווית: ערך" רגיל
+        let match = line.match(labelValuePattern);
+        if (!match) {
+            match = line.match(spacedPattern);
+        }
+
+        if (match) {
+            const label = match[1].trim();
+            let value = match[2].trim();
+
+            // אם הערך ריק או "לא צויין" - דלג
+            if (!value || value === '(לא צויין)' || value === '(לא צוינו)') {
+                continue;
+            }
+
+            // אם אנחנו בתוך סקשן, הוסף את שם הסקשן לתווית
+            let fullLabel = label;
+            if (currentSection && !label.startsWith(currentSection)) {
+                fullLabel = currentSection + ' - ' + label;
+            }
+
+            if (!isValueExists(value, existing) && !isCommonLabel(fullLabel)) {
+                pairs.push({label: fullLabel, value: value});
             }
         }
     }

@@ -4,7 +4,7 @@
             "stdout": [],
             "stderr": []
         },
-        "executionTimeMs": 7,
+        "executionTimeMs": 8,
         "result": {
             "structure": {
                 "docType": "string",
@@ -99,55 +99,43 @@
                     "VendorEmail": "jesicab@sp-i.co.il",
                     "UnidentifiedNumbers": [
                         {
-                            "label": "מס. תיק ניכויים",
+                            "label": "מקבוצת אינרום תעשיית בנייה - מס. תיק ניכויים",
                             "value": "917578536"
                         },
                         {
-                            "label": "פרטים",
+                            "label": "מספר תעודה - פרטים",
                             "value": "חש. לתעודה אוג-25"
                         },
                         {
-                            "label": "טלפון",
+                            "label": "מספר תעודה - טלפון",
                             "value": "054-3090747, פקס: 09-8947635"
                         },
                         {
-                            "label": "WINSERT",
+                            "label": "מספר תעודה - WINSERT",
                             "value": "spinrom:260825:C:SI256SP005599:account2@t-p-y.co.il"
                         },
                         {
-                            "label": "תעודה",
+                            "label": "שחור - תעודה",
                             "value": "SH25SP005743"
                         },
                         {
-                            "label": "הזמנה",
-                            "value": "SO25SP004701"
-                        },
-                        {
-                            "label": "הזמנתכם",
-                            "value": "1005223"
-                        },
-                        {
-                            "label": "מס. לקוח",
-                            "value": "501185"
-                        },
-                        {
-                            "label": "סוכן",
-                            "value": "SP"
-                        },
-                        {
-                            "label": "file",
-                            "value": "///C:/Users/JESICA~1/AppData/Local/Temp/OL-22872-2.htm"
-                        },
-                        {
-                            "label": "ברקוד מספר תעודה",
+                            "label": "אריזות - ברקוד מספר תעודה",
                             "value": "*SH25SP005743*"
                         },
                         {
-                            "label": "נפח",
+                            "label": "אריזות - סוכן",
+                            "value": "SP"
+                        },
+                        {
+                            "label": "אריזות - נפח",
                             "value": "4.0000 נפח"
                         },
                         {
-                            "label": "file",
+                            "label": "אריזות - מס. לקוח",
+                            "value": "501185"
+                        },
+                        {
+                            "label": "אבי אוחיון - file",
                             "value": "///C:/Users/AVIOHA~1/AppData/Local/Temp/OL-27572-2.htm"
                         },
                         {
@@ -176,6 +164,10 @@
                         },
                         {
                             "label": "מספר",
+                            "value": "1005223"
+                        },
+                        {
+                            "label": "מספר",
                             "value": "22872"
                         },
                         {
@@ -189,6 +181,10 @@
                         {
                             "label": "קוד",
                             "value": "account2"
+                        },
+                        {
+                            "label": "קוד",
+                            "value": "SO25SP004701"
                         }
                     ]
                 }
@@ -196,7 +192,7 @@
             "metadata": {
                 "modelId": "",
                 "totalFields": 30,
-                "uniqueDataFound": 23,
+                "uniqueDataFound": 22,
                 "pageCount": 2
             },
             "status": "success"
