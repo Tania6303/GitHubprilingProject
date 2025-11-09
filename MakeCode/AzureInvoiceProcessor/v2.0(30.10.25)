@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.10 - INTEGRATION: TextStandardization base layer
-// עודכן: 9 נובמבר 2025 20:25
+// Azure Invoice Processor v2.11 - ENHANCEMENT: Value normalization
+// עודכן: 9 נובמבר 2025 21:05
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -15,8 +15,97 @@
 // 📖 תיעוד מפורט והיסטוריה: ראה README.md
 // ================================================================
 
-// ✨ NEW: Import TextStandardization as foundation layer
+// ✨ Import TextStandardization as foundation layer
 const standardize = require('../TextStandardization/standardize-text.js');
+
+// ============================================================================
+// פונקציות נרמול ערכים (מקוד DataNormalizer)
+// ============================================================================
+
+function cleanNumber(value) {
+    if (typeof value !== 'string') return value;
+
+    const cleaned = value.replace(/[,\s]/g, '');
+
+    // אם זה רצף ספרות ארוך מאוד (>=16), לא להמיר למספר כדי לא לאבד דיוק
+    if (/^\d{16,}$/.test(cleaned)) {
+        return value.trim(); // השאר מחרוזת מקורית
+    }
+
+    if (/^-?\d+\.?\d*$/.test(cleaned)) {
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? value : num;
+    }
+    return value;
+}
+
+function normalizeDate(value) {
+    if (typeof value !== 'string') return value;
+
+    // פורמט ISO: YYYY-MM-DD
+    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+        const year = isoMatch[1];
+        const month = isoMatch[2];
+        const day = isoMatch[3];
+        return `${day}/${month}/${year}`;
+    }
+
+    // פורמט DD/MM/YY או DD/MM/YYYY
+    const dateMatch1 = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (dateMatch1) {
+        const day = dateMatch1[1].padStart(2, '0');
+        const month = dateMatch1[2].padStart(2, '0');
+        let year = dateMatch1[3];
+
+        if (year.length === 2) {
+            year = parseInt(year) > 50 ? '19' + year : '20' + year;
+        }
+
+        return `${day}/${month}/${year}`;
+    }
+
+    return value;
+}
+
+function detectCurrencyInValue(value) {
+    if (typeof value !== 'string') return null;
+
+    // מטבע בתחילה: "USD 24.99"
+    const prefixMatch = value.match(/^(ILS|USD|EUR|GBP|₪|\$|€|£|ש"ח)\s+/);
+    if (prefixMatch) return prefixMatch[1];
+
+    // מטבע בסוף: "24.99 USD"
+    const currencies = ['ILS', 'USD', 'EUR', 'GBP', '₪', '$', '€', '£', 'ש"ח'];
+    for (const curr of currencies) {
+        if (value.includes(curr)) {
+            return curr;
+        }
+    }
+    return null;
+}
+
+function removeCurrency(value, currency) {
+    if (typeof value !== 'string' || !currency) return value;
+    return value.replace(currency, '').trim();
+}
+
+function isPercentageField(fieldName) {
+    if (typeof fieldName !== 'string') return false;
+    const lower = fieldName.toLowerCase();
+    return lower.includes('אחוז') || lower.includes('percentage') ||
+           lower.includes('percent') || lower.includes('שיעור') ||
+           fieldName.includes('%');
+}
+
+function cleanPercentage(value) {
+    if (typeof value !== 'string') return value;
+    if (!value.endsWith('%')) return value;
+
+    const cleaned = value.replace('%', '').trim();
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? value : num;
+}
 
 const contentLong = input.contentLong || input.contentlong || '';
 const pagesInput = input.pages || [];
@@ -587,7 +676,8 @@ function extractUniqueData(content, existingFields) {
 
             // סמן גם מספרים שנמצאים בתוך הvalue כדי למנוע כפילויות
             // לדוגמה: "1917035 (202857)" -> סמן גם 1917035 ו-202857
-            const numbersInValue = pairs[i].value.match(/\d{3,}/g) || [];
+            const valueStr = String(pairs[i].value); // המרה ל-string למקרה שנרמל למספר
+            const numbersInValue = valueStr.match(/\d{3,}/g) || [];
             for (let n = 0; n < numbersInValue.length; n++) {
                 seen[numbersInValue[n]] = true;
             }
@@ -697,8 +787,35 @@ function extractLabelValuePairs(content, existing) {
                 fullLabel = currentSection + ' - ' + label;
             }
 
-            if (!isValueExists(value, existing) && !isCommonLabel(fullLabel)) {
-                pairs.push({label: fullLabel, value: value});
+            // ✨ נרמול הערך לפני שמירה
+            let normalizedValue = value;
+
+            // זיהוי והסרת מטבע
+            const currency = detectCurrencyInValue(value);
+            if (currency) {
+                normalizedValue = removeCurrency(normalizedValue, currency);
+            }
+
+            // נרמול אחוזים
+            if (isPercentageField(fullLabel)) {
+                normalizedValue = cleanPercentage(normalizedValue);
+            }
+            // ניסיון המרה למספר
+            else {
+                const asNumber = cleanNumber(normalizedValue);
+                if (asNumber !== normalizedValue) {
+                    normalizedValue = asNumber;
+                } else {
+                    // ניסיון המרה לתאריך
+                    const asDate = normalizeDate(normalizedValue);
+                    if (asDate !== normalizedValue) {
+                        normalizedValue = asDate;
+                    }
+                }
+            }
+
+            if (!isValueExists(normalizedValue, existing) && !isCommonLabel(fullLabel)) {
+                pairs.push({label: fullLabel, value: normalizedValue});
             }
         }
     }
