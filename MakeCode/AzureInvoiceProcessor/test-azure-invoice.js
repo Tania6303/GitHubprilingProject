@@ -5,7 +5,7 @@ const path = require('path');
 const key = "CdSbyB8oJePTa6bRLuzJmkZE7IGd31GQaZZQtlIF9VjBwwsuVSbOJQQJ99BJAC5RqLJXJ3w3AAALACOGSDuM";
 const endpoint = "https://prilinqdocai.cognitiveservices.azure.com/";
 
-// FLAS-FIT invoice text
+// FLAS-FIT invoice text (save as file for Azure)
 const invoiceText = `דימסמך עזיושר
 מסמך חתום
 על ידי גורם מאשר
@@ -115,10 +115,11 @@ async function main() {
 
     const client = new DocumentAnalysisClient(endpoint, new AzureKeyCredential(key));
 
-    // Use beginAnalyzeDocument with base64
-    const base64Content = Buffer.from(invoiceText, 'utf-8').toString('base64');
+    // Create a buffer from the text
+    const buffer = Buffer.from(invoiceText, 'utf-8');
 
-    const poller = await client.beginAnalyzeDocument("prebuilt-invoice", invoiceText);
+    console.log('Analyzing document...');
+    const poller = await client.beginAnalyzeDocument("prebuilt-invoice", buffer);
     const result = await poller.pollUntilDone();
 
     console.log('✅ Azure analysis complete!');
