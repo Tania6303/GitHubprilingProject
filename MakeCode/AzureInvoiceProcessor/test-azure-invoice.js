@@ -1,11 +1,12 @@
-const { AzureKeyCredential, DocumentAnalysisClient } = require("@azure/ai-form-recognizer");
+const DocumentIntelligence = require("@azure-rest/ai-document-intelligence").default;
+const { getLongRunningPoller, isUnexpected } = require("@azure-rest/ai-document-intelligence");
 const fs = require('fs');
 const path = require('path');
 
 const key = "CdSbyB8oJePTa6bRLuzJmkZE7IGd31GQaZZQtlIF9VjBwwsuVSbOJQQJ99BJAC5RqLJXJ3w3AAALACOGSDuM";
 const endpoint = "https://prilinqdocai.cognitiveservices.azure.com/";
 
-// FLAS-FIT invoice text (save as file for Azure)
+// FLAS-FIT invoice text
 const invoiceText = `דימסמך עזיושר
 מסמך חתום
 על ידי גורם מאשר
@@ -113,42 +114,59 @@ r5293535
 async function main() {
     console.log('Sending FLAS-FIT invoice to Azure...');
 
-    const client = new DocumentAnalysisClient(endpoint, new AzureKeyCredential(key));
+    const client = DocumentIntelligence(endpoint, { key: key });
+    console.log('Client created successfully');
 
-    // Create a buffer from the text
-    const buffer = Buffer.from(invoiceText, 'utf-8');
+    // Send the text to Azure
+    console.log('Sending POST request...');
+    const initialResponse = await client
+        .path("/documentModels/{modelId}:analyze", "prebuilt-invoice")
+        .post({
+            contentType: "text/plain",
+            body: invoiceText
+        });
 
-    console.log('Analyzing document...');
-    const poller = await client.beginAnalyzeDocument("prebuilt-invoice", buffer);
-    const result = await poller.pollUntilDone();
+    console.log('Response received, status:', initialResponse.status);
+
+    if (isUnexpected(initialResponse)) {
+        console.error('Unexpected response:', initialResponse.body);
+        throw initialResponse.body.error;
+    }
+
+    console.log('Polling for results...');
+    const poller = getLongRunningPoller(client, initialResponse);
+    const analyzeResult = (await poller.pollUntilDone()).body.analyzeResult;
 
     console.log('✅ Azure analysis complete!');
 
     // Save the full result
     const outputPath = path.join(__dirname, 'EXEMPTS', 'azure-flas-fit-result.json');
-    fs.writeFileSync(outputPath, JSON.stringify(result, null, 2), 'utf-8');
+    fs.writeFileSync(outputPath, JSON.stringify(analyzeResult, null, 2), 'utf-8');
     console.log('✅ Full result saved to:', outputPath);
 
     // Check VendorFax
-    if (result.documents && result.documents[0] && result.documents[0].fields) {
-        const fields = result.documents[0].fields;
+    const documents = analyzeResult?.documents;
+    const result = documents && documents[0];
+
+    if (result) {
+        const invoice = result.fields;
         console.log('\n📋 Key Fields:');
-        console.log('VendorName:', fields.VendorName?.content);
-        console.log('VendorPhone:', fields.VendorPhone?.content);
-        console.log('VendorFax:', fields.VendorFax?.content);
-        console.log('InvoiceId:', fields.InvoiceId?.content);
-        console.log('VendorTaxId:', fields.VendorTaxId?.content);
+        console.log('VendorName:', invoice.VendorName?.valueString);
+        console.log('VendorPhone:', invoice.VendorPhoneNumber?.valueString);
+        console.log('VendorFax:', invoice.VendorFax?.valueString);
+        console.log('InvoiceId:', invoice.InvoiceId?.valueString);
+        console.log('VendorTaxId:', invoice.VendorTaxId?.valueString);
     }
 
-    // Now test with our v2.6 processor
-    console.log('\n🔄 Running v2.6 processor...');
+    // Now test with our v2.7 processor
+    console.log('\n🔄 Running v2.7 processor...');
 
     const input = {
-        contentLong: result.content,
-        pages: result.pages,
-        tables: result.tables,
-        documents: result.documents,
-        modelId: result.modelId
+        contentLong: analyzeResult.content,
+        pages: analyzeResult.pages,
+        tables: analyzeResult.tables,
+        documents: analyzeResult.documents,
+        modelId: analyzeResult.modelId
     };
 
     // Save input for future testing
@@ -158,6 +176,9 @@ async function main() {
 }
 
 main().catch((error) => {
-    console.error("An error occurred:", error);
+    console.error("An error occurred:");
+    console.error("Error message:", error?.message);
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    console.error("Full error:", error);
     process.exit(1);
 });
