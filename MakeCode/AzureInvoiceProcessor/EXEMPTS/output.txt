@@ -1,0 +1,104 @@
+[
+    {
+        "logs": {
+            "stdout": [],
+            "stderr": []
+        },
+        "executionTimeMs": 774,
+        "result": {
+            "structure": {
+                "docType": "string",
+                "fields": {
+                    "CustomerAddress": "string",
+                    "CustomerAddress_houseNumber": "string",
+                    "CustomerAddress_road": "string",
+                    "CustomerAddress_postalCode": "string",
+                    "CustomerAddress_streetAddress": "string",
+                    "CustomerAddress_house": "string",
+                    "CustomerAddressRecipient": "string",
+                    "CustomerName": "string",
+                    "CustomerTaxId": "string",
+                    "InvoiceDate": "YYYY-MM-DD",
+                    "InvoiceId": "string",
+                    "InvoiceTotal_amount": "number",
+                    "InvoiceTotal_currency": "string",
+                    "PaymentTerm": "string",
+                    "SubTotal_amount": "number",
+                    "SubTotal_currency": "string",
+                    "TotalTax_amount": "number",
+                    "TotalTax_currency": "string",
+                    "VendorAddress": "string",
+                    "VendorAddress_house": "string",
+                    "VendorAddressRecipient": "string",
+                    "VendorName": "string",
+                    "VendorTaxId": "string"
+                },
+                "Items": [
+                    {
+                        "Amount_amount": "number",
+                        "Amount_currency": "string",
+                        "Description": "string",
+                        "ProductCode": "string",
+                        "Quantity": "number",
+                        "Unit": "string",
+                        "UnitPrice_amount": "number",
+                        "UnitPrice_currency": "string"
+                    }
+                ]
+            },
+            "data": {
+                "docType": "invoice",
+                "fields": {
+                    "CustomerAddress": "11 ת.ד- 12235\nפארק ת׳ עמק חפר",
+                    "CustomerAddress_houseNumber": "11",
+                    "CustomerAddress_road": "ת.ד",
+                    "CustomerAddress_postalCode": "12235",
+                    "CustomerAddress_streetAddress": "11 ת.ד",
+                    "CustomerAddress_house": "פארק ת׳ עמק חפר",
+                    "CustomerAddressRecipient": "ט.פ.י פל ים בע״מ",
+                    "CustomerName": "ט.פ.י פל ים בע״מ",
+                    "CustomerTaxId": "513327064",
+                    "InvoiceDate": "2025-08-26",
+                    "InvoiceId": "SI256SP005599",
+                    "InvoiceTotal_amount": 18172,
+                    "InvoiceTotal_currency": "ILS",
+                    "Items": [
+                        {
+                            "Amount_amount": 15400,
+                            "Amount_currency": "ILS",
+                            "Description": "ROLL50M-\n16x2 S.P\nשחור בידוד\nשחור",
+                            "ProductCode": "7660011-00050-20",
+                            "Quantity": 2000,
+                            "Unit": "מטר",
+                            "UnitPrice_amount": 14,
+                            "UnitPrice_currency": "ILS"
+                        },
+                        {
+                            "Description": "ROLL50M-16x2 S.P שחור בידוד שחור",
+                            "ProductCode": "7660011-00050-20",
+                            "UnitPrice_amount": 2000,
+                            "UnitPrice_currency": "ILS"
+                        }
+                    ],
+                    "PaymentTerm": "שוטף+ 120 יום לקוחות",
+                    "SubTotal_amount": 15400,
+                    "SubTotal_currency": "ILS",
+                    "TotalTax_amount": 2772,
+                    "TotalTax_currency": "ILS",
+                    "VendorAddress": "קיבוץ מצר ד.נ חפר",
+                    "VendorAddress_house": "קיבוץ מצר ד.נ חפר",
+                    "VendorAddressRecipient": "אס.פי תעשיות מתקדמות בע״מ",
+                    "VendorName": "SP\nINDUSTRIES",
+                    "VendorTaxId": "516470697"
+                }
+            },
+            "metadata": {
+                "modelId": "",
+                "totalFields": 24,
+                "uniqueDataFound": 0,
+                "pageCount": 2
+            },
+            "status": "success"
+        }
+    }
+]
