@@ -156,10 +156,6 @@
                         },
                         {
                             "label": "מספר",
-                            "value": "256"
-                        },
-                        {
-                            "label": "מספר",
                             "value": "3877701"
                         },
                         {
@@ -177,14 +173,6 @@
                         {
                             "label": "מספר",
                             "value": "120"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "005743"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "004701"
                         },
                         {
                             "label": "מספר",
@@ -208,7 +196,7 @@
             "metadata": {
                 "modelId": "",
                 "totalFields": 30,
-                "uniqueDataFound": 26,
+                "uniqueDataFound": 23,
                 "pageCount": 2
             },
             "status": "success"

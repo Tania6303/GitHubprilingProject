@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.6 - FIX: Skip price decimals in number extraction
-// עודכן: 9 נובמבר 2025 19:19
+// Azure Invoice Processor v2.7 - FIX: Don't extract numbers from alphanumeric codes
+// עודכן: 9 נובמבר 2025 19:29
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -670,9 +670,10 @@ function extractFormattedNumbers(content, existing) {
 function extractAllPureNumbers(content, existing, minLen, maxLen) {
     const numbers = [];
 
-    // שימוש בפטרן עם negative lookbehind/lookahead למנוע תפיסת חלקים ממחירים
-    // לא לתפוס מספרים שלפניהם או אחריהם יש: נקודה, פסיק, או ספרה נוספת
-    const pattern = new RegExp('(?<![.,\\d])(\\d{' + minLen + ',' + maxLen + '})(?![.,\\d])', 'g');
+    // שימוש בפטרן עם negative lookbehind/lookahead למנוע תפיסת חלקים ממחירים וקודים
+    // לא לתפוס מספרים שלפניהם או אחריהם יש: נקודה, פסיק, ספרה, או אות
+    // כך נמנע מלתפוס "256" מ-"SI256SP005599" או "3600" מ-"13.3600"
+    const pattern = new RegExp('(?<![.,\\dA-Za-z])(\\d{' + minLen + ',' + maxLen + '})(?![.,\\dA-Za-z])', 'g');
 
     let match;
     while ((match = pattern.exec(content)) !== null) {
