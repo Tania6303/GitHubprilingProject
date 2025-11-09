@@ -1,50 +1,375 @@
 // ================================================================
-// Azure Invoice Processor v2.0 - Make Compatible
-// תאריך: 30 אוקטובר 2025
+// Azure Invoice Processor v2.22 - CODE CLEANUP: refactor & optimize
+// עודכן: 10 נובמבר 2025 01:25
+// ================================================================
+// שינויים ב-v2.22:
+// 🧹 CODE CLEANUP: ריפקטור וייעול קוד
+//
+//    שיפורים:
+//    1. ✅ מיזוג normalizeWhitespace() + removeExtraSpaces()
+//       - מחק פונקציה כפולה, שמר רק normalizeWhitespace() משופרת
+//       - קוד יותר נקי, פחות כפילויות
+//
+//    2. ✅ ריפקטור guessFieldNameGeneric() עם מיפוי
+//       - לפני: 7 if-then ארוכים
+//       - עכשיו: מערך fieldMappings מסודר
+//       - קל יותר לתחזק ולהוסיף שדות
+//
+//    3. ✅ שיפור isCommonLabel() עם array.some()
+//       - לפני: לולאת for ידנית
+//       - עכשיו: array.some() קריא יותר
+//       - קוד מודרני וקצר
+//
+// שינויים קודמים (v2.21):
+// 🔴 FIX: lists with URLs and long mixed content
+//
+// שינויים קודמים (v2.20):
+// 🔴 FIX: mobile phones, OCR artifacts, lists, cleanup
+//
+// שינויים קודמים (v2.19):
+// 🔴 FIX: sentences, short hyphenated numbers, partial codes
+//
+// שינויים קודמים (v2.18):
+// 🔴 FIX: phones, dates, system names
+//
+// שינויים קודמים (v2.17):
+// 🔴 FIX: isList broken + noise values + phone parts
+//
+// שינויים קודמים (v2.16):
+// 🎯 GENERIC APPROACH + ביטול currentSection
+// ================================================================
+//
+// ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
+// - Processing Invoice (v4.2-COMPLETE.js)
+// - Production Invoice (v1.0-production.js)
+//
+// 📁 קבצי בדיקה:
+// - MakeCode/AzureInvoiceProcessor/EXEMPTS/input.txt + output.txt
+// - MakeCode/Processing Invoice/QA/
+// - MakeCode/Production Invoice/QA/
+//
+// 📖 תיעוד מפורט והיסטוריה: ראה README.md
 // ================================================================
 
-const azureJsonInput = input.azureJsonInput;
+// ============================================================================
+// TextStandardization Functions (embedded - Make.com compatible)
+// ============================================================================
+
+function removeInvisibleCharacters(text) {
+    return text
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .replace(/\u00A0/g, ' ')
+        .replace(/\u00AD/g, '')
+        .replace(/[\u200E\u200F]/g, '')
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+}
+
+function normalizeLineBreaks(text) {
+    return text
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\n{3,}/g, '\n\n');
+}
+
+function normalizeWhitespace(text) {
+    return text
+        .replace(/\t/g, ' ')
+        .replace(/  +/g, ' ')
+        .replace(/^ +/gm, '')
+        .replace(/ +$/gm, '')
+        .replace(/ +([,.:;!?])/g, '$1')
+        .replace(/\(\s+/g, '(')
+        .replace(/\s+\)/g, ')');
+}
+
+function normalizeHyphens(text) {
+    return text
+        .replace(/\u2013/g, '-')
+        .replace(/\u2014/g, '-')
+        .replace(/\u2212/g, '-')
+        .replace(/\u2012/g, '-')
+        .replace(/\u2015/g, '-');
+}
+
+function normalizeHebrew(text) {
+    return text
+        .replace(/\u05F4/g, '"')
+        .replace(/\u05F3/g, "'")
+        .replace(/[\u05BE\u05C0]/g, '-');
+}
+
+function standardizeText(text, options) {
+    if (!text || typeof text !== 'string') return "";
+
+    const opts = {
+        removeInvisibleChars: true,
+        normalizeWhitespace: true,
+        normalizeLineBreaks: true,
+        normalizeHyphens: true,
+        normalizeHebrew: true,
+        ...options
+    };
+
+    let cleaned = text;
+
+    if (opts.removeInvisibleChars) {
+        cleaned = removeInvisibleCharacters(cleaned);
+    }
+    if (opts.normalizeLineBreaks) {
+        cleaned = normalizeLineBreaks(cleaned);
+    }
+    if (opts.normalizeWhitespace) {
+        cleaned = normalizeWhitespace(cleaned);
+    }
+    if (opts.normalizeHyphens) {
+        cleaned = normalizeHyphens(cleaned);
+    }
+    if (opts.normalizeHebrew) {
+        cleaned = normalizeHebrew(cleaned);
+    }
+
+    return cleaned.trim();
+}
+
+// ============================================================================
+// פונקציות נרמול ערכים (מקוד DataNormalizer)
+// ============================================================================
+
+/**
+ * בדוק אם ערך הוא רשימה - זיהוי גנרי לפי תבנית, לא מילות מפתח!
+ * תבניות של רשימות:
+ * 1. "X: Y, Z: W" - זוגות מפתח-ערך (פסיק + נקודה-שתיים במילים)
+ * 2. "X, Y, Z" - רשימה של ערכים (2+ פסיקים)
+ * 3. "X; Y" - נקודה-פסיק
+ * 4. "X | Y" - pipe (קו אנכי)
+ */
+function isList(value) {
+    if (typeof value !== 'string') return false;
+
+    // רשימה אם יש נקודה-פסיק או pipe
+    if (value.includes(';') || value.includes('|')) return true;
+
+    // ⚠️ FIX v2.21: רשימה אם יש URL/website
+    // "04-6333334 פקס': 04-6344123 www.toyota-sos.co.il" ← יש www = רשימה!
+    if (value.includes('www.') || value.includes('http://') || value.includes('https://')) {
+        return true;
+    }
+
+    const commaCount = (value.match(/,/g) || []).length;
+    const colonCount = (value.match(/:/g) || []).length;
+
+    // רשימה אם יש 2+ פסיקים (לפחות 3 פריטים)
+    if (commaCount >= 2) return true;
+
+    // אם יש 1 פסיק - בדוק אם יש מבנה של זוגות עם נקודה-שתיים
+    if (commaCount >= 1 && colonCount >= 1) {
+        const hasWords = /[א-תa-zA-Z]{2,}/.test(value);
+        if (hasWords) {
+            return true; // "04-6445585, פקס: 1534-6438399" ← רשימה!
+        }
+    }
+
+    // ⚠️ FIX v2.20: רשימה אם יש 2+ נקודותיים + מילים (גם ללא פסיק!)
+    // "טל': 04-6333334 פקס': 04-6344123" ← יש 2 נקודותיים + מילים = רשימה!
+    if (colonCount >= 2) {
+        const hasWords = /[א-תa-zA-Z]{2,}/.test(value);
+        if (hasWords) {
+            return true;
+        }
+    }
+
+    // ⚠️ FIX v2.21: רשימה אם ארוך מדי עם מספרים מרובים
+    // "04-6333334 פקס 04-6344123" ← ארוך (>40) + 2 מספרים = רשימה!
+    if (value.length > 40) {
+        const numberCount = (value.match(/\d{2,}/g) || []).length;
+        if (numberCount >= 2) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * נקה כותרת/label מתווים מיותרים
+ */
+function cleanHeader(value) {
+    if (typeof value !== 'string') return value;
+
+    let cleaned = value;
+
+    // הסר תווים מיותרים בהתחלה/סוף
+    cleaned = cleaned.trim();
+
+    // הסר נקודות בסוף (אם יש)
+    cleaned = cleaned.replace(/\.+$/, '');
+
+    // הסר נקודותיים בסוף
+    cleaned = cleaned.replace(/:+$/, '');
+
+    // הסר רווחים מרובים
+    cleaned = cleaned.replace(/\s{2,}/g, ' ');
+
+    // הסר סוגריים ריקים
+    cleaned = cleaned.replace(/\(\s*\)/g, '');
+
+    return cleaned.trim();
+}
+
+function cleanNumber(value) {
+    if (typeof value !== 'string') return value;
+
+    // ⚠️ FIX v2.18: אל תנרמל תאריכים בפורמט MM.YY או MM/YY
+    // "06.25" או "06/25" זה חודש/שנה, לא 6.25!
+    if (/^\d{1,2}[.\/]\d{2}$/.test(value.trim())) {
+        return value.trim(); // השאר כמו שהוא - זה תאריך!
+    }
+
+    const cleaned = value.replace(/[,\s]/g, '');
+
+    // אם זה רצף ספרות ארוך מאוד (>=16), לא להמיר למספר כדי לא לאבד דיוק
+    if (/^\d{16,}$/.test(cleaned)) {
+        return value.trim(); // השאר מחרוזת מקורית
+    }
+
+    if (/^-?\d+\.?\d*$/.test(cleaned)) {
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? value : num;
+    }
+    return value;
+}
+
+function normalizeDate(value) {
+    if (typeof value !== 'string') return value;
+
+    // פורמט ISO: YYYY-MM-DD
+    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+        const year = isoMatch[1];
+        const month = isoMatch[2];
+        const day = isoMatch[3];
+        return `${day}/${month}/${year}`;
+    }
+
+    // פורמט DD/MM/YY או DD/MM/YYYY
+    const dateMatch1 = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (dateMatch1) {
+        const day = dateMatch1[1].padStart(2, '0');
+        const month = dateMatch1[2].padStart(2, '0');
+        let year = dateMatch1[3];
+
+        if (year.length === 2) {
+            year = parseInt(year) > 50 ? '19' + year : '20' + year;
+        }
+
+        return `${day}/${month}/${year}`;
+    }
+
+    return value;
+}
+
+function detectCurrencyInValue(value) {
+    if (typeof value !== 'string') return null;
+
+    // מטבע בתחילה: "USD 24.99"
+    const prefixMatch = value.match(/^(ILS|USD|EUR|GBP|₪|\$|€|£|ש"ח)\s+/);
+    if (prefixMatch) return prefixMatch[1];
+
+    // מטבע בסוף: "24.99 USD"
+    const currencies = ['ILS', 'USD', 'EUR', 'GBP', '₪', '$', '€', '£', 'ש"ח'];
+    for (const curr of currencies) {
+        if (value.includes(curr)) {
+            return curr;
+        }
+    }
+    return null;
+}
+
+function removeCurrency(value, currency) {
+    if (typeof value !== 'string' || !currency) return value;
+    return value.replace(currency, '').trim();
+}
+
+function isPercentageField(fieldName) {
+    if (typeof fieldName !== 'string') return false;
+    const lower = fieldName.toLowerCase();
+    return lower.includes('אחוז') || lower.includes('percentage') ||
+           lower.includes('percent') || lower.includes('שיעור') ||
+           fieldName.includes('%');
+}
+
+function cleanPercentage(value) {
+    if (typeof value !== 'string') return value;
+    if (!value.endsWith('%')) return value;
+
+    const cleaned = value.replace('%', '').trim();
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? value : num;
+}
+
+const contentLong = input.contentLong || input.contentlong || '';
+const pagesInput = input.pages || [];
+const tablesInput = input.tables || [];
+const documentsInput = input.documents || [];
+const modelId = input.modelId || '';
+
+const azureJsonInput = {
+    content: contentLong,
+    pages: pagesInput,
+    tables: tablesInput,
+    documents: documentsInput,
+    modelId: modelId
+};
 
 function processAzureInvoice(azureInput) {
     const analyzeResult = loadAnalyzeResult(azureInput);
-    
-    const rawContent = analyzeResult.content || '';
+
+    // ✨ Apply TextStandardization as foundation layer
+    const rawContentFromAzure = analyzeResult.content || '';
+    const rawContent = standardizeText(rawContentFromAzure);
+
     const tables = analyzeResult.tables || [];
     const documents = analyzeResult.documents || [];
-    
+
     const result = {
         docType: 'invoice',
         fields: {}
     };
-    
+
     if (documents.length > 0 && documents[0].fields) {
         extractAzureFields(documents[0].fields, result.fields);
     }
-    
+
+    // אחד פריטים כפולים שAzure מחזיר מטבלאות שונות
+    if (result.fields.Items && result.fields.Items.length > 0) {
+        result.fields.Items = deduplicateItems(result.fields.Items);
+    }
+
     const itemsData = extractRealItemsFromTable(tables, result.fields.Items);
     if (itemsData.length > 0) {
         result.fields.Items = itemsData;
     }
-    
+
     const detectedNumbers = detectNumbersByContext(rawContent, result.fields);
     Object.assign(result.fields, detectedNumbers);
-    
+
     // ✨ חדש! זיהוי דינמי של מידע ייחודי
     const uniqueData = extractUniqueData(rawContent, result.fields);
     if (uniqueData.length > 0) {
         result.fields.UnidentifiedNumbers = uniqueData;
     }
-    
+
     const structure = buildStructure(result.fields);
     const data = buildData(result);
-    
+
     return {
         structure: structure,
         data: data,
         metadata: {
             modelId: analyzeResult.modelId,
             totalFields: Object.keys(result.fields).length,
-            uniqueDataFound: uniqueData.length
+            uniqueDataFound: uniqueData.length,
+            pageCount: analyzeResult.pages ? analyzeResult.pages.length : 0
         }
     };
 }
@@ -134,6 +459,58 @@ function extractAzureFields(fields, target) {
     }
 }
 
+function deduplicateItems(items) {
+    if (!items || items.length === 0) {
+        return items;
+    }
+
+    // ⚠️ FIX v2.14: אותו ProductCode יכול להופיע פעמיים - זה לגיטימי!
+    // דדופליקציה רק אם **כל השדות החשובים זהים** (ProductCode + Amount + Quantity)
+
+    const result = [];
+    const seen = [];
+
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+
+        // בדוק אם הפריט הזה כבר קיים (זהה לחלוטין)
+        let isDuplicate = false;
+        for (let j = 0; j < seen.length; j++) {
+            const existing = seen[j];
+
+            // פריט נחשב כפילות רק אם:
+            // 1. ProductCode זהה (או שניהם חסרים)
+            // 2. Amount זהה (או שניהם חסרים)
+            // 3. Quantity זהה (או שניהם חסרים)
+
+            const sameProductCode = (item.ProductCode || '') === (existing.ProductCode || '');
+            const sameAmount = (item.Amount_amount || 0) === (existing.Amount_amount || 0);
+            const sameQuantity = (item.Quantity || 0) === (existing.Quantity || 0);
+
+            if (sameProductCode && sameAmount && sameQuantity) {
+                // זהה לחלוטין - בחר את המלא יותר
+                const existingFields = Object.keys(existing).length;
+                const currentFields = Object.keys(item).length;
+
+                if (currentFields > existingFields) {
+                    // הפריט הנוכחי מלא יותר - החלף
+                    seen[j] = item;
+                }
+                // אחרת - השאר את הקיים
+                isDuplicate = true;
+                break;
+            }
+        }
+
+        if (!isDuplicate) {
+            seen.push(item);
+            result.push(item);
+        }
+    }
+
+    return result;
+}
+
 function extractRealItemsFromTable(tables, azureItems) {
     if (azureItems && azureItems.length > 0) {
         return azureItems;
@@ -195,13 +572,27 @@ function extractRealItemsFromTable(tables, azureItems) {
     }
     
     const items = [];
+    const allRows = [];
+
     for (const rowIdx in rowsData) {
         const rowData = rowsData[rowIdx];
+        allRows.push(rowData);
         if (isRealItemRow(rowData)) {
             items.push(rowData);
         }
     }
-    
+
+    // בדיקת ביטחון: אם לא נמצאו פריטים אבל יש שורות עם ProductCode
+    // זה יכול להיות מקרה לגיטימי של פריטים ללא מחירים
+    if (items.length === 0 && allRows.length > 0) {
+        for (let i = 0; i < allRows.length; i++) {
+            const row = allRows[i];
+            if (row.ProductCode && Object.keys(row).length >= 2) {
+                items.push(row);
+            }
+        }
+    }
+
     return items;
 }
 
@@ -209,57 +600,71 @@ function guessFieldNameGeneric(content, colIndex) {
     if (!content || content.trim() === '') {
         return 'Col' + colIndex;
     }
-    
+
     const text = content.toLowerCase();
-    
-    if (content === '=' || text.indexOf('total') >= 0 || text.indexOf('amount') >= 0 || 
-        text.indexOf('סכום') >= 0 || text.indexOf('סה') >= 0) return 'Amount';
-    if (content === '%' || text.indexOf('discount') >= 0 || text.indexOf('הנח') >= 0) return 'Discount';
-    if (text.indexOf('qty') >= 0 || text.indexOf('quantity') >= 0 || text.indexOf('כמות') >= 0) return 'Quantity';
-    if (text.indexOf('price') >= 0 || text.indexOf('מחיר') >= 0) return 'UnitPrice';
-    if (text.indexOf('code') >= 0 || text.indexOf('sku') >= 0 || text.indexOf('item') >= 0 || 
-        text.indexOf('מק') >= 0 || text.indexOf('פריט') >= 0) return 'ProductCode';
-    if (text.indexOf('desc') >= 0 || text.indexOf('name') >= 0 || 
-        text.indexOf('תאור') >= 0 || text.indexOf('שם') >= 0) return 'Description';
-    if (text.indexOf('unit') >= 0 || text.indexOf('יח') >= 0) return 'Unit';
-    
+
+    // מיפוי מילות מפתח לשמות שדות
+    const fieldMappings = [
+        { keywords: ['total', 'amount', 'סכום', 'סה'], exact: ['='], field: 'Amount' },
+        { keywords: ['discount', 'הנח'], exact: ['%'], field: 'Discount' },
+        { keywords: ['qty', 'quantity', 'כמות'], field: 'Quantity' },
+        { keywords: ['price', 'מחיר'], field: 'UnitPrice' },
+        { keywords: ['code', 'sku', 'item', 'מק', 'פריט'], field: 'ProductCode' },
+        { keywords: ['desc', 'name', 'תאור', 'שם'], field: 'Description' },
+        { keywords: ['unit', 'יח'], field: 'Unit' }
+    ];
+
+    for (let i = 0; i < fieldMappings.length; i++) {
+        const mapping = fieldMappings[i];
+
+        // בדיקת התאמה מדויקת
+        if (mapping.exact) {
+            for (let j = 0; j < mapping.exact.length; j++) {
+                if (content === mapping.exact[j]) return mapping.field;
+            }
+        }
+
+        // בדיקת מילות מפתח
+        for (let k = 0; k < mapping.keywords.length; k++) {
+            if (text.indexOf(mapping.keywords[k]) >= 0) return mapping.field;
+        }
+    }
+
     return 'Col' + colIndex;
 }
 
 function isRealItemRow(rowData) {
     const keys = Object.keys(rowData);
-    
+
     if (keys.length < 2) {
         return false;
     }
-    
+
     const hasAmount = rowData.Amount !== undefined;
-    const hasProductCode = rowData.ProductCode !== undefined;
-    const hasDescription = rowData.Description !== undefined;
-    
-    if (!hasAmount && !hasProductCode && !hasDescription) {
+    const hasQuantity = rowData.Quantity !== undefined;
+    const hasUnitPrice = rowData.UnitPrice !== undefined;
+
+    // שורה אמיתית חייבת לכלול לפחות אחד מהשדות המספריים:
+    // Amount, Quantity, או UnitPrice
+    // שורות עם רק ProductCode + Description הן שורות המשך
+    if (!hasAmount && !hasQuantity && !hasUnitPrice) {
         return false;
     }
-    
-    if (hasAmount && keys.length === 1) {
-        return false;
-    }
-    
+
+    // אם יש Amount בודק שהוא תקין
     if (hasAmount) {
         const amount = rowData.Amount;
         if (typeof amount === 'number' && amount > 0) {
             return true;
         }
     }
-    
-    if (hasProductCode) {
-        const code = rowData.ProductCode;
-        if (typeof code === 'number' || (typeof code === 'string' && code.length > 0)) {
-            return true;
-        }
+
+    // אם יש Quantity או UnitPrice - זה פריט תקין
+    if (hasQuantity || hasUnitPrice) {
+        return true;
     }
-    
-    return true;
+
+    return false;
 }
 
 function parseValue(value) {
@@ -293,18 +698,28 @@ function detectNumbersByContext(content, existingFields) {
     return detected;
 }
 
+function findAllNumbers(content, minLen, maxLen) {
+    const numbers = [];
+    const pattern = new RegExp('\\b(\\d{' + minLen + ',' + maxLen + '})\\b', 'g');
+    const matches = content.match(pattern) || [];
+    for (let i = 0; i < matches.length; i++) {
+        numbers.push(matches[i]);
+    }
+    return numbers;
+}
+
 function detectVendorAdditionalId(content, existing, detected) {
     const companyIdx = content.indexOf('Company');
     if (companyIdx === -1) return;
-    
+
     const afterCompany = content.substring(companyIdx);
     const numbers = findAllNumbers(afterCompany, 9, 10);
-    
+
     if (numbers.length >= 2) {
         const first = numbers[0];
         const second = numbers[1];
-        
-        if (second !== first && 
+
+        if (second !== first &&
             second !== existing.VendorTaxId &&
             second !== existing.CustomerTaxId) {
             detected.VendorAdditionalId = second;
@@ -470,40 +885,70 @@ function detectEmails(content, existing, detected) {
 }
 
 // ================================================================
-// ✨ חדש! זיהוי דינמי של מידע ייחודי
+// חילוץ גנרי של מידע ייחודי
 // ================================================================
 
 function extractUniqueData(content, existingFields) {
     const uniqueData = [];
+    const seen = {};
 
-    // 1. זיהוי תבניות "כותרת: ערך"
-    const labelValuePairs = extractLabelValuePairs(content, existingFields);
-    for (let i = 0; i < labelValuePairs.length; i++) {
-        uniqueData.push(labelValuePairs[i]);
+    // 1. זוגות "תווית: ערך"
+    const pairs = extractLabelValuePairs(content, existingFields);
+    for (let i = 0; i < pairs.length; i++) {
+        if (!seen[pairs[i].value]) {
+            uniqueData.push(pairs[i]);
+            seen[pairs[i].value] = true;
+
+            // סמן גם מספרים שנמצאים בתוך הvalue כדי למנוע כפילויות
+            // לדוגמה: "1917035 (202857)" -> סמן גם 1917035 ו-202857
+            const valueStr = String(pairs[i].value); // המרה ל-string למקרה שנרמל למספר
+            const numbersInValue = valueStr.match(/\d{3,}/g) || [];
+            for (let n = 0; n < numbersInValue.length; n++) {
+                seen[numbersInValue[n]] = true;
+            }
+        }
     }
 
-    // 2. זיהוי קודי חלקים/מוצרים
-    const partCodes = extractPartCodes(content, existingFields);
-    for (let i = 0; i < partCodes.length; i++) {
-        uniqueData.push(partCodes[i]);
+    // 2. מספרי תעודות (BOOKNUM) לפי הקשר - זיהוי ספציפי!
+    const docNumbers = extractDocumentNumbers(content, existingFields);
+    for (let i = 0; i < docNumbers.length; i++) {
+        if (!seen[docNumbers[i].value]) {
+            uniqueData.push(docNumbers[i]);
+            seen[docNumbers[i].value] = true;
+        }
     }
 
-    // 3. זיהוי מספרי רכב
-    const vehicleNumbers = extractVehicleNumbers(content, existingFields);
-    for (let i = 0; i < vehicleNumbers.length; i++) {
-        uniqueData.push(vehicleNumbers[i]);
+    // 3. מספרים עם פורמט מיוחד (מקפים, קווים נטויים) - לפני pure numbers!
+    const formattedNumbers = extractFormattedNumbers(content, existingFields);
+    for (let i = 0; i < formattedNumbers.length; i++) {
+        if (!seen[formattedNumbers[i].value]) {
+            uniqueData.push(formattedNumbers[i]);
+            seen[formattedNumbers[i].value] = true;
+
+            // סמן גם את החלקים כדי למנוע כפילויות (741-69-103 -> גם 741, 69, 103)
+            const parts = formattedNumbers[i].value.split('-');
+            for (let p = 0; p < parts.length; p++) {
+                seen[parts[p]] = true;
+            }
+        }
     }
 
-    // 4. זיהוי מספרי תעודות (DOCNO, BOOKNUM)
-    const documentNumbers = extractDocumentNumbers(content, existingFields);
-    for (let i = 0; i < documentNumbers.length; i++) {
-        uniqueData.push(documentNumbers[i]);
+    // 4. כל המספרים (6-12 ספרות) - מונע ברקודים ארוכים ומספרים קצרים מדי
+    const pureNumbers = extractAllPureNumbers(content, existingFields, 6, 12);
+    for (let i = 0; i < pureNumbers.length; i++) {
+        if (!seen[pureNumbers[i].value]) {
+            uniqueData.push(pureNumbers[i]);
+            seen[pureNumbers[i].value] = true;
+        }
     }
 
-    // 5. זיהוי מספרים ייחודיים באורכים מיוחדים
-    const specialNumbers = extractSpecialLengthNumbers(content, existingFields);
-    for (let i = 0; i < specialNumbers.length; i++) {
-        uniqueData.push(specialNumbers[i]);
+    // 5. כל הקודים האלפא-נומריים (לפחות 5 תווים)
+    const alphaCodes = extractAlphanumericCodes(content, existingFields, 5, 30);
+    for (let i = 0; i < alphaCodes.length; i++) {
+        if (!seen[alphaCodes[i].value]) {
+            uniqueData.push(alphaCodes[i]);
+            seen[alphaCodes[i].value] = true;
+        }
     }
 
     return uniqueData;
@@ -512,203 +957,380 @@ function extractUniqueData(content, existingFields) {
 function extractLabelValuePairs(content, existing) {
     const pairs = [];
     const lines = content.split('\n');
-    
-    // דפוסים נפוצים: "כותרת: ערך" או "כותרת ערך" עם רווח
-    const patterns = [
-        /^([א-תA-Za-z\s\.]+):\s*([^\n]+)$/,           // כותרת: ערך
-        /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/    // כותרת    ערך (2+ רווחים)
-    ];
-    
+
+    // Pattern 1: "תווית: ערך" באותה שורה (מאפשר כל תו בlabel חוץ מ-:)
+    const labelValuePattern = /^([^:\n]{2,80}):\s*([^\n]+)$/;
+    // Pattern 2: תווית עם 2+ רווחים ואז ערך
+    const spacedPattern = /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/;
+    // Pattern 3: תווית קצרה (עד 3 מילים) + רווח + ערך מספרי - זיהוי "מס' תעודה 12345678"
+    const shortLabelNumericPattern = /^([א-תA-Za-z\s\.]{3,30})\s+(\d[\d\s\-\.,\(\)]+)$/;
+    // ⚠️ v2.16: ביטול currentSection - יוצר יותר רעש מאשר עוזר!
+    // labels צריכים להיות standalone, ללא שילוב מסקשנים
+
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (!line || line.length < 5) continue;
-        
-        for (let p = 0; p < patterns.length; p++) {
-            const match = line.match(patterns[p]);
+        if (!line || line.length < 3) continue;
+
+        // בדוק "תווית: ערך" בכל התבניות
+        let match = line.match(labelValuePattern);
+        if (!match) {
+            match = line.match(spacedPattern);
+        }
+        if (!match) {
+            // נסה את התבנית החדשה - תווית קצרה + ערך מספרי
+            match = line.match(shortLabelNumericPattern);
+            // אבל רק אם הtווית לא מכילה יותר מ-4 מילים (למנוע תפיסת שורות טבלה)
             if (match) {
-                const label = match[1].trim();
-                const value = match[2].trim();
-                
-                // בדוק שהערך לא קיים כבר
-                if (!isValueExists(value, existing) && !isCommonLabel(label)) {
-                    pairs.push({
-                        label: label,
-                        value: value
-                    });
+                const wordCount = match[1].trim().split(/\s+/).length;
+                if (wordCount > 4) {
+                    match = null; // יותר מדי מילים - זה לא label
                 }
-                break;
+            }
+        }
+
+        if (match) {
+            let label = match[1].trim();
+            let value = match[2].trim();
+
+            // אם הערך ריק או "לא צויין" - דלג
+            if (!value || value === '(לא צויין)' || value === '(לא צוינו)') {
+                continue;
+            }
+
+            // ⚠️ FIX v2.19: דלג על ערכים ארוכים מדי (משפטים שלמים)
+            // ערך ארוך מ-100 תווים = כנראה משפט או טקסט ארוך, לא מידע מזהה
+            if (value.length > 100) {
+                continue; // "לתשומת לבך: רישיון הרכב תקף רק לאחר תשלום..." ← משפט!
+            }
+
+            // ✅ FIX v2.17: דלג על ערכים שהם רעש
+            // ערכים קצרים מדי (1-2 תווים) כמו "=", ":", וכו'
+            if (value.length <= 2 && !/^\d+$/.test(value)) {
+                continue; // "=" ← רעש!
+            }
+
+            // דלג על ערכים שהם מטא-דאטה/קוד
+            const valueLower = value.toLowerCase();
+            if (valueLower.includes('winsert') || valueLower.includes('@@@')) {
+                continue; // "WINSERT:..." או "בע"מ @@@" ← מטא-דאטה!
+            }
+
+            // דלג על ערכים שנראים כמו paths/emails אבל לא דוא"ל לגיטימי
+            if (value.includes('@') && value.split(':').length > 2) {
+                continue; // "a240210:120825:C:SI25003642:Account2@t-p-y.co.il" ← קוד!
+            }
+
+            // ⚠️ FIX v2.20: דלג על OCR artifacts
+            // ":selected:", ":unselected:" וכו' = רעש מ-OCR
+            if (value.includes(':selected:') || value.includes(':unselected:')) {
+                continue; // ":selected:" או "...www.site.com:selected::selected:" ← OCR!
+            }
+
+            // ✅ FIX v2.15: דלג על values שהם רשימות (מכילות פסיקים מרובים)
+            if (isList(value)) {
+                continue; // "טלפון: 04-6445585, פקס: 1534-6438399" ← רשימה!
+            }
+
+            // ✅ נקה את הlabel מתווים מיותרים
+            label = cleanHeader(label);
+
+            // דלג על labels שהם רק מספרים או קצרים מדי
+            if (label.length < 2 || /^\d+$/.test(label)) {
+                continue;
+            }
+
+            // ⚠️ FIX v2.19: דלג על labels ארוכים מדי (3+ מילים)
+            // label עם 3 מילים או יותר = לא label אמיתי (כנראה חלק ממשפט)
+            const wordCount = label.split(/\s+/).filter(w => w.length > 0).length;
+            if (wordCount >= 3) {
+                continue; // "לתשומת לבך" ← 2 מילים = בסדר, אבל 3+ = לא label!
+            }
+
+            // ✅ FIX v2.15: דלג על שורות שנראות כמו חלק מטבלה
+            // (מכילות "סה"כ", "הנחה", "total", "discount", אחוזים)
+            const labelLower = label.toLowerCase();
+            if (labelLower.includes('סה"כ') || labelLower.includes('סה״כ') ||
+                labelLower.includes('הנחה') || labelLower.includes('discount') ||
+                labelLower.includes('total') || label.includes('%') ||
+                labelLower.includes('לתשלום')) {
+                continue;
+            }
+
+            // ⚠️ v2.16: ביטול currentSection - labels הם standalone!
+
+            // ✨ נרמול הערך לפני שמירה
+            let normalizedValue = value;
+
+            // זיהוי והסרת מטבע
+            const currency = detectCurrencyInValue(value);
+            if (currency) {
+                normalizedValue = removeCurrency(normalizedValue, currency);
+            }
+
+            // נרמול אחוזים
+            if (isPercentageField(label)) {
+                normalizedValue = cleanPercentage(normalizedValue);
+            }
+            // ניסיון המרה למספר
+            else {
+                const asNumber = cleanNumber(normalizedValue);
+                if (asNumber !== normalizedValue) {
+                    normalizedValue = asNumber;
+                } else {
+                    // ניסיון המרה לתאריך
+                    const asDate = normalizeDate(normalizedValue);
+                    if (asDate !== normalizedValue) {
+                        normalizedValue = asDate;
+                    }
+                }
+            }
+
+            // ⚠️ FIX v2.20: דלג על labels של מילה בודדת עם ערך מספרי קצר
+            // "since: 1947" ← מילה בודדת + 4 ספרות = לא רלוונטי!
+            if (wordCount === 1 && typeof normalizedValue === 'number' && normalizedValue < 100000) {
+                continue; // שנים, מספרים קצרים וכו'
+            }
+
+            if (!isValueExists(normalizedValue, existing) && !isCommonLabel(label)) {
+                pairs.push({label: label, value: normalizedValue});
             }
         }
     }
-    
     return pairs;
 }
 
-function extractPartCodes(content, existing) {
-    const codes = [];
-    
-    // דפוסים נפוצים לקודי חלקים:
-    // TOY-XXXXXX, ABC-123456, XXX-XXXXXX
-    const patterns = [
-        /([A-Z]{2,4}-[A-Z0-9]{5,})/g,     // ABC-12345
-        /([A-Z]{3}\d{5,})/g,               // ABC12345
-        /([A-Z]\d{5,})/g                   // A12345
-    ];
-    
-    for (let p = 0; p < patterns.length; p++) {
-        const matches = content.match(patterns[p]) || [];
-        for (let i = 0; i < matches.length; i++) {
-            const code = matches[i];
-            if (!isValueExists(code, existing) && !codeAlreadyFound(code, codes)) {
-                // מצא את ההקשר (השורה שבה נמצא)
-                const context = findContext(content, code);
-                codes.push({
-                    label: 'קוד חלק',
-                    value: code,
-                    context: context
-                });
-            }
-        }
-    }
-    
-    return codes;
-}
-
-function extractVehicleNumbers(content, existing) {
-    const vehicles = [];
-    
-    // תבניות מספר רכב:
-    // XXX-XX-XXX (ישראל)
-    // XXXXXXX (7 ספרות)
-    const patterns = [
-        /\b(\d{2,3}-\d{2}-\d{3})\b/g,      // 123-45-678
-        /\b(\d{7,8})\b/g                    // 1234567
-    ];
-    
-    for (let p = 0; p < patterns.length; p++) {
-        const matches = content.match(patterns[p]) || [];
-        for (let i = 0; i < matches.length && vehicles.length < 5; i++) {
-            const number = matches[i];
-            
-            // בדוק אם זה לא טלפון או תז
-            if (number.indexOf('-') === -1 && (number.length === 9 || number.length === 10)) {
-                continue;
-            }
-            
-            if (!isValueExists(number, existing) && !codeAlreadyFound(number, vehicles)) {
-                const context = findContext(content, number);
-                
-                // נסה לזהות אם זה באמת רכב לפי ההקשר
-                if (context.indexOf('רכב') >= 0 || context.indexOf('כרטיס') >= 0 || 
-                    context.indexOf('vehicle') >= 0 || context.indexOf('car') >= 0) {
-                    vehicles.push({
-                        label: 'מספר רכב',
-                        value: number,
-                        context: context
-                    });
-                }
-            }
-        }
-    }
-    
-    return vehicles;
-}
-
-function extractDocumentNumbers(content, existing) {
-    const documents = [];
-
-    // תבניות מספרי תעודות:
-    // DOCNO: 25XXXXXX (8 ספרות, מתחיל ב-25)
-    // BOOKNUM: 108XXXXXX (9 ספרות, מתחיל ב-108)
-    const patterns = [
-        { pattern: /\b(25\d{6})\b/g, label: 'מס׳ תעודה (DOCNO)' },
-        { pattern: /\b(108\d{6})\b/g, label: 'מס׳ הקצאה (BOOKNUM)' }
-    ];
-
-    for (let p = 0; p < patterns.length; p++) {
-        const patternObj = patterns[p];
-        const matches = content.match(patternObj.pattern) || [];
-
-        for (let i = 0; i < matches.length; i++) {
-            const number = matches[i];
-
-            // בדוק אם המספר לא קיים כבר
-            if (!isValueExists(number, existing) && !codeAlreadyFound(number, documents)) {
-                const context = findContext(content, number);
-
-                documents.push({
-                    label: patternObj.label,
-                    value: number,
-                    context: context
-                });
-            }
-        }
-    }
-
-    return documents;
-}
-
-function extractSpecialLengthNumbers(content, existing) {
+function extractFormattedNumbers(content, existing) {
     const numbers = [];
 
-    // מספרים באורכים מיוחדים שעשויים להיות חשובים:
-    // 13 ספרות - מספר הקצאה/אסמכתא
-    // 17 תווים - VIN (כבר נתפס על ידי אז'ור, אבל נבדוק)
+    // זיהוי מספרים עם מקפים (כמו מספר רישוי: 741-69-103)
+    // מחפש לפחות 2 חלקים מספריים עם מקף ביניהם
+    const hyphenPattern = /\b(\d{1,4}-\d{1,4}(?:-\d{1,4})*)\b/g;
+    const matches = content.match(hyphenPattern) || [];
 
-    const longNumbers = findAllNumbers(content, 13, 17);
+    for (let i = 0; i < matches.length; i++) {
+        const num = matches[i];
 
-    for (let i = 0; i < longNumbers.length && numbers.length < 10; i++) {
-        const num = longNumbers[i];
-
-        // סינון: התעלם ממספרים שמתחילים בשנה (202X) - אלה תאריכים, לא VIN
-        if (num.startsWith('202')) {
+        // דלג על תאריכים (DD/MM/YY או DD-MM-YY)
+        if (/^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/.test(num)) {
             continue;
         }
 
+        // ⚠️ FIX v2.19: דלג על מספרים קצרים מדי עם מקפים
+        // מספר עם מקף שאורכו הכולל < 6 תווים (כולל מקפים) = כנראה לא רלוונטי
+        if (num.length < 6) {
+            continue; // "26-9" (4 תווים) ← לא רלוונטי!
+        }
+
+        // דלג אם יש חלק קצר מדי (< 2 ספרות)
+        const parts = num.split('-');
+        let hasShortPart = false;
+        for (let p = 0; p < parts.length; p++) {
+            if (parts[p].length < 2) {
+                hasShortPart = true;
+                break;
+            }
+        }
+        if (hasShortPart) {
+            continue; // "765-0021" עם "0021" → אולי בסדר, אבל "26-9" עם "9" → לא בסדר!
+        }
+
+        // דלג אם כבר קיים בשדות אחרים
         if (!isValueExists(num, existing)) {
-            const context = findContext(content, num);
-
-            let label = 'מספר ייחודי';
-            if (num.length === 13) label = 'מספר הקצאה/אסמכתא';
-            if (num.length === 17) label = 'מספר זיהוי (VIN)';
-
-            numbers.push({
-                label: label,
-                value: num,
-                context: context
-            });
+            numbers.push({label: 'מספר', value: num});
         }
     }
 
     return numbers;
 }
 
-function findContext(content, value) {
-    const index = content.indexOf(value);
-    if (index === -1) return '';
-    
-    // קח 30 תווים לפני ו-30 אחרי
-    const start = Math.max(0, index - 30);
-    const end = Math.min(content.length, index + value.length + 30);
-    
-    let context = content.substring(start, end);
-    
-    // נקה שורות חדשות מרובות
-    context = context.replace(/\n+/g, ' ').trim();
-    
-    return context;
+function extractAllPureNumbers(content, existing, minLen, maxLen) {
+    const numbers = [];
+
+    // שימוש בפטרן עם negative lookbehind/lookahead למנוע תפיסת חלקים ממחירים וקודים
+    // לא לתפוס מספרים שלפניהם או אחריהם יש: נקודה, פסיק, ספרה, אות, מקף, פלוס, או pipe
+    // כך נמנע מלתפוס "256" מ-"SI256SP005599" או "3600" מ-"13.3600" או "972-4" מ-"+972-4-9111442+"
+    const pattern = new RegExp('(?<![.,\\-+|\\dA-Za-z])(\\d{' + minLen + ',' + maxLen + '})(?![.,\\-+|\\dA-Za-z])', 'g');
+
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+        const num = match[1];
+
+        // ⚠️ FIX v2.20: דלג על מספרים שנראים כמו טלפונים
+        // טלפון = 9-10 ספרות שמתחילות ב-0 (ניידים = 9, קוויים = 10)
+        if ((num.length === 9 || num.length === 10) && num.startsWith('0')) {
+            continue; // "528553984", "0506371401" ← טלפונים!
+        }
+
+        if (!isValueExists(num, existing)) {
+            numbers.push({label: 'מספר', value: num});
+        }
+    }
+
+    return numbers;
+}
+
+function extractAlphanumericCodes(content, existing, minLen, maxLen) {
+    const codes = [];
+
+    // ⚠️ FIX v2.19: הגבל אורך מקסימלי ל-15 (לא ארוך מדי)
+    const actualMaxLen = Math.min(maxLen, 15);
+    const pattern = new RegExp('\\b([A-Za-z0-9]{' + minLen + ',' + actualMaxLen + '})\\b', 'g');
+
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+        const code = match[1];
+        const matchIndex = match.index;
+
+        // חייב להכיל גם אותיות וגם ספרות
+        if (!/[A-Za-z]/.test(code) || !/\d/.test(code)) {
+            continue;
+        }
+
+        // ⚠️ FIX v2.19: דלג על קודים שהם חלק מקוד ארוך יותר
+        // בדוק אם יש "/" או "-" לפני/אחרי הקוד (boundary בעייתי)
+        const charBefore = matchIndex > 0 ? content[matchIndex - 1] : '';
+        const charAfter = matchIndex + code.length < content.length ? content[matchIndex + code.length] : '';
+
+        // אם יש "/" או "-" ממש לפני או אחרי = זה חלק מקוד ארוך יותר
+        if (charBefore === '/' || charBefore === '-' || charAfter === '/' || charAfter === '-') {
+            continue; // "65R17" מ-"175/65R17" או "KGB70L" מ-"KGB70L-AHXNKW" ← חלקי קוד!
+        }
+
+        // ✅ FIX v2.18: דלג על "קודים" שהם בעיקר אותיות (כמו "Invoice4U")
+        // קוד אמיתי = לפחות 30% ספרות
+        const digitCount = (code.match(/\d/g) || []).length;
+        const digitRatio = digitCount / code.length;
+        if (digitRatio < 0.3) {
+            continue; // "Invoice4U" → 1/9 = 11% ספרות ← לא קוד!
+        }
+
+        // ✅ FIX v2.15: דלג על קודים שכבר קיימים בשדות אחרים
+        if (isValueExists(code, existing)) {
+            continue;
+        }
+
+        // ✅ FIX v2.15: דלג על קודים שנראים כמו מק"ט לקוח מטבלה
+        // דפוס נפוץ: אות אחת + 6-8 ספרות (r5273535, SO25000145)
+        // אבל אם זה קוד ארוך עם אותיות ומספרים מעורבבים - זה בסדר
+        const singleLetterPattern = /^[a-zA-Z]{1,2}\d{6,8}$/;
+        if (singleLetterPattern.test(code)) {
+            // זה נראה כמו מק"ט לקוח - דלג
+            continue;
+        }
+
+        codes.push({label: 'קוד', value: code});
+    }
+
+    return codes;
+}
+
+/**
+ * זיהוי ספציפי של מספרי תעודות (BOOKNUM) לפי הקשר
+ * מחפש מספרים (6-10 ספרות) בסביבה של מילות מפתח כמו "תעודה", "מס׳ תעודה", וכו׳
+ */
+function extractDocumentNumbers(content, existing) {
+    const docNumbers = [];
+    const lines = content.split('\n');
+
+    // מילות מפתח שמסמנות תעודות
+    const docKeywords = [
+        'תעודה', 'תעוד', "מס' תעודה", "מס׳ תעודה", 'מספר תעודה',
+        'document', 'doc number', 'doc no', 'doc#', 'document number',
+        'delivery note', 'ת.משלוח', 'ת. משלוח', 'תעודת משלוח',
+        'receipt', 'קבלה', 'מס׳ קבלה', 'מספר קבלה'
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lineLower = line.toLowerCase();
+
+        // בדוק אם בשורה יש מילת מפתח של תעודה
+        let hasDocKeyword = false;
+        for (let k = 0; k < docKeywords.length; k++) {
+            if (lineLower.includes(docKeywords[k].toLowerCase())) {
+                hasDocKeyword = true;
+                break;
+            }
+        }
+
+        if (!hasDocKeyword) continue;
+
+        // חפש מספרים בשורה (6-10 ספרות)
+        const numberPattern = /\b(\d{6,10})\b/g;
+        let match;
+        while ((match = numberPattern.exec(line)) !== null) {
+            const num = match[1];
+
+            // דלג אם המספר כבר קיים בשדות אחרים
+            if (!isValueExists(num, existing)) {
+                // נסה לזהות את הlabel המדויק
+                let label = 'מס׳ תעודה';
+
+                // אם יש ":" לפני המספר, קח את מה שלפני ה-":"
+                const beforeNumber = line.substring(0, match.index);
+                const colonMatch = beforeNumber.match(/([^\n:]{3,30}):\s*$/);
+                if (colonMatch) {
+                    label = colonMatch[1].trim();
+                }
+                // אם אין ":", נסה למצוא מילת מפתח סמוכה
+                else {
+                    for (let k = 0; k < docKeywords.length; k++) {
+                        const keyword = docKeywords[k];
+                        const keywordIndex = lineLower.lastIndexOf(keyword.toLowerCase(), match.index);
+                        if (keywordIndex >= 0 && match.index - keywordIndex < 40) {
+                            label = keyword;
+                            break;
+                        }
+                    }
+                }
+
+                docNumbers.push({label: label, value: num});
+            }
+        }
+    }
+
+    return docNumbers;
+}
+
+function normalizeValue(value) {
+    // Remove special characters (hyphens, spaces, dots, parentheses, colons)
+    return value.toString().replace(/[-\s.():]/g, '').toLowerCase();
 }
 
 function isValueExists(value, existing) {
-    // בדוק אם הערך קיים כבר בשדות קיימים
     const valueStr = value.toString().toLowerCase();
-    
+    const normalizedValue = normalizeValue(value);
+
+    // Skip very short values (less than 3 chars) as they create too many false positives
+    if (normalizedValue.length < 3) {
+        return false;
+    }
+
     for (const key in existing) {
         const fieldValue = existing[key];
-        
+
         if (typeof fieldValue === 'string') {
-            if (fieldValue.toLowerCase().indexOf(valueStr) >= 0) {
+            const fieldStr = fieldValue.toLowerCase();
+            const normalizedField = normalizeValue(fieldValue);
+
+            // Exact match (before normalization)
+            if (fieldStr === valueStr) {
                 return true;
+            }
+
+            // Check if value is part of field (after normalization)
+            if (normalizedField.includes(normalizedValue)) {
+                // If it's a prefix or suffix, filter it out (e.g., "052" in "052-5457201")
+                if (normalizedField.startsWith(normalizedValue) || normalizedField.endsWith(normalizedValue)) {
+                    return true;
+                }
+
+                // If it's in the middle, only filter if it's a significant portion (50%+)
+                // This prevents "256" from being filtered just because it's in "SI256SP005599"
+                const lengthRatio = normalizedValue.length / normalizedField.length;
+                if (lengthRatio >= 0.5) {
+                    return true;
+                }
             }
         } else if (typeof fieldValue === 'number') {
             if (fieldValue.toString() === valueStr) {
@@ -717,8 +1339,23 @@ function isValueExists(value, existing) {
         } else if (Array.isArray(fieldValue)) {
             for (let i = 0; i < fieldValue.length; i++) {
                 const item = fieldValue[i];
-                if (typeof item === 'string' && item.toLowerCase().indexOf(valueStr) >= 0) {
-                    return true;
+                if (typeof item === 'string') {
+                    const itemStr = item.toLowerCase();
+                    const normalizedItem = normalizeValue(item);
+
+                    if (itemStr === valueStr) {
+                        return true;
+                    }
+
+                    if (normalizedItem.includes(normalizedValue)) {
+                        if (normalizedItem.startsWith(normalizedValue) || normalizedItem.endsWith(normalizedValue)) {
+                            return true;
+                        }
+                        const lengthRatio = normalizedValue.length / normalizedItem.length;
+                        if (lengthRatio >= 0.5) {
+                            return true;
+                        }
+                    }
                 }
                 if (typeof item === 'object') {
                     if (isValueExists(value, item)) {
@@ -732,57 +1369,19 @@ function isValueExists(value, existing) {
             }
         }
     }
-    
     return false;
 }
 
 function isCommonLabel(label) {
-    // רשימת כותרות נפוצות שלא מעניינות
     const common = [
         'total', 'sum', 'סך', 'סכום', 'page', 'עמוד',
         'date', 'תאריך', 'amount', 'כמות', 'price', 'מחיר'
     ];
-    
+
     const labelLower = label.toLowerCase();
-    for (let i = 0; i < common.length; i++) {
-        if (labelLower.indexOf(common[i]) >= 0) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-function codeAlreadyFound(code, list) {
-    for (let i = 0; i < list.length; i++) {
-        if (list[i].value === code) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function findAllNumbers(text, minLen, maxLen) {
-    const numbers = [];
-    let currentNum = '';
-    
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char >= '0' && char <= '9') {
-            currentNum += char;
-        } else {
-            if (currentNum.length >= minLen && currentNum.length <= maxLen) {
-                numbers.push(currentNum);
-            }
-            currentNum = '';
-        }
-    }
-    
-    if (currentNum.length >= minLen && currentNum.length <= maxLen) {
-        numbers.push(currentNum);
-    }
-    
-    return numbers;
+    return common.some(function(keyword) {
+        return labelLower.indexOf(keyword) >= 0;
+    });
 }
 
 function buildStructure(fields) {
@@ -845,5 +1444,10 @@ function buildData(result) {
 const finalResult = processAzureInvoice(azureJsonInput);
 
 finalResult.status = 'success';
+
+// Export for require() compatibility
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = finalResult;
+}
 
 return finalResult;

@@ -1,9 +1,10 @@
 // ============================================================================
-// Text Standardization - ניקוי ונרמול טקסט מ-OCR (גרסה 1.1 - 05.11.25 18:30)
+// Text Standardization - ניקוי ונרמול טקסט מ-OCR (גרסה 1.2 - 09.11.25 20:25)
 // משימה אחת: ניקוי טקסט מלוכלך מ-Azure OCR
 // מקבל: טקסט גולמי (AZURE_TEXT או כל טקסט אחר)
 // מחזיר: טקסט נקי ומנורמל
 //
+// FIX v1.2: Module exports restructured - now works both in Make.com AND as require()
 // 📁 קבצי בדיקה: MakeCode/TextStandardization/EXEMPTS/
 // ============================================================================
 
@@ -352,40 +353,9 @@ function example3() {
 }
 
 // ============================================================================
-// טיפול ב-input מ-Make.com
+// ייצוא לשימוש במודולים אחרים - תמיד קודם!
 // ============================================================================
 
-if (typeof input !== 'undefined') {
-    // קריאה מ-Make.com
-    let textToClean = "";
-    let options = {};
-
-    // תמיכה בפורמטים שונים
-    if (typeof input === 'string') {
-        textToClean = input;
-    } else if (input && input.text) {
-        textToClean = input.text;
-        options = input.options || {};
-    } else if (input && input.AZURE_TEXT) {
-        textToClean = input.AZURE_TEXT;
-    }
-
-    // ביצוע הניקוי
-    const result = standardizeText(textToClean, options);
-
-    // החזרת התוצאה
-    console.log("=== TEXT STANDARDIZATION ===");
-    console.log("Original length:", textToClean.length);
-    console.log("Cleaned length:", result.length);
-    console.log("Invisible chars removed:", textToClean.length - result.replace(/\s/g, '').length);
-    console.log("\n=== RESULT ===");
-    console.log(result);
-
-    // return לסביבת Make
-    return result;
-}
-
-// ייצוא לשימוש במודולים אחרים
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         standardizeText,
@@ -402,4 +372,48 @@ if (typeof module !== 'undefined' && module.exports) {
         normalizeHebrew,
         removeExtraSpaces
     };
+}
+
+// ============================================================================
+// טיפול ב-input מ-Make.com - רק אם input תקין למודול זה
+// ============================================================================
+
+let makeResult;
+
+// בדיקה אם input הוא באמת עבור TextStandardization (string או object עם .text או .AZURE_TEXT)
+// ולא input של מודול אחר (כמו AzureInvoiceProcessor שיש לו .contentLong)
+const isValidTextInput = typeof input !== 'undefined' &&
+    (typeof input === 'string' ||
+     (input && (input.text || input.AZURE_TEXT)));
+
+if (isValidTextInput) {
+    // קריאה מ-Make.com
+    let textToClean = "";
+    let options = {};
+
+    // תמיכה בפורמטים שונים
+    if (typeof input === 'string') {
+        textToClean = input;
+    } else if (input && input.text) {
+        textToClean = input.text;
+        options = input.options || {};
+    } else if (input && input.AZURE_TEXT) {
+        textToClean = input.AZURE_TEXT;
+    }
+
+    // ביצוע הניקוי
+    makeResult = standardizeText(textToClean, options);
+
+    // החזרת התוצאה
+    console.log("=== TEXT STANDARDIZATION ===");
+    console.log("Original length:", textToClean.length);
+    console.log("Cleaned length:", makeResult.length);
+    console.log("Invisible chars removed:", textToClean.length - makeResult.replace(/\s/g, '').length);
+    console.log("\n=== RESULT ===");
+    console.log(makeResult);
+}
+
+// החזרת תוצאה לסביבת Make - רק אם יש
+if (typeof makeResult !== 'undefined') {
+    return makeResult;
 }

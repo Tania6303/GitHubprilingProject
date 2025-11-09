@@ -1,0 +1,93 @@
+[
+    {
+        "logs": {
+            "stdout": [],
+            "stderr": []
+        },
+        "executionTimeMs": 2,
+        "result": {
+            "structure": {
+                "docType": "string",
+                "fields": {
+                    "VendorTel": "string",
+                    "VendorFax": "string",
+                    "InvoiceTime": "HH:MM:SS",
+                    "PrintTime": "HH:MM:SS",
+                    "UnidentifiedNumbers": [
+                        "object"
+                    ]
+                }
+            },
+            "data": {
+                "docType": "invoice",
+                "fields": {
+                    "VendorTel": "04-8247760",
+                    "VendorFax": "04-8247761",
+                    "InvoiceTime": "14:43",
+                    "PrintTime": "14:42",
+                    "UnidentifiedNumbers": [
+                        {
+                            "label": "מס. כרטיס",
+                            "value": "103577"
+                        },
+                        {
+                            "label": "לפרעון",
+                            "value": "22/10/25"
+                        },
+                        {
+                            "label": "תכנון ויישום",
+                            "value": "אייל פתרונות תוכנה בע\"מ"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "741-69-103"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "12218"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "387001"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "288756"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "558117016"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "4204"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "3730"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "0505020057"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "098947633"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "513327064"
+                        }
+                    ]
+                }
+            },
+            "metadata": {
+                "modelId": "",
+                "totalFields": 5,
+                "uniqueDataFound": 13,
+                "pageCount": 0
+            },
+            "status": "success"
+        }
+    }
+]

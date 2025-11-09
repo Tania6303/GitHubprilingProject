@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@azure-rest/ai-document-intelligence": "^1.1.0"
+  }
+}
