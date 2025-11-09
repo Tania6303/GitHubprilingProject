@@ -1,8 +1,14 @@
 // ================================================================
-// Azure Invoice Processor v2.1 - Separate Inputs
+// Azure Invoice Processor v2.2 - Fix Duplicate Items
 // תאריך: 9 נובמבר 2025
-// שעה: 14:30
+// שעה: 16:00
 // ================================================================
+//
+// שינויים בגרסה 2.2:
+// - ✅ הוספת deduplicateItems() - איחוד פריטים כפולים מטבלאות שונות
+// - ✅ תיקון isRealItemRow() - שורה נחשבת פריט רק אם יש Amount/Quantity/UnitPrice
+// - ✅ מניעת כפילויות כאשר Azure מחזיר אותו פריט מ-2 טבלאות
+// - ✅ שמירת הפריט המלא (עם Amount) ומחיקת פריטים חלקיים
 //
 // שינויים בגרסה 2.1:
 // - שינוי מקלט אחד (azureJsonInput) ל-5 קלטים נפרדים
@@ -61,7 +67,12 @@ function processAzureInvoice(azureInput) {
     if (documents.length > 0 && documents[0].fields) {
         extractAzureFields(documents[0].fields, result.fields);
     }
-    
+
+    // אחד פריטים כפולים שAzure מחזיר מטבלאות שונות
+    if (result.fields.Items && result.fields.Items.length > 0) {
+        result.fields.Items = deduplicateItems(result.fields.Items);
+    }
+
     const itemsData = extractRealItemsFromTable(tables, result.fields.Items);
     if (itemsData.length > 0) {
         result.fields.Items = itemsData;
@@ -176,6 +187,49 @@ function extractAzureFields(fields, target) {
     }
 }
 
+function deduplicateItems(items) {
+    if (!items || items.length === 0) {
+        return items;
+    }
+
+    const uniqueItems = {};
+
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const productCode = item.ProductCode || item.ProductCode_amount || '';
+
+        if (!productCode) {
+            // אם אין ProductCode, שמור את הפריט כמו שהוא
+            uniqueItems['item_' + i] = item;
+            continue;
+        }
+
+        // אם הProductCode כבר קיים, בחר את הפריט המלא יותר
+        if (uniqueItems[productCode]) {
+            const existing = uniqueItems[productCode];
+            const existingFields = Object.keys(existing).length;
+            const currentFields = Object.keys(item).length;
+
+            // שמור את הפריט עם יותר שדות
+            // או את הפריט שיש לו Amount (פריט שלם)
+            if (currentFields > existingFields ||
+                (item.Amount_amount && !existing.Amount_amount)) {
+                uniqueItems[productCode] = item;
+            }
+        } else {
+            uniqueItems[productCode] = item;
+        }
+    }
+
+    // המר חזרה למערך
+    const result = [];
+    for (const key in uniqueItems) {
+        result.push(uniqueItems[key]);
+    }
+
+    return result;
+}
+
 function extractRealItemsFromTable(tables, azureItems) {
     if (azureItems && azureItems.length > 0) {
         return azureItems;
@@ -270,38 +324,36 @@ function guessFieldNameGeneric(content, colIndex) {
 
 function isRealItemRow(rowData) {
     const keys = Object.keys(rowData);
-    
+
     if (keys.length < 2) {
         return false;
     }
-    
+
     const hasAmount = rowData.Amount !== undefined;
-    const hasProductCode = rowData.ProductCode !== undefined;
-    const hasDescription = rowData.Description !== undefined;
-    
-    if (!hasAmount && !hasProductCode && !hasDescription) {
+    const hasQuantity = rowData.Quantity !== undefined;
+    const hasUnitPrice = rowData.UnitPrice !== undefined;
+
+    // שורה אמיתית חייבת לכלול לפחות אחד מהשדות המספריים:
+    // Amount, Quantity, או UnitPrice
+    // שורות עם רק ProductCode + Description הן שורות המשך
+    if (!hasAmount && !hasQuantity && !hasUnitPrice) {
         return false;
     }
-    
-    if (hasAmount && keys.length === 1) {
-        return false;
-    }
-    
+
+    // אם יש Amount בודק שהוא תקין
     if (hasAmount) {
         const amount = rowData.Amount;
         if (typeof amount === 'number' && amount > 0) {
             return true;
         }
     }
-    
-    if (hasProductCode) {
-        const code = rowData.ProductCode;
-        if (typeof code === 'number' || (typeof code === 'string' && code.length > 0)) {
-            return true;
-        }
+
+    // אם יש Quantity או UnitPrice - זה פריט תקין
+    if (hasQuantity || hasUnitPrice) {
+        return true;
     }
-    
-    return true;
+
+    return false;
 }
 
 function parseValue(value) {
