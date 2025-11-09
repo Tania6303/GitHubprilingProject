@@ -1,6 +1,11 @@
 // ================================================================
-// Azure Invoice Processor v2.12 - FIX: Embed TextStandardization (no require)
-// עודכן: 9 נובמבר 2025 21:15
+// Azure Invoice Processor v2.13 - IMPROVEMENT: Better UnidentifiedNumbers
+// עודכן: 9 נובמבר 2025 21:45
+// ================================================================
+// שינויים ב-v2.13:
+// 1. ✅ הגבלת extractAllPureNumbers ל-6-12 ספרות (מונע ברקודים ארוכים)
+// 2. ✅ שיפור extractLabelValuePairs - תמיכה בתווית+רווח+מספר
+// 3. ✅ הוספת extractDocumentNumbers - זיהוי ספציפי של BOOKNUM לפי הקשר
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -772,7 +777,16 @@ function extractUniqueData(content, existingFields) {
         }
     }
 
-    // 2. מספרים עם פורמט מיוחד (מקפים, קווים נטויים) - לפני pure numbers!
+    // 2. מספרי תעודות (BOOKNUM) לפי הקשר - זיהוי ספציפי!
+    const docNumbers = extractDocumentNumbers(content, existingFields);
+    for (let i = 0; i < docNumbers.length; i++) {
+        if (!seen[docNumbers[i].value]) {
+            uniqueData.push(docNumbers[i]);
+            seen[docNumbers[i].value] = true;
+        }
+    }
+
+    // 3. מספרים עם פורמט מיוחד (מקפים, קווים נטויים) - לפני pure numbers!
     const formattedNumbers = extractFormattedNumbers(content, existingFields);
     for (let i = 0; i < formattedNumbers.length; i++) {
         if (!seen[formattedNumbers[i].value]) {
@@ -787,8 +801,8 @@ function extractUniqueData(content, existingFields) {
         }
     }
 
-    // 3. כל המספרים (3-20 ספרות)
-    const pureNumbers = extractAllPureNumbers(content, existingFields, 3, 20);
+    // 4. כל המספרים (6-12 ספרות) - מונע ברקודים ארוכים ומספרים קצרים מדי
+    const pureNumbers = extractAllPureNumbers(content, existingFields, 6, 12);
     for (let i = 0; i < pureNumbers.length; i++) {
         if (!seen[pureNumbers[i].value]) {
             uniqueData.push(pureNumbers[i]);
@@ -796,7 +810,7 @@ function extractUniqueData(content, existingFields) {
         }
     }
 
-    // 4. כל הקודים האלפא-נומריים (לפחות 5 תווים)
+    // 5. כל הקודים האלפא-נומריים (לפחות 5 תווים)
     const alphaCodes = extractAlphanumericCodes(content, existingFields, 5, 30);
     for (let i = 0; i < alphaCodes.length; i++) {
         if (!seen[alphaCodes[i].value]) {
@@ -816,7 +830,9 @@ function extractLabelValuePairs(content, existing) {
     const labelValuePattern = /^([^:\n]{2,80}):\s*([^\n]+)$/;
     // Pattern 2: תווית עם 2+ רווחים ואז ערך
     const spacedPattern = /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/;
-    // Pattern 3: זיהוי כותרת (נגמרת ב-: אבל אין ערך, או רק "(לא צויין)" וכו')
+    // Pattern 3: תווית קצרה (עד 3 מילים) + רווח + ערך מספרי - זיהוי "מס' תעודה 12345678"
+    const shortLabelNumericPattern = /^([א-תA-Za-z\s\.]{3,30})\s+(\d[\d\s\-\.,\(\)]+)$/;
+    // Pattern 4: זיהוי כותרת (נגמרת ב-: אבל אין ערך, או רק "(לא צויין)" וכו')
     const sectionHeaderPattern = /^([^:\n]{2,40}):?\s*$/;
 
     let currentSection = null;
@@ -849,10 +865,21 @@ function extractLabelValuePairs(content, existing) {
             }
         }
 
-        // בדוק "תווית: ערך" רגיל
+        // בדוק "תווית: ערך" בכל התבניות
         let match = line.match(labelValuePattern);
         if (!match) {
             match = line.match(spacedPattern);
+        }
+        if (!match) {
+            // נסה את התבנית החדשה - תווית קצרה + ערך מספרי
+            match = line.match(shortLabelNumericPattern);
+            // אבל רק אם הtווית לא מכילה יותר מ-4 מילים (למנוע תפיסת שורות טבלה)
+            if (match) {
+                const wordCount = match[1].trim().split(/\s+/).length;
+                if (wordCount > 4) {
+                    match = null; // יותר מדי מילים - זה לא label
+                }
+            }
         }
 
         if (match) {
@@ -965,6 +992,74 @@ function extractAlphanumericCodes(content, existing, minLen, maxLen) {
         }
     }
     return codes;
+}
+
+/**
+ * זיהוי ספציפי של מספרי תעודות (BOOKNUM) לפי הקשר
+ * מחפש מספרים (6-10 ספרות) בסביבה של מילות מפתח כמו "תעודה", "מס׳ תעודה", וכו׳
+ */
+function extractDocumentNumbers(content, existing) {
+    const docNumbers = [];
+    const lines = content.split('\n');
+
+    // מילות מפתח שמסמנות תעודות
+    const docKeywords = [
+        'תעודה', 'תעוד', "מס' תעודה", "מס׳ תעודה", 'מספר תעודה',
+        'document', 'doc number', 'doc no', 'doc#', 'document number',
+        'delivery note', 'ת.משלוח', 'ת. משלוח', 'תעודת משלוח',
+        'receipt', 'קבלה', 'מס׳ קבלה', 'מספר קבלה'
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lineLower = line.toLowerCase();
+
+        // בדוק אם בשורה יש מילת מפתח של תעודה
+        let hasDocKeyword = false;
+        for (let k = 0; k < docKeywords.length; k++) {
+            if (lineLower.includes(docKeywords[k].toLowerCase())) {
+                hasDocKeyword = true;
+                break;
+            }
+        }
+
+        if (!hasDocKeyword) continue;
+
+        // חפש מספרים בשורה (6-10 ספרות)
+        const numberPattern = /\b(\d{6,10})\b/g;
+        let match;
+        while ((match = numberPattern.exec(line)) !== null) {
+            const num = match[1];
+
+            // דלג אם המספר כבר קיים בשדות אחרים
+            if (!isValueExists(num, existing)) {
+                // נסה לזהות את הlabel המדויק
+                let label = 'מס׳ תעודה';
+
+                // אם יש ":" לפני המספר, קח את מה שלפני ה-":"
+                const beforeNumber = line.substring(0, match.index);
+                const colonMatch = beforeNumber.match(/([^\n:]{3,30}):\s*$/);
+                if (colonMatch) {
+                    label = colonMatch[1].trim();
+                }
+                // אם אין ":", נסה למצוא מילת מפתח סמוכה
+                else {
+                    for (let k = 0; k < docKeywords.length; k++) {
+                        const keyword = docKeywords[k];
+                        const keywordIndex = lineLower.lastIndexOf(keyword.toLowerCase(), match.index);
+                        if (keywordIndex >= 0 && match.index - keywordIndex < 40) {
+                            label = keyword;
+                            break;
+                        }
+                    }
+                }
+
+                docNumbers.push({label: label, value: num});
+            }
+        }
+    }
+
+    return docNumbers;
 }
 
 function normalizeValue(value) {
