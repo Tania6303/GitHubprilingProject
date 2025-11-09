@@ -1,25 +1,31 @@
 // ================================================================
-// Azure Invoice Processor v2.19 - FIX: sentences, short hyphenated, partial codes
-// עודכן: 10 נובמבר 2025 00:40
+// Azure Invoice Processor v2.20 - FIX: mobile phones, OCR artifacts, lists, cleanup
+// עודכן: 10 נובמבר 2025 01:05
 // ================================================================
-// שינויים ב-v2.19:
-// 🔴 FIX: משפטים שלמים, מספרים קצרים עם מקפים, קודים חלקיים
+// שינויים ב-v2.20:
+// 🔴 FIX: טלפונים ניידים, OCR artifacts, רשימות, ניקוי קוד
 //
 //    בעיות שתוקנו:
-//    1. ✅ extractLabelValuePairs() - דלג על values ארוכים + labels עם 3+ מילים
-//       - לפני: "לתשומת לבך: רישיון הרכב תקף רק לאחר..." (משפט שלם!)
-//       - עכשיו: value > 100 תווים = משפט → מדולג ✅
-//       - label עם 3+ מילים = לא label אמיתי → מדולג ✅
+//    1. ✅ extractAllPureNumbers() - דלג על טלפונים ניידים (9 ספרות)
+//       - לפני: "528553984", "505020057" נתפסו כמספרים
+//       - עכשיו: 9-10 ספרות שמתחילות ב-0 = טלפון → מדולג ✅
 //
-//    2. ✅ extractFormattedNumbers() - דלג על מספרים קצרים עם מקפים
-//       - לפני: "22-1187", "765-0021", "26-9" (מספרים לא רלוונטיים)
-//       - עכשיו: אורך כולל < 6 תווים → מדולג ✅
-//       - חלק קצר < 2 ספרות → מדולג ✅
+//    2. ✅ extractLabelValuePairs() - סינון OCR artifacts
+//       - לפני: ":selected:", ":unselected:" נתפסו כערכים
+//       - עכשיו: ערכים עם :selected: או :unselected: → מדולג ✅
 //
-//    3. ✅ extractAlphanumericCodes() - הגבל אורך + דלג על חלקים
-//       - לפני: "65R17" מ-"175/65R17", "KGB70L" מ-"KGB70L-AHXNKW"
-//       - עכשיו: אורך 5-15 בלבד (לא קצר מדי / ארוך מדי) ✅
-//       - boundary עם / או - בצדדים → מדולג ✅
+//    3. ✅ isList() - זיהוי רשימות גם ללא פסיק
+//       - לפני: "טל': 04-6333334 פקס': 04-6344123" לא נתפס כרשימה
+//       - עכשיו: 2+ נקודותיים + מילים = רשימה → מדולג ✅
+//
+//    4. ✅ extractLabelValuePairs() - סינון labels של מילה בודדת
+//       - לפני: "since: 1947" נתפס (לא רלוונטי)
+//       - עכשיו: מילה בודדת + מספר < 100000 → מדולג ✅
+//
+//    5. ✅ ניקוי קוד - מחיקת splitList() (לא בשימוש)
+//
+// שינויים קודמים (v2.19):
+// 🔴 FIX: sentences, short hyphenated numbers, partial codes
 //
 // שינויים קודמים (v2.18):
 // 🔴 FIX: phones, dates, system names
@@ -153,40 +159,29 @@ function isList(value) {
     if (value.includes(';') || value.includes('|')) return true;
 
     const commaCount = (value.match(/,/g) || []).length;
+    const colonCount = (value.match(/:/g) || []).length;
 
     // רשימה אם יש 2+ פסיקים (לפחות 3 פריטים)
     if (commaCount >= 2) return true;
 
     // אם יש 1 פסיק - בדוק אם יש מבנה של זוגות עם נקודה-שתיים
-    if (commaCount >= 1) {
-        const colonCount = (value.match(/:/g) || []).length;
+    if (commaCount >= 1 && colonCount >= 1) {
+        const hasWords = /[א-תa-zA-Z]{2,}/.test(value);
+        if (hasWords) {
+            return true; // "04-6445585, פקס: 1534-6438399" ← רשימה!
+        }
+    }
 
-        // אם יש נקודה-שתיים אחת לפחות + פסיק
-        if (colonCount >= 1) {
-            // בדוק שיש מילים (לא רק קוד/path)
-            // מילה = 2+ אותיות רצופות (לא ספרות/סימנים)
-            const hasWords = /[א-תa-zA-Z]{2,}/.test(value);
-
-            // אם יש מילים + נקודה-שתיים + פסיק → זו רשימה!
-            // "04-6445585, פקס: 1534-6438399" ← יש "פקס" + ":" + "," → רשימה!
-            if (hasWords) {
-                return true;
-            }
+    // ⚠️ FIX v2.20: רשימה אם יש 2+ נקודותיים + מילים (גם ללא פסיק!)
+    // "טל': 04-6333334 פקס': 04-6344123" ← יש 2 נקודותיים + מילים = רשימה!
+    if (colonCount >= 2) {
+        const hasWords = /[א-תa-zA-Z]{2,}/.test(value);
+        if (hasWords) {
+            return true;
         }
     }
 
     return false;
-}
-
-/**
- * פצל רשימה לערכים בודדים
- */
-function splitList(value) {
-    if (typeof value !== 'string') return [value];
-
-    // פצל לפי נקודה-פסיק או פסיק
-    const delimiter = value.includes(';') ? ';' : ',';
-    return value.split(delimiter).map(v => v.trim()).filter(v => v.length > 0);
 }
 
 /**
@@ -1003,6 +998,12 @@ function extractLabelValuePairs(content, existing) {
                 continue; // "a240210:120825:C:SI25003642:Account2@t-p-y.co.il" ← קוד!
             }
 
+            // ⚠️ FIX v2.20: דלג על OCR artifacts
+            // ":selected:", ":unselected:" וכו' = רעש מ-OCR
+            if (value.includes(':selected:') || value.includes(':unselected:')) {
+                continue; // ":selected:" או "...www.site.com:selected::selected:" ← OCR!
+            }
+
             // ✅ FIX v2.15: דלג על values שהם רשימות (מכילות פסיקים מרובים)
             if (isList(value)) {
                 continue; // "טלפון: 04-6445585, פקס: 1534-6438399" ← רשימה!
@@ -1060,6 +1061,12 @@ function extractLabelValuePairs(content, existing) {
                         normalizedValue = asDate;
                     }
                 }
+            }
+
+            // ⚠️ FIX v2.20: דלג על labels של מילה בודדת עם ערך מספרי קצר
+            // "since: 1947" ← מילה בודדת + 4 ספרות = לא רלוונטי!
+            if (wordCount === 1 && typeof normalizedValue === 'number' && normalizedValue < 100000) {
+                continue; // שנים, מספרים קצרים וכו'
             }
 
             if (!isValueExists(normalizedValue, existing) && !isCommonLabel(label)) {
@@ -1126,10 +1133,10 @@ function extractAllPureNumbers(content, existing, minLen, maxLen) {
     while ((match = pattern.exec(content)) !== null) {
         const num = match[1];
 
-        // ⚠️ FIX v2.18: דלג על מספרים שנראים כמו טלפונים
-        // טלפון = 10 ספרות שמתחילות ב-0
-        if (num.length === 10 && num.startsWith('0')) {
-            continue; // "0506371401", "039015555" ← טלפונים!
+        // ⚠️ FIX v2.20: דלג על מספרים שנראים כמו טלפונים
+        // טלפון = 9-10 ספרות שמתחילות ב-0 (ניידים = 9, קוויים = 10)
+        if ((num.length === 9 || num.length === 10) && num.startsWith('0')) {
+            continue; // "528553984", "0506371401" ← טלפונים!
         }
 
         if (!isValueExists(num, existing)) {
