@@ -77,18 +77,6 @@
                         {
                             "label": "מספר",
                             "value": "513327064"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "00300"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "300"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "354"
                         }
                     ]
                 }
@@ -96,7 +84,7 @@
             "metadata": {
                 "modelId": "",
                 "totalFields": 5,
-                "uniqueDataFound": 16,
+                "uniqueDataFound": 13,
                 "pageCount": 0
             },
             "status": "success"

@@ -4,7 +4,7 @@
             "stdout": [],
             "stderr": []
         },
-        "executionTimeMs": 9,
+        "executionTimeMs": 7,
         "result": {
             "structure": {
                 "docType": "string",
@@ -156,6 +156,10 @@
                         },
                         {
                             "label": "מספר",
+                            "value": "256"
+                        },
+                        {
+                            "label": "מספר",
                             "value": "3877701"
                         },
                         {
@@ -172,31 +176,15 @@
                         },
                         {
                             "label": "מספר",
-                            "value": "000"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "0000"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "7000"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "400"
-                        },
-                        {
-                            "label": "מספר",
                             "value": "120"
                         },
                         {
                             "label": "מספר",
-                            "value": "772"
+                            "value": "005743"
                         },
                         {
                             "label": "מספר",
-                            "value": "172"
+                            "value": "004701"
                         },
                         {
                             "label": "מספר",
@@ -220,7 +208,7 @@
             "metadata": {
                 "modelId": "",
                 "totalFields": 30,
-                "uniqueDataFound": 29,
+                "uniqueDataFound": 26,
                 "pageCount": 2
             },
             "status": "success"

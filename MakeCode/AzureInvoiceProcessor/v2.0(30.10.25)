@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.5 - FIX: Extract formatted numbers (prevent splits)
-// עודכן: 9 נובמבר 2025 19:12
+// Azure Invoice Processor v2.6 - FIX: Skip price decimals in number extraction
+// עודכן: 9 נובמבר 2025 19:19
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -669,14 +669,19 @@ function extractFormattedNumbers(content, existing) {
 
 function extractAllPureNumbers(content, existing, minLen, maxLen) {
     const numbers = [];
-    const pattern = new RegExp('\\b(\\d{' + minLen + ',' + maxLen + '})\\b', 'g');
-    const matches = content.match(pattern) || [];
-    for (let i = 0; i < matches.length; i++) {
-        const num = matches[i];
+
+    // שימוש בפטרן עם negative lookbehind/lookahead למנוע תפיסת חלקים ממחירים
+    // לא לתפוס מספרים שלפניהם או אחריהם יש: נקודה, פסיק, או ספרה נוספת
+    const pattern = new RegExp('(?<![.,\\d])(\\d{' + minLen + ',' + maxLen + '})(?![.,\\d])', 'g');
+
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+        const num = match[1];
         if (!isValueExists(num, existing)) {
             numbers.push({label: 'מספר', value: num});
         }
     }
+
     return numbers;
 }
 
