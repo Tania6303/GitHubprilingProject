@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.11 - ENHANCEMENT: Value normalization
-// עודכן: 9 נובמבר 2025 21:05
+// Azure Invoice Processor v2.12 - FIX: Embed TextStandardization (no require)
+// עודכן: 9 נובמבר 2025 21:15
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -15,8 +15,96 @@
 // 📖 תיעוד מפורט והיסטוריה: ראה README.md
 // ================================================================
 
-// ✨ Import TextStandardization as foundation layer
-const standardize = require('../TextStandardization/standardize-text.js');
+// ============================================================================
+// TextStandardization Functions (embedded - Make.com compatible)
+// ============================================================================
+
+function removeInvisibleCharacters(text) {
+    return text
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .replace(/\u00A0/g, ' ')
+        .replace(/\u00AD/g, '')
+        .replace(/[\u200E\u200F]/g, '')
+        .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+}
+
+function normalizeLineBreaks(text) {
+    return text
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\n{3,}/g, '\n\n');
+}
+
+function normalizeWhitespace(text) {
+    return text
+        .replace(/\t/g, ' ')
+        .replace(/  +/g, ' ')
+        .replace(/^ +/gm, '')
+        .replace(/ +$/gm, '');
+}
+
+function normalizeHyphens(text) {
+    return text
+        .replace(/\u2013/g, '-')
+        .replace(/\u2014/g, '-')
+        .replace(/\u2212/g, '-')
+        .replace(/\u2012/g, '-')
+        .replace(/\u2015/g, '-');
+}
+
+function normalizeHebrew(text) {
+    return text
+        .replace(/\u05F4/g, '"')
+        .replace(/\u05F3/g, "'")
+        .replace(/[\u05BE\u05C0]/g, '-');
+}
+
+function removeExtraSpaces(text) {
+    return text
+        .replace(/  +/g, ' ')
+        .replace(/ +([,.:;!?])/g, '$1')
+        .replace(/\(\s+/g, '(')
+        .replace(/\s+\)/g, ')');
+}
+
+function standardizeText(text, options) {
+    if (!text || typeof text !== 'string') return "";
+
+    const opts = {
+        removeInvisibleChars: true,
+        normalizeWhitespace: true,
+        normalizeLineBreaks: true,
+        normalizeHyphens: true,
+        normalizeHebrew: true,
+        removeExtraSpaces: true,
+        ...options
+    };
+
+    let cleaned = text;
+
+    if (opts.removeInvisibleChars) {
+        cleaned = removeInvisibleCharacters(cleaned);
+    }
+    if (opts.normalizeLineBreaks) {
+        cleaned = normalizeLineBreaks(cleaned);
+    }
+    if (opts.normalizeWhitespace) {
+        cleaned = normalizeWhitespace(cleaned);
+    }
+    if (opts.normalizeHyphens) {
+        cleaned = normalizeHyphens(cleaned);
+    }
+    if (opts.normalizeHebrew) {
+        cleaned = normalizeHebrew(cleaned);
+    }
+    if (opts.removeExtraSpaces) {
+        cleaned = removeExtraSpaces(cleaned);
+    }
+
+    cleaned = cleaned.trim();
+
+    return cleaned;
+}
 
 // ============================================================================
 // פונקציות נרמול ערכים (מקוד DataNormalizer)
@@ -126,7 +214,7 @@ function processAzureInvoice(azureInput) {
 
     // ✨ Apply TextStandardization as foundation layer
     const rawContentFromAzure = analyzeResult.content || '';
-    const rawContent = standardize.standardizeText(rawContentFromAzure);
+    const rawContent = standardizeText(rawContentFromAzure);
 
     const tables = analyzeResult.tables || [];
     const documents = analyzeResult.documents || [];
