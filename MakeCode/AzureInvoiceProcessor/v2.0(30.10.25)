@@ -1,8 +1,14 @@
 // ================================================================
-// Azure Invoice Processor v2.13 - IMPROVEMENT: Better UnidentifiedNumbers
-// עודכן: 9 נובמבר 2025 21:45
+// Azure Invoice Processor v2.14 - CRITICAL FIX: Items deduplication
+// עודכן: 9 נובמבר 2025 22:00
 // ================================================================
-// שינויים ב-v2.13:
+// שינויים ב-v2.14:
+// 🔴 CRITICAL FIX: deduplicateItems() מחק שורות לגיטימיות!
+//    - לפני: מחק כל שורה עם אותו ProductCode
+//    - עכשיו: מחק רק אם ProductCode + Amount + Quantity זהים
+//    - תיקון: אותו מוצר יכול להופיע פעמיים בחשבונית (2 משלוחים שונים)
+//
+// שינויים קודמים (v2.13):
 // 1. ✅ הגבלת extractAllPureNumbers ל-6-12 ספרות (מונע ברקודים ארוכים)
 // 2. ✅ שיפור extractLabelValuePairs - תמיכה בתווית+רווח+מספר
 // 3. ✅ הוספת extractDocumentNumbers - זיהוי ספציפי של BOOKNUM לפי הקשר
@@ -357,39 +363,48 @@ function deduplicateItems(items) {
         return items;
     }
 
-    const uniqueItems = {};
+    // ⚠️ FIX v2.14: אותו ProductCode יכול להופיע פעמיים - זה לגיטימי!
+    // דדופליקציה רק אם **כל השדות החשובים זהים** (ProductCode + Amount + Quantity)
+
+    const result = [];
+    const seen = [];
 
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        const productCode = item.ProductCode || item.ProductCode_amount || '';
 
-        if (!productCode) {
-            // אם אין ProductCode, שמור את הפריט כמו שהוא
-            uniqueItems['item_' + i] = item;
-            continue;
-        }
+        // בדוק אם הפריט הזה כבר קיים (זהה לחלוטין)
+        let isDuplicate = false;
+        for (let j = 0; j < seen.length; j++) {
+            const existing = seen[j];
 
-        // אם הProductCode כבר קיים, בחר את הפריט המלא יותר
-        if (uniqueItems[productCode]) {
-            const existing = uniqueItems[productCode];
-            const existingFields = Object.keys(existing).length;
-            const currentFields = Object.keys(item).length;
+            // פריט נחשב כפילות רק אם:
+            // 1. ProductCode זהה (או שניהם חסרים)
+            // 2. Amount זהה (או שניהם חסרים)
+            // 3. Quantity זהה (או שניהם חסרים)
 
-            // שמור את הפריט עם יותר שדות
-            // או את הפריט שיש לו Amount (פריט שלם)
-            if (currentFields > existingFields ||
-                (item.Amount_amount && !existing.Amount_amount)) {
-                uniqueItems[productCode] = item;
+            const sameProductCode = (item.ProductCode || '') === (existing.ProductCode || '');
+            const sameAmount = (item.Amount_amount || 0) === (existing.Amount_amount || 0);
+            const sameQuantity = (item.Quantity || 0) === (existing.Quantity || 0);
+
+            if (sameProductCode && sameAmount && sameQuantity) {
+                // זהה לחלוטין - בחר את המלא יותר
+                const existingFields = Object.keys(existing).length;
+                const currentFields = Object.keys(item).length;
+
+                if (currentFields > existingFields) {
+                    // הפריט הנוכחי מלא יותר - החלף
+                    seen[j] = item;
+                }
+                // אחרת - השאר את הקיים
+                isDuplicate = true;
+                break;
             }
-        } else {
-            uniqueItems[productCode] = item;
         }
-    }
 
-    // המר חזרה למערך
-    const result = [];
-    for (const key in uniqueItems) {
-        result.push(uniqueItems[key]);
+        if (!isDuplicate) {
+            seen.push(item);
+            result.push(item);
+        }
     }
 
     return result;
