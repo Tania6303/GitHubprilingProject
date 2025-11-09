@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.3 - FINAL (Clean Production Version)
-// עודכן: 9 נובמבר 2025 18:48
+// Azure Invoice Processor v2.4 - FIX: Smart filter for phone/fax parts
+// עודכן: 9 נובמבר 2025 18:59
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -653,13 +653,45 @@ function extractAlphanumericCodes(content, existing, minLen, maxLen) {
     return codes;
 }
 
+function normalizeValue(value) {
+    // Remove special characters (hyphens, spaces, dots, parentheses, colons)
+    return value.toString().replace(/[-\s.():]/g, '').toLowerCase();
+}
+
 function isValueExists(value, existing) {
     const valueStr = value.toString().toLowerCase();
+    const normalizedValue = normalizeValue(value);
+
+    // Skip very short values (less than 3 chars) as they create too many false positives
+    if (normalizedValue.length < 3) {
+        return false;
+    }
+
     for (const key in existing) {
         const fieldValue = existing[key];
+
         if (typeof fieldValue === 'string') {
-            if (fieldValue.toLowerCase() === valueStr) {
+            const fieldStr = fieldValue.toLowerCase();
+            const normalizedField = normalizeValue(fieldValue);
+
+            // Exact match (before normalization)
+            if (fieldStr === valueStr) {
                 return true;
+            }
+
+            // Check if value is part of field (after normalization)
+            if (normalizedField.includes(normalizedValue)) {
+                // If it's a prefix or suffix, filter it out (e.g., "052" in "052-5457201")
+                if (normalizedField.startsWith(normalizedValue) || normalizedField.endsWith(normalizedValue)) {
+                    return true;
+                }
+
+                // If it's in the middle, only filter if it's a significant portion (50%+)
+                // This prevents "256" from being filtered just because it's in "SI256SP005599"
+                const lengthRatio = normalizedValue.length / normalizedField.length;
+                if (lengthRatio >= 0.5) {
+                    return true;
+                }
             }
         } else if (typeof fieldValue === 'number') {
             if (fieldValue.toString() === valueStr) {
@@ -668,8 +700,23 @@ function isValueExists(value, existing) {
         } else if (Array.isArray(fieldValue)) {
             for (let i = 0; i < fieldValue.length; i++) {
                 const item = fieldValue[i];
-                if (typeof item === 'string' && item.toLowerCase() === valueStr) {
-                    return true;
+                if (typeof item === 'string') {
+                    const itemStr = item.toLowerCase();
+                    const normalizedItem = normalizeValue(item);
+
+                    if (itemStr === valueStr) {
+                        return true;
+                    }
+
+                    if (normalizedItem.includes(normalizedValue)) {
+                        if (normalizedItem.startsWith(normalizedValue) || normalizedItem.endsWith(normalizedValue)) {
+                            return true;
+                        }
+                        const lengthRatio = normalizedValue.length / normalizedItem.length;
+                        if (lengthRatio >= 0.5) {
+                            return true;
+                        }
+                    }
                 }
                 if (typeof item === 'object') {
                     if (isValueExists(value, item)) {

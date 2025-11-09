@@ -4,7 +4,7 @@
             "stdout": [],
             "stderr": []
         },
-        "executionTimeMs": 4,
+        "executionTimeMs": 7,
         "result": {
             "structure": {
                 "docType": "string",
@@ -156,22 +156,6 @@
                         },
                         {
                             "label": "מספר",
-                            "value": "052"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "5457201"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "054"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "3090747"
-                        },
-                        {
-                            "label": "מספר",
                             "value": "3877701"
                         },
                         {
@@ -181,10 +165,6 @@
                         {
                             "label": "מספר",
                             "value": "260825"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "7660011"
                         },
                         {
                             "label": "מספר",
@@ -220,10 +200,6 @@
                         },
                         {
                             "label": "מספר",
-                            "value": "2025"
-                        },
-                        {
-                            "label": "מספר",
                             "value": "22872"
                         },
                         {
@@ -237,10 +213,6 @@
                         {
                             "label": "קוד",
                             "value": "account2"
-                        },
-                        {
-                            "label": "קוד",
-                            "value": "ROLL50M"
                         }
                     ]
                 }
@@ -248,7 +220,7 @@
             "metadata": {
                 "modelId": "",
                 "totalFields": 30,
-                "uniqueDataFound": 36,
+                "uniqueDataFound": 29,
                 "pageCount": 2
             },
             "status": "success"
