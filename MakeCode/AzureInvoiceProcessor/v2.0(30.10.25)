@@ -1,30 +1,28 @@
 // ================================================================
-// Azure Invoice Processor v2.18 - FIX: phones, dates, system names
-// עודכן: 10 נובמבר 2025 00:15
+// Azure Invoice Processor v2.19 - FIX: sentences, short hyphenated, partial codes
+// עודכן: 10 נובמבר 2025 00:40
 // ================================================================
-// שינויים ב-v2.18:
-// 🔴 FIX: עוד בעיות נפוצות - טלפונים, תאריכים, שמות מערכות
+// שינויים ב-v2.19:
+// 🔴 FIX: משפטים שלמים, מספרים קצרים עם מקפים, קודים חלקיים
 //
 //    בעיות שתוקנו:
-//    1. ✅ isList() - הוספת | (pipe) כסימן רשימה
-//       - לפני: "0506371401 | 039015555" לא נתפס כרשימה
-//       - עכשיו: pipe (|) = רשימה (כמו , ו-;)
+//    1. ✅ extractLabelValuePairs() - דלג על values ארוכים + labels עם 3+ מילים
+//       - לפני: "לתשומת לבך: רישיון הרכב תקף רק לאחר..." (משפט שלם!)
+//       - עכשיו: value > 100 תווים = משפט → מדולג ✅
+//       - label עם 3+ מילים = לא label אמיתי → מדולג ✅
 //
-//    2. ✅ cleanNumber() - אל תנרמל תאריכים MM.YY / MM/YY
-//       - לפני: "06.25" → 6.25 (מספר) ❌
-//       - עכשיו: "06.25" נשאר "06.25" (חודש/שנה) ✅
-//       - זיהוי: /^\d{1,2}[.\/]\d{2}$/
+//    2. ✅ extractFormattedNumbers() - דלג על מספרים קצרים עם מקפים
+//       - לפני: "22-1187", "765-0021", "26-9" (מספרים לא רלוונטיים)
+//       - עכשיו: אורך כולל < 6 תווים → מדולג ✅
+//       - חלק קצר < 2 ספרות → מדולג ✅
 //
-//    3. ✅ extractAllPureNumbers() - דלג על טלפונים
-//       - לפני: "0506371401", "039015555" → "מספר"
-//       - עכשיו: 10 ספרות שמתחילות ב-0 = טלפון → מדולג!
-//       - הוספת pipe (|) ל-lookahead/lookbehind
+//    3. ✅ extractAlphanumericCodes() - הגבל אורך + דלג על חלקים
+//       - לפני: "65R17" מ-"175/65R17", "KGB70L" מ-"KGB70L-AHXNKW"
+//       - עכשיו: אורך 5-15 בלבד (לא קצר מדי / ארוך מדי) ✅
+//       - boundary עם / או - בצדדים → מדולג ✅
 //
-//    4. ✅ extractAlphanumericCodes() - דלג על שמות מערכות
-//       - לפני: "Invoice4U" → "קוד" (רק 1 ספרה מ-9 תווים = 11%)
-//       - עכשיו: קוד אמיתי = לפחות 30% ספרות
-//       - "Invoice4U" (11%) → מדולג ✅
-//       - "SI256SP005599" (50%) → נשאר ✅
+// שינויים קודמים (v2.18):
+// 🔴 FIX: phones, dates, system names
 //
 // שינויים קודמים (v2.17):
 // 🔴 FIX: isList broken + noise values + phone parts
@@ -982,6 +980,12 @@ function extractLabelValuePairs(content, existing) {
                 continue;
             }
 
+            // ⚠️ FIX v2.19: דלג על ערכים ארוכים מדי (משפטים שלמים)
+            // ערך ארוך מ-100 תווים = כנראה משפט או טקסט ארוך, לא מידע מזהה
+            if (value.length > 100) {
+                continue; // "לתשומת לבך: רישיון הרכב תקף רק לאחר תשלום..." ← משפט!
+            }
+
             // ✅ FIX v2.17: דלג על ערכים שהם רעש
             // ערכים קצרים מדי (1-2 תווים) כמו "=", ":", וכו'
             if (value.length <= 2 && !/^\d+$/.test(value)) {
@@ -1010,6 +1014,13 @@ function extractLabelValuePairs(content, existing) {
             // דלג על labels שהם רק מספרים או קצרים מדי
             if (label.length < 2 || /^\d+$/.test(label)) {
                 continue;
+            }
+
+            // ⚠️ FIX v2.19: דלג על labels ארוכים מדי (3+ מילים)
+            // label עם 3 מילים או יותר = לא label אמיתי (כנראה חלק ממשפט)
+            const wordCount = label.split(/\s+/).filter(w => w.length > 0).length;
+            if (wordCount >= 3) {
+                continue; // "לתשומת לבך" ← 2 מילים = בסדר, אבל 3+ = לא label!
             }
 
             // ✅ FIX v2.15: דלג על שורות שנראות כמו חלק מטבלה
@@ -1075,6 +1086,25 @@ function extractFormattedNumbers(content, existing) {
             continue;
         }
 
+        // ⚠️ FIX v2.19: דלג על מספרים קצרים מדי עם מקפים
+        // מספר עם מקף שאורכו הכולל < 6 תווים (כולל מקפים) = כנראה לא רלוונטי
+        if (num.length < 6) {
+            continue; // "26-9" (4 תווים) ← לא רלוונטי!
+        }
+
+        // דלג אם יש חלק קצר מדי (< 2 ספרות)
+        const parts = num.split('-');
+        let hasShortPart = false;
+        for (let p = 0; p < parts.length; p++) {
+            if (parts[p].length < 2) {
+                hasShortPart = true;
+                break;
+            }
+        }
+        if (hasShortPart) {
+            continue; // "765-0021" עם "0021" → אולי בסדר, אבל "26-9" עם "9" → לא בסדר!
+        }
+
         // דלג אם כבר קיים בשדות אחרים
         if (!isValueExists(num, existing)) {
             numbers.push({label: 'מספר', value: num});
@@ -1112,15 +1142,29 @@ function extractAllPureNumbers(content, existing, minLen, maxLen) {
 
 function extractAlphanumericCodes(content, existing, minLen, maxLen) {
     const codes = [];
-    const pattern = new RegExp('\\b([A-Za-z0-9]{' + minLen + ',' + maxLen + '})\\b', 'g');
-    const matches = content.match(pattern) || [];
 
-    for (let i = 0; i < matches.length; i++) {
-        const code = matches[i];
+    // ⚠️ FIX v2.19: הגבל אורך מקסימלי ל-15 (לא ארוך מדי)
+    const actualMaxLen = Math.min(maxLen, 15);
+    const pattern = new RegExp('\\b([A-Za-z0-9]{' + minLen + ',' + actualMaxLen + '})\\b', 'g');
+
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+        const code = match[1];
+        const matchIndex = match.index;
 
         // חייב להכיל גם אותיות וגם ספרות
         if (!/[A-Za-z]/.test(code) || !/\d/.test(code)) {
             continue;
+        }
+
+        // ⚠️ FIX v2.19: דלג על קודים שהם חלק מקוד ארוך יותר
+        // בדוק אם יש "/" או "-" לפני/אחרי הקוד (boundary בעייתי)
+        const charBefore = matchIndex > 0 ? content[matchIndex - 1] : '';
+        const charAfter = matchIndex + code.length < content.length ? content[matchIndex + code.length] : '';
+
+        // אם יש "/" או "-" ממש לפני או אחרי = זה חלק מקוד ארוך יותר
+        if (charBefore === '/' || charBefore === '-' || charAfter === '/' || charAfter === '-') {
+            continue; // "65R17" מ-"175/65R17" או "KGB70L" מ-"KGB70L-AHXNKW" ← חלקי קוד!
         }
 
         // ✅ FIX v2.18: דלג על "קודים" שהם בעיקר אותיות (כמו "Invoice4U")
