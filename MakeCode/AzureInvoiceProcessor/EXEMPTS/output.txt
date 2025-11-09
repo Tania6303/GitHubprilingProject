@@ -4,7 +4,7 @@
             "stdout": [],
             "stderr": []
         },
-        "executionTimeMs": 675,
+        "executionTimeMs": 6,
         "result": {
             "structure": {
                 "docType": "string",
@@ -31,7 +31,15 @@
                     "VendorAddress_house": "string",
                     "VendorAddressRecipient": "string",
                     "VendorName": "string",
-                    "VendorTaxId": "string"
+                    "VendorTaxId": "string",
+                    "VendorTel": "string",
+                    "VendorFax": "string",
+                    "InvoiceTime": "HH:MM:SS",
+                    "DueDate": "YYYY-MM-DD",
+                    "VendorEmail": "string",
+                    "UnidentifiedNumbers": [
+                        "object"
+                    ]
                 },
                 "Items": [
                     {
@@ -83,13 +91,164 @@
                     "VendorAddress_house": "קיבוץ מצר ד.נ חפר",
                     "VendorAddressRecipient": "אס.פי תעשיות מתקדמות בע״מ",
                     "VendorName": "SP\nINDUSTRIES",
-                    "VendorTaxId": "516470697"
+                    "VendorTaxId": "516470697",
+                    "VendorTel": "052-5457201",
+                    "VendorFax": "054-3090747",
+                    "InvoiceTime": "12:41",
+                    "DueDate": "2025-08-25",
+                    "VendorEmail": "jesicab@sp-i.co.il",
+                    "UnidentifiedNumbers": [
+                        {
+                            "label": "מס. תיק ניכויים",
+                            "value": "917578536"
+                        },
+                        {
+                            "label": "פרטים",
+                            "value": "חש. לתעודה אוג-25"
+                        },
+                        {
+                            "label": "טלפון",
+                            "value": "054-3090747, פקס: 09-8947635"
+                        },
+                        {
+                            "label": "WINSERT",
+                            "value": "spinrom:260825:C:SI256SP005599:account2@t-p-y.co.il"
+                        },
+                        {
+                            "label": "תעודה",
+                            "value": "SH25SP005743"
+                        },
+                        {
+                            "label": "הזמנה",
+                            "value": "SO25SP004701"
+                        },
+                        {
+                            "label": "הזמנתכם",
+                            "value": "1005223"
+                        },
+                        {
+                            "label": "מס. לקוח",
+                            "value": "501185"
+                        },
+                        {
+                            "label": "סוכן",
+                            "value": "SP"
+                        },
+                        {
+                            "label": "file",
+                            "value": "///C:/Users/JESICA~1/AppData/Local/Temp/OL-22872-2.htm"
+                        },
+                        {
+                            "label": "ברקוד מספר תעודה",
+                            "value": "*SH25SP005743*"
+                        },
+                        {
+                            "label": "נפח",
+                            "value": "4.0000 נפח"
+                        },
+                        {
+                            "label": "file",
+                            "value": "///C:/Users/AVIOHA~1/AppData/Local/Temp/OL-27572-2.htm"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "3882000"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "052"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "5457201"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "054"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "3090747"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "3877701"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "8947635"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "260825"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "7660011"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "00050"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "000"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "0000"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "7000"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "400"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "120"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "772"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "172"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "2025"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "22872"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "2010"
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "27572"
+                        },
+                        {
+                            "label": "קוד",
+                            "value": "account2"
+                        },
+                        {
+                            "label": "קוד",
+                            "value": "ROLL50M"
+                        }
+                    ]
                 }
             },
             "metadata": {
                 "modelId": "",
-                "totalFields": 24,
-                "uniqueDataFound": 0,
+                "totalFields": 30,
+                "uniqueDataFound": 36,
                 "pageCount": 2
             },
             "status": "success"
