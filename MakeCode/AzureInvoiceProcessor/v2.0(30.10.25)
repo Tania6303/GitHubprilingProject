@@ -1,7 +1,7 @@
 // ================================================================
 // Azure Invoice Processor v2.2 - Fix Duplicate Items
 // תאריך: 9 נובמבר 2025
-// שעה: 16:00
+// שעה: 16:15
 // ================================================================
 //
 // שינויים בגרסה 2.2:
@@ -9,6 +9,7 @@
 // - ✅ תיקון isRealItemRow() - שורה נחשבת פריט רק אם יש Amount/Quantity/UnitPrice
 // - ✅ מניעת כפילויות כאשר Azure מחזיר אותו פריט מ-2 טבלאות
 // - ✅ שמירת הפריט המלא (עם Amount) ומחיקת פריטים חלקיים
+// - ✅ בדיקת ביטחון - אם אין פריטים אחרי סינון, שומר פריטים עם ProductCode
 //
 // שינויים בגרסה 2.1:
 // - שינוי מקלט אחד (azureJsonInput) ל-5 קלטים נפרדים
@@ -291,13 +292,27 @@ function extractRealItemsFromTable(tables, azureItems) {
     }
     
     const items = [];
+    const allRows = [];
+
     for (const rowIdx in rowsData) {
         const rowData = rowsData[rowIdx];
+        allRows.push(rowData);
         if (isRealItemRow(rowData)) {
             items.push(rowData);
         }
     }
-    
+
+    // בדיקת ביטחון: אם לא נמצאו פריטים אבל יש שורות עם ProductCode
+    // זה יכול להיות מקרה לגיטימי של פריטים ללא מחירים
+    if (items.length === 0 && allRows.length > 0) {
+        for (let i = 0; i < allRows.length; i++) {
+            const row = allRows[i];
+            if (row.ProductCode && Object.keys(row).length >= 2) {
+                items.push(row);
+            }
+        }
+    }
+
     return items;
 }
 
