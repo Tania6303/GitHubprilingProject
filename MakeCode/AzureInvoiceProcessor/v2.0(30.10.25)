@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.8 - Context-aware label extraction (sections)
-// עודכן: 9 נובמבר 2025 19:59
+// Azure Invoice Processor v2.9 - FIX: Support all characters in labels
+// עודכן: 9 נובמבר 2025 20:09
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -578,6 +578,13 @@ function extractUniqueData(content, existingFields) {
         if (!seen[pairs[i].value]) {
             uniqueData.push(pairs[i]);
             seen[pairs[i].value] = true;
+
+            // סמן גם מספרים שנמצאים בתוך הvalue כדי למנוע כפילויות
+            // לדוגמה: "1917035 (202857)" -> סמן גם 1917035 ו-202857
+            const numbersInValue = pairs[i].value.match(/\d{3,}/g) || [];
+            for (let n = 0; n < numbersInValue.length; n++) {
+                seen[numbersInValue[n]] = true;
+            }
         }
     }
 
@@ -621,12 +628,12 @@ function extractLabelValuePairs(content, existing) {
     const pairs = [];
     const lines = content.split('\n');
 
-    // Pattern 1: "תווית: ערך" באותה שורה
-    const labelValuePattern = /^([א-תA-Za-z\s\.]+):\s*([^\n]+)$/;
+    // Pattern 1: "תווית: ערך" באותה שורה (מאפשר כל תו בlabel חוץ מ-:)
+    const labelValuePattern = /^([^:\n]{2,80}):\s*([^\n]+)$/;
     // Pattern 2: תווית עם 2+ רווחים ואז ערך
     const spacedPattern = /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/;
     // Pattern 3: זיהוי כותרת (נגמרת ב-: אבל אין ערך, או רק "(לא צויין)" וכו')
-    const sectionHeaderPattern = /^([א-תA-Za-z\s\/]+):?\s*$/;
+    const sectionHeaderPattern = /^([^:\n]{2,40}):?\s*$/;
 
     let currentSection = null;
 
@@ -636,9 +643,26 @@ function extractLabelValuePairs(content, existing) {
 
         // בדוק אם זו כותרת סקשן
         const sectionMatch = line.match(sectionHeaderPattern);
-        if (sectionMatch && line.length < 30) { // כותרות בדרך כלל קצרות
-            currentSection = sectionMatch[1].trim();
-            continue;
+        if (sectionMatch && line.length < 30 && !line.match(/\d{3,}/)) { // כותרות קצרות מאוד, לא מכילות 3+ ספרות רצופות
+            const potentialSection = sectionMatch[1].trim();
+
+            // דלג על sections שנראים כמו תיאורי מוצרים או קודים
+            // (מכילים מקפים רבים, נקודות, או תבניות כמו "16x2")
+            if (potentialSection.match(/[-]{2,}/) || // 2+ מקפים
+                potentialSection.match(/\d+x\d+/) || // דפוס כמו 16x2
+                potentialSection.match(/[A-Z]+\d+/) || // דפוס כמו ROLL50M
+                potentialSection.split(/\s+/).length > 4) { // יותר מ-4 מילים
+                // זה כנראה תיאור מוצר, לא section
+                continue;
+            }
+
+            // רק אם זה נראה כמו כותרת (בעיקר אותיות)
+            const letterCount = (potentialSection.match(/[א-תA-Za-z]/g) || []).length;
+            const digitCount = (potentialSection.match(/\d/g) || []).length;
+            if (letterCount > digitCount && letterCount >= 3) {
+                currentSection = potentialSection;
+                continue;
+            }
         }
 
         // בדוק "תווית: ערך" רגיל
@@ -653,6 +677,11 @@ function extractLabelValuePairs(content, existing) {
 
             // אם הערך ריק או "לא צויין" - דלג
             if (!value || value === '(לא צויין)' || value === '(לא צוינו)') {
+                continue;
+            }
+
+            // דלג על labels שהם רק מספרים או קצרים מדי
+            if (label.length < 2 || /^\d+$/.test(label)) {
                 continue;
             }
 
