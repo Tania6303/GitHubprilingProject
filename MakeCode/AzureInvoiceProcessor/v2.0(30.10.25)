@@ -1,50 +1,26 @@
 // ================================================================
-// Azure Invoice Processor v2.2 - Fix Duplicate Items
-// תאריך: 9 נובמבר 2025
-// שעה: 16:15
+// Azure Invoice Processor v2.3 - Generic UnidentifiedNumbers
+// עודכן: 9 נובמבר 2025 16:30
 // ================================================================
 //
-// שינויים בגרסה 2.2:
-// - ✅ הוספת deduplicateItems() - איחוד פריטים כפולים מטבלאות שונות
-// - ✅ תיקון isRealItemRow() - שורה נחשבת פריט רק אם יש Amount/Quantity/UnitPrice
-// - ✅ מניעת כפילויות כאשר Azure מחזיר אותו פריט מ-2 טבלאות
-// - ✅ שמירת הפריט המלא (עם Amount) ומחיקת פריטים חלקיים
-// - ✅ בדיקת ביטחון - אם אין פריטים אחרי סינון, שומר פריטים עם ProductCode
+// ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
+// - Processing Invoice (v4.2-COMPLETE.js)
+// - Production Invoice (v1.0-production.js)
 //
-// שינויים בגרסה 2.1:
-// - שינוי מקלט אחד (azureJsonInput) ל-5 קלטים נפרדים
-// - הוספת pageCount למטה-דאטה
+// 📁 קבצי בדיקה:
+// - MakeCode/AzureInvoiceProcessor/EXEMPTS/input.txt + output.txt
+// - MakeCode/Processing Invoice/QA/
+// - MakeCode/Production Invoice/QA/
 //
-// הנחיות שימוש:
-// ----------------
-// הקוד מצפה ל-5 קלטים נפרדים ב-input object:
-//
-// 1. input.contentLong (string) - התוכן הגולמי של המסמך
-//    דוגמה: "Invoice\nCompany Name\n..."
-//
-// 2. input.pages (array) - מערך של אובייקטי דפים
-//    דוגמה: [{pageNumber: 1, width: 8.5, height: 11}, ...]
-//
-// 3. input.tables (array) - מערך של טבלאות שזוהו
-//    דוגמה: [{cells: [...], rowCount: 5, columnCount: 4}, ...]
-//
-// 4. input.documents (array) - מערך של מסמכים מעובדים
-//    דוגמה: [{fields: {InvoiceId: {...}, ...}}]
-//
-// 5. input.modelId (string) - מזהה המודל שעיבד (אופציונלי)
-//    דוגמה: "prebuilt-invoice"
-//
-// כל הקלטים אופציונליים - אם לא מועברים, משתמשים בערכי ברירת מחדל.
+// 📖 תיעוד מפורט והיסטוריה: ראה README.md
 // ================================================================
 
-// קליטת קלטים נפרדים
 const contentLong = input.contentLong || '';
 const pages = input.pages || [];
 const tables = input.tables || [];
 const documents = input.documents || [];
 const modelId = input.modelId || '';
 
-// בניית אובייקט analyzeResult מהקלטים הנפרדים
 const azureJsonInput = {
     content: contentLong,
     pages: pages,
@@ -579,40 +555,38 @@ function detectEmails(content, existing, detected) {
 }
 
 // ================================================================
-// ✨ חדש! זיהוי דינמי של מידע ייחודי
+// חילוץ גנרי של מידע ייחודי
 // ================================================================
 
 function extractUniqueData(content, existingFields) {
     const uniqueData = [];
+    const seen = {};
 
-    // 1. זיהוי תבניות "כותרת: ערך"
-    const labelValuePairs = extractLabelValuePairs(content, existingFields);
-    for (let i = 0; i < labelValuePairs.length; i++) {
-        uniqueData.push(labelValuePairs[i]);
+    // 1. זוגות "תווית: ערך"
+    const pairs = extractLabelValuePairs(content, existingFields);
+    for (let i = 0; i < pairs.length; i++) {
+        if (!seen[pairs[i].value]) {
+            uniqueData.push(pairs[i]);
+            seen[pairs[i].value] = true;
+        }
     }
 
-    // 2. זיהוי קודי חלקים/מוצרים
-    const partCodes = extractPartCodes(content, existingFields);
-    for (let i = 0; i < partCodes.length; i++) {
-        uniqueData.push(partCodes[i]);
+    // 2. כל המספרים (3-20 ספרות)
+    const pureNumbers = extractAllPureNumbers(content, existingFields, 3, 20);
+    for (let i = 0; i < pureNumbers.length; i++) {
+        if (!seen[pureNumbers[i].value]) {
+            uniqueData.push(pureNumbers[i]);
+            seen[pureNumbers[i].value] = true;
+        }
     }
 
-    // 3. זיהוי מספרי רכב
-    const vehicleNumbers = extractVehicleNumbers(content, existingFields);
-    for (let i = 0; i < vehicleNumbers.length; i++) {
-        uniqueData.push(vehicleNumbers[i]);
-    }
-
-    // 4. זיהוי מספרי תעודות (DOCNO, BOOKNUM)
-    const documentNumbers = extractDocumentNumbers(content, existingFields);
-    for (let i = 0; i < documentNumbers.length; i++) {
-        uniqueData.push(documentNumbers[i]);
-    }
-
-    // 5. זיהוי מספרים ייחודיים באורכים מיוחדים
-    const specialNumbers = extractSpecialLengthNumbers(content, existingFields);
-    for (let i = 0; i < specialNumbers.length; i++) {
-        uniqueData.push(specialNumbers[i]);
+    // 3. כל הקודים האלפא-נומריים (לפחות 5 תווים)
+    const alphaCodes = extractAlphanumericCodes(content, existingFields, 5, 30);
+    for (let i = 0; i < alphaCodes.length; i++) {
+        if (!seen[alphaCodes[i].value]) {
+            uniqueData.push(alphaCodes[i]);
+            seen[alphaCodes[i].value] = true;
+        }
     }
 
     return uniqueData;
@@ -621,191 +595,52 @@ function extractUniqueData(content, existingFields) {
 function extractLabelValuePairs(content, existing) {
     const pairs = [];
     const lines = content.split('\n');
-    
-    // דפוסים נפוצים: "כותרת: ערך" או "כותרת ערך" עם רווח
     const patterns = [
-        /^([א-תA-Za-z\s\.]+):\s*([^\n]+)$/,           // כותרת: ערך
-        /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/    // כותרת    ערך (2+ רווחים)
+        /^([א-תA-Za-z\s\.]+):\s*([^\n]+)$/,
+        /^([א-תA-Za-z\s\.]{2,20})\s{2,}([^\n]+)$/
     ];
-    
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line || line.length < 5) continue;
-        
         for (let p = 0; p < patterns.length; p++) {
             const match = line.match(patterns[p]);
             if (match) {
                 const label = match[1].trim();
                 const value = match[2].trim();
-                
-                // בדוק שהערך לא קיים כבר
                 if (!isValueExists(value, existing) && !isCommonLabel(label)) {
-                    pairs.push({
-                        label: label,
-                        value: value
-                    });
+                    pairs.push({label: label, value: value});
                 }
                 break;
             }
         }
     }
-    
     return pairs;
 }
 
-function extractPartCodes(content, existing) {
-    const codes = [];
-    
-    // דפוסים נפוצים לקודי חלקים:
-    // TOY-XXXXXX, ABC-123456, XXX-XXXXXX
-    const patterns = [
-        /([A-Z]{2,4}-[A-Z0-9]{5,})/g,     // ABC-12345
-        /([A-Z]{3}\d{5,})/g,               // ABC12345
-        /([A-Z]\d{5,})/g                   // A12345
-    ];
-    
-    for (let p = 0; p < patterns.length; p++) {
-        const matches = content.match(patterns[p]) || [];
-        for (let i = 0; i < matches.length; i++) {
-            const code = matches[i];
-            if (!isValueExists(code, existing) && !codeAlreadyFound(code, codes)) {
-                // מצא את ההקשר (השורה שבה נמצא)
-                const context = findContext(content, code);
-                codes.push({
-                    label: 'קוד חלק',
-                    value: code,
-                    context: context
-                });
-            }
-        }
-    }
-    
-    return codes;
-}
-
-function extractVehicleNumbers(content, existing) {
-    const vehicles = [];
-    
-    // תבניות מספר רכב:
-    // XXX-XX-XXX (ישראל)
-    // XXXXXXX (7 ספרות)
-    const patterns = [
-        /\b(\d{2,3}-\d{2}-\d{3})\b/g,      // 123-45-678
-        /\b(\d{7,8})\b/g                    // 1234567
-    ];
-    
-    for (let p = 0; p < patterns.length; p++) {
-        const matches = content.match(patterns[p]) || [];
-        for (let i = 0; i < matches.length && vehicles.length < 5; i++) {
-            const number = matches[i];
-            
-            // בדוק אם זה לא טלפון או תז
-            if (number.indexOf('-') === -1 && (number.length === 9 || number.length === 10)) {
-                continue;
-            }
-            
-            if (!isValueExists(number, existing) && !codeAlreadyFound(number, vehicles)) {
-                const context = findContext(content, number);
-                
-                // נסה לזהות אם זה באמת רכב לפי ההקשר
-                if (context.indexOf('רכב') >= 0 || context.indexOf('כרטיס') >= 0 || 
-                    context.indexOf('vehicle') >= 0 || context.indexOf('car') >= 0) {
-                    vehicles.push({
-                        label: 'מספר רכב',
-                        value: number,
-                        context: context
-                    });
-                }
-            }
-        }
-    }
-    
-    return vehicles;
-}
-
-function extractDocumentNumbers(content, existing) {
-    const documents = [];
-
-    // תבניות מספרי תעודות:
-    // DOCNO: 25XXXXXX (8 ספרות, מתחיל ב-25)
-    // BOOKNUM: 108XXXXXX (9 ספרות, מתחיל ב-108)
-    const patterns = [
-        { pattern: /\b(25\d{6})\b/g, label: 'מס׳ תעודה (DOCNO)' },
-        { pattern: /\b(108\d{6})\b/g, label: 'מס׳ הקצאה (BOOKNUM)' }
-    ];
-
-    for (let p = 0; p < patterns.length; p++) {
-        const patternObj = patterns[p];
-        const matches = content.match(patternObj.pattern) || [];
-
-        for (let i = 0; i < matches.length; i++) {
-            const number = matches[i];
-
-            // בדוק אם המספר לא קיים כבר
-            if (!isValueExists(number, existing) && !codeAlreadyFound(number, documents)) {
-                const context = findContext(content, number);
-
-                documents.push({
-                    label: patternObj.label,
-                    value: number,
-                    context: context
-                });
-            }
-        }
-    }
-
-    return documents;
-}
-
-function extractSpecialLengthNumbers(content, existing) {
+function extractAllPureNumbers(content, existing, minLen, maxLen) {
     const numbers = [];
-
-    // מספרים באורכים מיוחדים שעשויים להיות חשובים:
-    // 13 ספרות - מספר הקצאה/אסמכתא
-    // 17 תווים - VIN (כבר נתפס על ידי אז'ור, אבל נבדוק)
-
-    const longNumbers = findAllNumbers(content, 13, 17);
-
-    for (let i = 0; i < longNumbers.length && numbers.length < 10; i++) {
-        const num = longNumbers[i];
-
-        // סינון: התעלם ממספרים שמתחילים בשנה (202X) - אלה תאריכים, לא VIN
-        if (num.startsWith('202')) {
-            continue;
-        }
-
+    const pattern = new RegExp('\\b(\\d{' + minLen + ',' + maxLen + '})\\b', 'g');
+    const matches = content.match(pattern) || [];
+    for (let i = 0; i < matches.length; i++) {
+        const num = matches[i];
         if (!isValueExists(num, existing)) {
-            const context = findContext(content, num);
-
-            let label = 'מספר ייחודי';
-            if (num.length === 13) label = 'מספר הקצאה/אסמכתא';
-            if (num.length === 17) label = 'מספר זיהוי (VIN)';
-
-            numbers.push({
-                label: label,
-                value: num,
-                context: context
-            });
+            numbers.push({label: 'מספר', value: num});
         }
     }
-
     return numbers;
 }
 
-function findContext(content, value) {
-    const index = content.indexOf(value);
-    if (index === -1) return '';
-    
-    // קח 30 תווים לפני ו-30 אחרי
-    const start = Math.max(0, index - 30);
-    const end = Math.min(content.length, index + value.length + 30);
-    
-    let context = content.substring(start, end);
-    
-    // נקה שורות חדשות מרובות
-    context = context.replace(/\n+/g, ' ').trim();
-    
-    return context;
+function extractAlphanumericCodes(content, existing, minLen, maxLen) {
+    const codes = [];
+    const pattern = new RegExp('\\b([A-Z0-9]{' + minLen + ',' + maxLen + '})\\b', 'g');
+    const matches = content.match(pattern) || [];
+    for (let i = 0; i < matches.length; i++) {
+        const code = matches[i];
+        if (/[A-Z]/.test(code) && /\d/.test(code) && !isValueExists(code, existing)) {
+            codes.push({label: 'קוד', value: code});
+        }
+    }
+    return codes;
 }
 
 function isValueExists(value, existing) {
@@ -860,38 +695,6 @@ function isCommonLabel(label) {
     }
     
     return false;
-}
-
-function codeAlreadyFound(code, list) {
-    for (let i = 0; i < list.length; i++) {
-        if (list[i].value === code) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function findAllNumbers(text, minLen, maxLen) {
-    const numbers = [];
-    let currentNum = '';
-    
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char >= '0' && char <= '9') {
-            currentNum += char;
-        } else {
-            if (currentNum.length >= minLen && currentNum.length <= maxLen) {
-                numbers.push(currentNum);
-            }
-            currentNum = '';
-        }
-    }
-    
-    if (currentNum.length >= minLen && currentNum.length <= maxLen) {
-        numbers.push(currentNum);
-    }
-    
-    return numbers;
 }
 
 function buildStructure(fields) {
