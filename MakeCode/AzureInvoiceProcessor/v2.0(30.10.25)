@@ -1,28 +1,21 @@
 // ================================================================
-// Azure Invoice Processor v2.20 - FIX: mobile phones, OCR artifacts, lists, cleanup
-// עודכן: 10 נובמבר 2025 01:05
+// Azure Invoice Processor v2.21 - FIX: lists with URLs and long mixed content
+// עודכן: 10 נובמבר 2025 01:15
 // ================================================================
-// שינויים ב-v2.20:
-// 🔴 FIX: טלפונים ניידים, OCR artifacts, רשימות, ניקוי קוד
+// שינויים ב-v2.21:
+// 🔴 FIX: רשימות עם URLs ותוכן מעורב ארוך
 //
 //    בעיות שתוקנו:
-//    1. ✅ extractAllPureNumbers() - דלג על טלפונים ניידים (9 ספרות)
-//       - לפני: "528553984", "505020057" נתפסו כמספרים
-//       - עכשיו: 9-10 ספרות שמתחילות ב-0 = טלפון → מדולג ✅
+//    1. ✅ isList() - זיהוי רשימות עם URL/website
+//       - לפני: "04-6333334 פקס': 04-6344123 www.toyota-sos.co.il" לא נתפס
+//       - עכשיו: יש www. או http:// = רשימה → מדולג ✅
 //
-//    2. ✅ extractLabelValuePairs() - סינון OCR artifacts
-//       - לפני: ":selected:", ":unselected:" נתפסו כערכים
-//       - עכשיו: ערכים עם :selected: או :unselected: → מדולג ✅
+//    2. ✅ isList() - זיהוי רשימות ארוכות עם מספרים מרובים
+//       - לפני: ערכים ארוכים עם טלפונים מרובים לא נתפסו
+//       - עכשיו: >40 תווים + 2+ מספרים = רשימה → מדולג ✅
 //
-//    3. ✅ isList() - זיהוי רשימות גם ללא פסיק
-//       - לפני: "טל': 04-6333334 פקס': 04-6344123" לא נתפס כרשימה
-//       - עכשיו: 2+ נקודותיים + מילים = רשימה → מדולג ✅
-//
-//    4. ✅ extractLabelValuePairs() - סינון labels של מילה בודדת
-//       - לפני: "since: 1947" נתפס (לא רלוונטי)
-//       - עכשיו: מילה בודדת + מספר < 100000 → מדולג ✅
-//
-//    5. ✅ ניקוי קוד - מחיקת splitList() (לא בשימוש)
+// שינויים קודמים (v2.20):
+// 🔴 FIX: mobile phones, OCR artifacts, lists, cleanup
 //
 // שינויים קודמים (v2.19):
 // 🔴 FIX: sentences, short hyphenated numbers, partial codes
@@ -158,6 +151,12 @@ function isList(value) {
     // רשימה אם יש נקודה-פסיק או pipe
     if (value.includes(';') || value.includes('|')) return true;
 
+    // ⚠️ FIX v2.21: רשימה אם יש URL/website
+    // "04-6333334 פקס': 04-6344123 www.toyota-sos.co.il" ← יש www = רשימה!
+    if (value.includes('www.') || value.includes('http://') || value.includes('https://')) {
+        return true;
+    }
+
     const commaCount = (value.match(/,/g) || []).length;
     const colonCount = (value.match(/:/g) || []).length;
 
@@ -177,6 +176,15 @@ function isList(value) {
     if (colonCount >= 2) {
         const hasWords = /[א-תa-zA-Z]{2,}/.test(value);
         if (hasWords) {
+            return true;
+        }
+    }
+
+    // ⚠️ FIX v2.21: רשימה אם ארוך מדי עם מספרים מרובים
+    // "04-6333334 פקס 04-6344123" ← ארוך (>40) + 2 מספרים = רשימה!
+    if (value.length > 40) {
+        const numberCount = (value.match(/\d{2,}/g) || []).length;
+        if (numberCount >= 2) {
             return true;
         }
     }
