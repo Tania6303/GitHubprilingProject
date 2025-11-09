@@ -3,7 +3,21 @@
 // תאריך: 30 אוקטובר 2025
 // ================================================================
 
-const azureJsonInput = input.azureJsonInput;
+// קליטת קלטים נפרדים
+const contentLong = input.contentLong || '';
+const pages = input.pages || [];
+const tables = input.tables || [];
+const documents = input.documents || [];
+const modelId = input.modelId || '';
+
+// בניית אובייקט analyzeResult מהקלטים הנפרדים
+const azureJsonInput = {
+    content: contentLong,
+    pages: pages,
+    tables: tables,
+    documents: documents,
+    modelId: modelId
+};
 
 function processAzureInvoice(azureInput) {
     const analyzeResult = loadAnalyzeResult(azureInput);
@@ -44,7 +58,8 @@ function processAzureInvoice(azureInput) {
         metadata: {
             modelId: analyzeResult.modelId,
             totalFields: Object.keys(result.fields).length,
-            uniqueDataFound: uniqueData.length
+            uniqueDataFound: uniqueData.length,
+            pageCount: analyzeResult.pages ? analyzeResult.pages.length : 0
         }
     };
 }
