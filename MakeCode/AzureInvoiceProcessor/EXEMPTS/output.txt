@@ -4,7 +4,7 @@
             "stdout": [],
             "stderr": []
         },
-        "executionTimeMs": 774,
+        "executionTimeMs": 757,
         "result": {
             "structure": {
                 "docType": "string",
@@ -71,12 +71,6 @@
                             "Quantity": 2000,
                             "Unit": "מטר",
                             "UnitPrice_amount": 14,
-                            "UnitPrice_currency": "ILS"
-                        },
-                        {
-                            "Description": "ROLL50M-16x2 S.P שחור בידוד שחור",
-                            "ProductCode": "7660011-00050-20",
-                            "UnitPrice_amount": 2000,
                             "UnitPrice_currency": "ILS"
                         }
                     ],
