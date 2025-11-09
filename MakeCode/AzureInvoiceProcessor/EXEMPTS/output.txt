@@ -4,7 +4,7 @@
             "stdout": [],
             "stderr": []
         },
-        "executionTimeMs": 757,
+        "executionTimeMs": 675,
         "result": {
             "structure": {
                 "docType": "string",
