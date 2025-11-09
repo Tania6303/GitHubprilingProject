@@ -40,6 +40,10 @@
                         },
                         {
                             "label": "מספר",
+                            "value": "741-69-103"
+                        },
+                        {
+                            "label": "מספר",
                             "value": "12218"
                         },
                         {
@@ -61,14 +65,6 @@
                         {
                             "label": "מספר",
                             "value": "3730"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "741"
-                        },
-                        {
-                            "label": "מספר",
-                            "value": "103"
                         },
                         {
                             "label": "מספר",
@@ -100,7 +96,7 @@
             "metadata": {
                 "modelId": "",
                 "totalFields": 5,
-                "uniqueDataFound": 17,
+                "uniqueDataFound": 16,
                 "pageCount": 0
             },
             "status": "success"

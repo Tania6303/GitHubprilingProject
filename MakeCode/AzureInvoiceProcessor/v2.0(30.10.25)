@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.4 - FIX: Smart filter for phone/fax parts
-// עודכן: 9 נובמבר 2025 18:59
+// Azure Invoice Processor v2.5 - FIX: Extract formatted numbers (prevent splits)
+// עודכן: 9 נובמבר 2025 19:12
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -581,7 +581,22 @@ function extractUniqueData(content, existingFields) {
         }
     }
 
-    // 2. כל המספרים (3-20 ספרות)
+    // 2. מספרים עם פורמט מיוחד (מקפים, קווים נטויים) - לפני pure numbers!
+    const formattedNumbers = extractFormattedNumbers(content, existingFields);
+    for (let i = 0; i < formattedNumbers.length; i++) {
+        if (!seen[formattedNumbers[i].value]) {
+            uniqueData.push(formattedNumbers[i]);
+            seen[formattedNumbers[i].value] = true;
+
+            // סמן גם את החלקים כדי למנוע כפילויות (741-69-103 -> גם 741, 69, 103)
+            const parts = formattedNumbers[i].value.split('-');
+            for (let p = 0; p < parts.length; p++) {
+                seen[parts[p]] = true;
+            }
+        }
+    }
+
+    // 3. כל המספרים (3-20 ספרות)
     const pureNumbers = extractAllPureNumbers(content, existingFields, 3, 20);
     for (let i = 0; i < pureNumbers.length; i++) {
         if (!seen[pureNumbers[i].value]) {
@@ -590,7 +605,7 @@ function extractUniqueData(content, existingFields) {
         }
     }
 
-    // 3. כל הקודים האלפא-נומריים (לפחות 5 תווים)
+    // 4. כל הקודים האלפא-נומריים (לפחות 5 תווים)
     const alphaCodes = extractAlphanumericCodes(content, existingFields, 5, 30);
     for (let i = 0; i < alphaCodes.length; i++) {
         if (!seen[alphaCodes[i].value]) {
@@ -625,6 +640,31 @@ function extractLabelValuePairs(content, existing) {
         }
     }
     return pairs;
+}
+
+function extractFormattedNumbers(content, existing) {
+    const numbers = [];
+
+    // זיהוי מספרים עם מקפים (כמו מספר רישוי: 741-69-103)
+    // מחפש לפחות 2 חלקים מספריים עם מקף ביניהם
+    const hyphenPattern = /\b(\d{1,4}-\d{1,4}(?:-\d{1,4})*)\b/g;
+    const matches = content.match(hyphenPattern) || [];
+
+    for (let i = 0; i < matches.length; i++) {
+        const num = matches[i];
+
+        // דלג על תאריכים (DD/MM/YY או DD-MM-YY)
+        if (/^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/.test(num)) {
+            continue;
+        }
+
+        // דלג אם כבר קיים בשדות אחרים
+        if (!isValueExists(num, existing)) {
+            numbers.push({label: 'מספר', value: num});
+        }
+    }
+
+    return numbers;
 }
 
 function extractAllPureNumbers(content, existing, minLen, maxLen) {
