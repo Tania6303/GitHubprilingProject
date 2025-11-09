@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.3 - Generic UnidentifiedNumbers
-// עודכן: 9 נובמבר 2025 20:15
+// Azure Invoice Processor v2.3 - Generic UnidentifiedNumbers + DEBUG LOGS
+// עודכן: 9 נובמבר 2025 20:20
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -30,17 +30,19 @@ const azureJsonInput = {
 };
 
 function processAzureInvoice(azureInput) {
+    console.log('🔵 START v2.3 - 20:20');
     const analyzeResult = loadAnalyzeResult(azureInput);
-    
+
     const rawContent = analyzeResult.content || '';
     const tables = analyzeResult.tables || [];
     const documents = analyzeResult.documents || [];
-    
+    console.log('🔵 rawContent length:', rawContent.length);
+
     const result = {
         docType: 'invoice',
         fields: {}
     };
-    
+
     if (documents.length > 0 && documents[0].fields) {
         extractAzureFields(documents[0].fields, result.fields);
     }
@@ -54,19 +56,28 @@ function processAzureInvoice(azureInput) {
     if (itemsData.length > 0) {
         result.fields.Items = itemsData;
     }
-    
+
     const detectedNumbers = detectNumbersByContext(rawContent, result.fields);
     Object.assign(result.fields, detectedNumbers);
-    
+    console.log('🔵 Fields after detectNumbers:', Object.keys(result.fields).length);
+
     // ✨ חדש! זיהוי דינמי של מידע ייחודי
+    console.log('🔵 BEFORE extractUniqueData');
     const uniqueData = extractUniqueData(rawContent, result.fields);
+    console.log('🔵 AFTER extractUniqueData - uniqueData.length:', uniqueData.length);
     if (uniqueData.length > 0) {
+        console.log('🔵 ADDING UnidentifiedNumbers to result.fields');
         result.fields.UnidentifiedNumbers = uniqueData;
+    } else {
+        console.log('🔵 NO UnidentifiedNumbers - uniqueData is empty!');
     }
-    
+
     const structure = buildStructure(result.fields);
     const data = buildData(result);
-    
+
+    console.log('🔵 FINAL totalFields:', Object.keys(result.fields).length);
+    console.log('🔵 FINAL uniqueDataFound:', uniqueData.length);
+
     return {
         structure: structure,
         data: data,
