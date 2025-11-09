@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.9 - FIX: Support all characters in labels
-// עודכן: 9 נובמבר 2025 20:09
+// Azure Invoice Processor v2.10 - INTEGRATION: TextStandardization base layer
+// עודכן: 9 נובמבר 2025 20:25
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -14,6 +14,9 @@
 //
 // 📖 תיעוד מפורט והיסטוריה: ראה README.md
 // ================================================================
+
+// ✨ NEW: Import TextStandardization as foundation layer
+const standardize = require('../TextStandardization/standardize-text.js');
 
 const contentLong = input.contentLong || input.contentlong || '';
 const pagesInput = input.pages || [];
@@ -32,7 +35,10 @@ const azureJsonInput = {
 function processAzureInvoice(azureInput) {
     const analyzeResult = loadAnalyzeResult(azureInput);
 
-    const rawContent = analyzeResult.content || '';
+    // ✨ Apply TextStandardization as foundation layer
+    const rawContentFromAzure = analyzeResult.content || '';
+    const rawContent = standardize.standardizeText(rawContentFromAzure);
+
     const tables = analyzeResult.tables || [];
     const documents = analyzeResult.documents || [];
 
@@ -913,5 +919,10 @@ function buildData(result) {
 const finalResult = processAzureInvoice(azureJsonInput);
 
 finalResult.status = 'success';
+
+// Export for require() compatibility
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = finalResult;
+}
 
 return finalResult;
