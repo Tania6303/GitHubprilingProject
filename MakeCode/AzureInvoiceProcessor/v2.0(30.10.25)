@@ -1,12 +1,23 @@
 // ================================================================
-// Azure Invoice Processor v2.14 - CRITICAL FIX: Items deduplication
-// עודכן: 9 נובמבר 2025 22:00
+// Azure Invoice Processor v2.15 - MAJOR: Clean UnidentifiedNumbers
+// עודכן: 9 נובמבר 2025 22:30
 // ================================================================
-// שינויים ב-v2.14:
+// שינויים ב-v2.15:
+// 🎯 MAJOR CLEANUP: UnidentifiedNumbers היה מלא ברעש!
+//    1. ✅ הוספת isList() + splitList() - דלג על values שהם רשימות
+//       לפני: "טלפון: 04-6445585, פקס: 1534-6438399" ← רשימה!
+//       עכשיו: מדלג על זה
+//    2. ✅ הוספת cleanHeader() - ניקוי labels מתווים מיותרים
+//    3. ✅ תיקון extractLabelValuePairs:
+//       - דלג על שורות טבלה ("סה"כ", "הנחה", "total", אחוזים)
+//       - תקן currentSection - לא יוצר labels ארוכים (>40 תווים)
+//    4. ✅ תיקון extractAlphanumericCodes:
+//       - דלג על מק"ט לקוח מטבלה (r5273535, SO25000145)
+//       - סינון קודים עם דפוס: 1-2 אותיות + 6-8 ספרות
+//
+// שינויים קודמים (v2.14):
 // 🔴 CRITICAL FIX: deduplicateItems() מחק שורות לגיטימיות!
-//    - לפני: מחק כל שורה עם אותו ProductCode
-//    - עכשיו: מחק רק אם ProductCode + Amount + Quantity זהים
-//    - תיקון: אותו מוצר יכול להופיע פעמיים בחשבונית (2 משלוחים שונים)
+//    - תיקון: אותו מוצר יכול להופיע פעמיים בחשבונית
 //
 // שינויים קודמים (v2.13):
 // 1. ✅ הגבלת extractAllPureNumbers ל-6-12 ספרות (מונע ברקודים ארוכים)
@@ -120,6 +131,56 @@ function standardizeText(text, options) {
 // ============================================================================
 // פונקציות נרמול ערכים (מקוד DataNormalizer)
 // ============================================================================
+
+/**
+ * בדוק אם ערך הוא רשימה (יותר מערך אחד מופרד בפסיקים/נקודות-פסיק)
+ */
+function isList(value) {
+    if (typeof value !== 'string') return false;
+
+    // רשימה אם יש 2+ פסיקים או נקודה-פסיק
+    const commaCount = (value.match(/,/g) || []).length;
+    const semicolonCount = (value.match(/;/g) || []).length;
+
+    return commaCount >= 2 || semicolonCount >= 1;
+}
+
+/**
+ * פצל רשימה לערכים בודדים
+ */
+function splitList(value) {
+    if (typeof value !== 'string') return [value];
+
+    // פצל לפי נקודה-פסיק או פסיק
+    const delimiter = value.includes(';') ? ';' : ',';
+    return value.split(delimiter).map(v => v.trim()).filter(v => v.length > 0);
+}
+
+/**
+ * נקה כותרת/label מתווים מיותרים
+ */
+function cleanHeader(value) {
+    if (typeof value !== 'string') return value;
+
+    let cleaned = value;
+
+    // הסר תווים מיותרים בהתחלה/סוף
+    cleaned = cleaned.trim();
+
+    // הסר נקודות בסוף (אם יש)
+    cleaned = cleaned.replace(/\.+$/, '');
+
+    // הסר נקודותיים בסוף
+    cleaned = cleaned.replace(/:+$/, '');
+
+    // הסר רווחים מרובים
+    cleaned = cleaned.replace(/\s{2,}/g, ' ');
+
+    // הסר סוגריים ריקים
+    cleaned = cleaned.replace(/\(\s*\)/g, '');
+
+    return cleaned.trim();
+}
 
 function cleanNumber(value) {
     if (typeof value !== 'string') return value;
@@ -898,7 +959,7 @@ function extractLabelValuePairs(content, existing) {
         }
 
         if (match) {
-            const label = match[1].trim();
+            let label = match[1].trim();
             let value = match[2].trim();
 
             // אם הערך ריק או "לא צויין" - דלג
@@ -906,15 +967,38 @@ function extractLabelValuePairs(content, existing) {
                 continue;
             }
 
+            // ✅ FIX v2.15: דלג על values שהם רשימות (מכילות פסיקים מרובים)
+            if (isList(value)) {
+                continue; // "טלפון: 04-6445585, פקס: 1534-6438399" ← רשימה!
+            }
+
+            // ✅ נקה את הlabel מתווים מיותרים
+            label = cleanHeader(label);
+
             // דלג על labels שהם רק מספרים או קצרים מדי
             if (label.length < 2 || /^\d+$/.test(label)) {
                 continue;
             }
 
+            // ✅ FIX v2.15: דלג על שורות שנראות כמו חלק מטבלה
+            // (מכילות "סה"כ", "הנחה", "total", "discount", אחוזים)
+            const labelLower = label.toLowerCase();
+            if (labelLower.includes('סה"כ') || labelLower.includes('סה״כ') ||
+                labelLower.includes('הנחה') || labelLower.includes('discount') ||
+                labelLower.includes('total') || label.includes('%') ||
+                labelLower.includes('לתשלום')) {
+                continue;
+            }
+
             // אם אנחנו בתוך סקשן, הוסף את שם הסקשן לתווית
+            // ✅ FIX v2.15: אבל רק אם זה לא יוצר label ארוך מדי (>40 תווים)
             let fullLabel = label;
             if (currentSection && !label.startsWith(currentSection)) {
-                fullLabel = currentSection + ' - ' + label;
+                const combined = currentSection + ' - ' + label;
+                if (combined.length <= 40) {
+                    fullLabel = combined;
+                }
+                // אחרת - השאר רק את הlabel המקורי
             }
 
             // ✨ נרמול הערך לפני שמירה
@@ -1000,12 +1084,32 @@ function extractAlphanumericCodes(content, existing, minLen, maxLen) {
     const codes = [];
     const pattern = new RegExp('\\b([A-Za-z0-9]{' + minLen + ',' + maxLen + '})\\b', 'g');
     const matches = content.match(pattern) || [];
+
     for (let i = 0; i < matches.length; i++) {
         const code = matches[i];
-        if (/[A-Za-z]/.test(code) && /\d/.test(code) && !isValueExists(code, existing)) {
-            codes.push({label: 'קוד', value: code});
+
+        // חייב להכיל גם אותיות וגם ספרות
+        if (!/[A-Za-z]/.test(code) || !/\d/.test(code)) {
+            continue;
         }
+
+        // ✅ FIX v2.15: דלג על קודים שכבר קיימים בשדות אחרים
+        if (isValueExists(code, existing)) {
+            continue;
+        }
+
+        // ✅ FIX v2.15: דלג על קודים שנראים כמו מק"ט לקוח מטבלה
+        // דפוס נפוץ: אות אחת + 6-8 ספרות (r5273535, SO25000145)
+        // אבל אם זה קוד ארוך עם אותיות ומספרים מעורבבים - זה בסדר
+        const singleLetterPattern = /^[a-zA-Z]{1,2}\d{6,8}$/;
+        if (singleLetterPattern.test(code)) {
+            // זה נראה כמו מק"ט לקוח - דלג
+            continue;
+        }
+
+        codes.push({label: 'קוד', value: code});
     }
+
     return codes;
 }
 
