@@ -1,18 +1,27 @@
 // ================================================================
-// Azure Invoice Processor v2.21 - FIX: lists with URLs and long mixed content
-// עודכן: 10 נובמבר 2025 01:15
+// Azure Invoice Processor v2.22 - CODE CLEANUP: refactor & optimize
+// עודכן: 10 נובמבר 2025 01:25
 // ================================================================
-// שינויים ב-v2.21:
-// 🔴 FIX: רשימות עם URLs ותוכן מעורב ארוך
+// שינויים ב-v2.22:
+// 🧹 CODE CLEANUP: ריפקטור וייעול קוד
 //
-//    בעיות שתוקנו:
-//    1. ✅ isList() - זיהוי רשימות עם URL/website
-//       - לפני: "04-6333334 פקס': 04-6344123 www.toyota-sos.co.il" לא נתפס
-//       - עכשיו: יש www. או http:// = רשימה → מדולג ✅
+//    שיפורים:
+//    1. ✅ מיזוג normalizeWhitespace() + removeExtraSpaces()
+//       - מחק פונקציה כפולה, שמר רק normalizeWhitespace() משופרת
+//       - קוד יותר נקי, פחות כפילויות
 //
-//    2. ✅ isList() - זיהוי רשימות ארוכות עם מספרים מרובים
-//       - לפני: ערכים ארוכים עם טלפונים מרובים לא נתפסו
-//       - עכשיו: >40 תווים + 2+ מספרים = רשימה → מדולג ✅
+//    2. ✅ ריפקטור guessFieldNameGeneric() עם מיפוי
+//       - לפני: 7 if-then ארוכים
+//       - עכשיו: מערך fieldMappings מסודר
+//       - קל יותר לתחזק ולהוסיף שדות
+//
+//    3. ✅ שיפור isCommonLabel() עם array.some()
+//       - לפני: לולאת for ידנית
+//       - עכשיו: array.some() קריא יותר
+//       - קוד מודרני וקצר
+//
+// שינויים קודמים (v2.21):
+// 🔴 FIX: lists with URLs and long mixed content
 //
 // שינויים קודמים (v2.20):
 // 🔴 FIX: mobile phones, OCR artifacts, lists, cleanup
@@ -67,7 +76,10 @@ function normalizeWhitespace(text) {
         .replace(/\t/g, ' ')
         .replace(/  +/g, ' ')
         .replace(/^ +/gm, '')
-        .replace(/ +$/gm, '');
+        .replace(/ +$/gm, '')
+        .replace(/ +([,.:;!?])/g, '$1')
+        .replace(/\(\s+/g, '(')
+        .replace(/\s+\)/g, ')');
 }
 
 function normalizeHyphens(text) {
@@ -86,14 +98,6 @@ function normalizeHebrew(text) {
         .replace(/[\u05BE\u05C0]/g, '-');
 }
 
-function removeExtraSpaces(text) {
-    return text
-        .replace(/  +/g, ' ')
-        .replace(/ +([,.:;!?])/g, '$1')
-        .replace(/\(\s+/g, '(')
-        .replace(/\s+\)/g, ')');
-}
-
 function standardizeText(text, options) {
     if (!text || typeof text !== 'string') return "";
 
@@ -103,7 +107,6 @@ function standardizeText(text, options) {
         normalizeLineBreaks: true,
         normalizeHyphens: true,
         normalizeHebrew: true,
-        removeExtraSpaces: true,
         ...options
     };
 
@@ -124,13 +127,8 @@ function standardizeText(text, options) {
     if (opts.normalizeHebrew) {
         cleaned = normalizeHebrew(cleaned);
     }
-    if (opts.removeExtraSpaces) {
-        cleaned = removeExtraSpaces(cleaned);
-    }
 
-    cleaned = cleaned.trim();
-
-    return cleaned;
+    return cleaned.trim();
 }
 
 // ============================================================================
@@ -602,20 +600,36 @@ function guessFieldNameGeneric(content, colIndex) {
     if (!content || content.trim() === '') {
         return 'Col' + colIndex;
     }
-    
+
     const text = content.toLowerCase();
-    
-    if (content === '=' || text.indexOf('total') >= 0 || text.indexOf('amount') >= 0 || 
-        text.indexOf('סכום') >= 0 || text.indexOf('סה') >= 0) return 'Amount';
-    if (content === '%' || text.indexOf('discount') >= 0 || text.indexOf('הנח') >= 0) return 'Discount';
-    if (text.indexOf('qty') >= 0 || text.indexOf('quantity') >= 0 || text.indexOf('כמות') >= 0) return 'Quantity';
-    if (text.indexOf('price') >= 0 || text.indexOf('מחיר') >= 0) return 'UnitPrice';
-    if (text.indexOf('code') >= 0 || text.indexOf('sku') >= 0 || text.indexOf('item') >= 0 || 
-        text.indexOf('מק') >= 0 || text.indexOf('פריט') >= 0) return 'ProductCode';
-    if (text.indexOf('desc') >= 0 || text.indexOf('name') >= 0 || 
-        text.indexOf('תאור') >= 0 || text.indexOf('שם') >= 0) return 'Description';
-    if (text.indexOf('unit') >= 0 || text.indexOf('יח') >= 0) return 'Unit';
-    
+
+    // מיפוי מילות מפתח לשמות שדות
+    const fieldMappings = [
+        { keywords: ['total', 'amount', 'סכום', 'סה'], exact: ['='], field: 'Amount' },
+        { keywords: ['discount', 'הנח'], exact: ['%'], field: 'Discount' },
+        { keywords: ['qty', 'quantity', 'כמות'], field: 'Quantity' },
+        { keywords: ['price', 'מחיר'], field: 'UnitPrice' },
+        { keywords: ['code', 'sku', 'item', 'מק', 'פריט'], field: 'ProductCode' },
+        { keywords: ['desc', 'name', 'תאור', 'שם'], field: 'Description' },
+        { keywords: ['unit', 'יח'], field: 'Unit' }
+    ];
+
+    for (let i = 0; i < fieldMappings.length; i++) {
+        const mapping = fieldMappings[i];
+
+        // בדיקת התאמה מדויקת
+        if (mapping.exact) {
+            for (let j = 0; j < mapping.exact.length; j++) {
+                if (content === mapping.exact[j]) return mapping.field;
+            }
+        }
+
+        // בדיקת מילות מפתח
+        for (let k = 0; k < mapping.keywords.length; k++) {
+            if (text.indexOf(mapping.keywords[k]) >= 0) return mapping.field;
+        }
+    }
+
     return 'Col' + colIndex;
 }
 
@@ -1359,20 +1373,15 @@ function isValueExists(value, existing) {
 }
 
 function isCommonLabel(label) {
-    // רשימת כותרות נפוצות שלא מעניינות
     const common = [
         'total', 'sum', 'סך', 'סכום', 'page', 'עמוד',
         'date', 'תאריך', 'amount', 'כמות', 'price', 'מחיר'
     ];
-    
+
     const labelLower = label.toLowerCase();
-    for (let i = 0; i < common.length; i++) {
-        if (labelLower.indexOf(common[i]) >= 0) {
-            return true;
-        }
-    }
-    
-    return false;
+    return common.some(function(keyword) {
+        return labelLower.indexOf(keyword) >= 0;
+    });
 }
 
 function buildStructure(fields) {
