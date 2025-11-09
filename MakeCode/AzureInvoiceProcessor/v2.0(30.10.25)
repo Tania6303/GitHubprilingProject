@@ -1,6 +1,6 @@
 // ================================================================
-// Azure Invoice Processor v2.3 - Generic UnidentifiedNumbers + DEBUG LOGS
-// עודכן: 9 נובמבר 2025 20:20
+// Azure Invoice Processor v2.3 - FIX: contentLong case-insensitive
+// עודכן: 9 נובמבר 2025 20:25
 // ================================================================
 //
 // ⚠️ חובה! לפני כל תיקון - בדוק בקודים הבאים:
@@ -15,7 +15,9 @@
 // 📖 תיעוד מפורט והיסטוריה: ראה README.md
 // ================================================================
 
-const contentLong = input.contentLong || '';
+console.log('🔵 INPUT KEYS:', Object.keys(input).join(', '));
+const contentLong = input.contentLong || input.contentlong || '';
+console.log('🔵 contentLong length from input:', contentLong.length);
 const pagesInput = input.pages || [];
 const tablesInput = input.tables || [];
 const documentsInput = input.documents || [];
@@ -30,7 +32,7 @@ const azureJsonInput = {
 };
 
 function processAzureInvoice(azureInput) {
-    console.log('🔵 START v2.3 - 20:20');
+    console.log('🔵 START v2.3 - 20:25 (FIX contentLong)');
     const analyzeResult = loadAnalyzeResult(azureInput);
 
     const rawContent = analyzeResult.content || '';
