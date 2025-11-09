@@ -632,11 +632,11 @@ function extractAllPureNumbers(content, existing, minLen, maxLen) {
 
 function extractAlphanumericCodes(content, existing, minLen, maxLen) {
     const codes = [];
-    const pattern = new RegExp('\\b([A-Z0-9]{' + minLen + ',' + maxLen + '})\\b', 'g');
+    const pattern = new RegExp('\\b([A-Za-z0-9]{' + minLen + ',' + maxLen + '})\\b', 'g');
     const matches = content.match(pattern) || [];
     for (let i = 0; i < matches.length; i++) {
         const code = matches[i];
-        if (/[A-Z]/.test(code) && /\d/.test(code) && !isValueExists(code, existing)) {
+        if (/[A-Za-z]/.test(code) && /\d/.test(code) && !isValueExists(code, existing)) {
             codes.push({label: 'קוד', value: code});
         }
     }
@@ -644,14 +644,11 @@ function extractAlphanumericCodes(content, existing, minLen, maxLen) {
 }
 
 function isValueExists(value, existing) {
-    // בדוק אם הערך קיים כבר בשדות קיימים
     const valueStr = value.toString().toLowerCase();
-    
     for (const key in existing) {
         const fieldValue = existing[key];
-        
         if (typeof fieldValue === 'string') {
-            if (fieldValue.toLowerCase().indexOf(valueStr) >= 0) {
+            if (fieldValue.toLowerCase() === valueStr) {
                 return true;
             }
         } else if (typeof fieldValue === 'number') {
@@ -661,7 +658,7 @@ function isValueExists(value, existing) {
         } else if (Array.isArray(fieldValue)) {
             for (let i = 0; i < fieldValue.length; i++) {
                 const item = fieldValue[i];
-                if (typeof item === 'string' && item.toLowerCase().indexOf(valueStr) >= 0) {
+                if (typeof item === 'string' && item.toLowerCase() === valueStr) {
                     return true;
                 }
                 if (typeof item === 'object') {
@@ -676,7 +673,6 @@ function isValueExists(value, existing) {
             }
         }
     }
-    
     return false;
 }
 
