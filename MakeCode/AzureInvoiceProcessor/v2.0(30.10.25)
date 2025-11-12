@@ -1,24 +1,51 @@
 // ================================================================
-// Azure Invoice Processor v2.22 - CODE CLEANUP: refactor & optimize
-// עודכן: 10 נובמבר 2025 01:25
+// Azure Invoice Processor v2.23 - EXPANDED STRUCTURE: vendor mapping
+// עודכן: 12 נובמבר 2025 (FIX #2)
 // ================================================================
-// שינויים ב-v2.22:
-// 🧹 CODE CLEANUP: ריפקטור וייעול קוד
+// שינויים ב-v2.23:
+// 🎯 EXPANDED STRUCTURE: מבנה מורחב לזיהוי ספק עתידי
+//
+//    מטרה: שיפור מערכת המיפוי לזיהוי ספקים חדשים
 //
 //    שיפורים:
-//    1. ✅ מיזוג normalizeWhitespace() + removeExtraSpaces()
-//       - מחק פונקציה כפולה, שמר רק normalizeWhitespace() משופרת
-//       - קוד יותר נקי, פחות כפילויות
+//    1. ✅ מילון תרגום מורחב עברית-אנגלית
+//       - פונקציה: getHeaderTranslationMap()
+//       - מיפוי מלא: שורה→LineNumber, הזמנתכם→CustomerOrder, וכו'
+//       - 10 שדות סטנדרטיים עם תרגומים דו-לשוניים
 //
-//    2. ✅ ריפקטור guessFieldNameGeneric() עם מיפוי
-//       - לפני: 7 if-then ארוכים
-//       - עכשיו: מערך fieldMappings מסודר
-//       - קל יותר לתחזק ולהוסיף שדות
+//    2. ✅ guessFieldNameGeneric() מחזיר אובייקט מורחב
+//       - לפני: מחזיר רק string (שם השדה)
+//       - עכשיו: { fieldName, originalHeader, isUnknown }
+//       - שמירת הכותרת המקורית מהמסמך
 //
-//    3. ✅ שיפור isCommonLabel() עם array.some()
-//       - לפני: לולאת for ידנית
-//       - עכשיו: array.some() קריא יותר
-//       - קוד מודרני וקצר
+//    3. ✅ extractRealItemsFromTable() - מחזיר items + columnMap
+//       - לפני: מחזיר רק מערך פריטים
+//       - עכשיו: { items: [], columnMap: {} }
+//       - columnMap שומר originalHeader לכל עמודה
+//       - 🔧 FIX: תמיד מנתח טבלה תחילה (לא מדלג על ניתוח!)
+//
+//    4. ✅ buildItemsStructure() - structure מורחב
+//       - לפני: ProductCode: "string"
+//       - עכשיו: ProductCode: { type: "string", originalHeader: "מק\"ט" }
+//       - מאפשר זיהוי ספק עתידי לפי הכותרות המקוריות
+//       - 🔧 FIX: buildAzureFieldToHeaderMap() למיפוי שדות Azure
+//
+//    5. ✅ שמירת עמודות לא מזוהות
+//       - עמודות שלא מזוהו ← UnknownColumn_N
+//       - שומר originalHeader גם לעמודות לא ידועות
+//       - אף מידע לא נזרק!
+//
+//    6. ✅ isRealItemRow() - תמיכה ב-TotalPrice
+//       - תמיכה בשמות שדות חדשים (TotalPrice) וישנים (Amount)
+//       - מזהה שורות תקינות עם TotalPrice במקום Amount
+//
+//    7. ✅ buildAzureFieldToHeaderMap() - מיפוי שדות Azure
+//       - ממפה Amount_amount → TotalPrice → "סה\"כ מחיר"
+//       - ממפה UnitPrice_amount → UnitPrice → "מחיר ליחידה"
+//       - תואם בין שדות Azure המעובדים לכותרות המקוריות
+//
+// שינויים קודמים (v2.22):
+// 🧹 CODE CLEANUP: ריפקטור וייעול קוד
 //
 // שינויים קודמים (v2.21):
 // 🔴 FIX: lists with URLs and long mixed content
@@ -345,9 +372,19 @@ function processAzureInvoice(azureInput) {
         result.fields.Items = deduplicateItems(result.fields.Items);
     }
 
-    const itemsData = extractRealItemsFromTable(tables, result.fields.Items);
-    if (itemsData.length > 0) {
-        result.fields.Items = itemsData;
+    // חילוץ פריטים מטבלאות + שמירת מפת עמודות מורחבת
+    const itemsExtraction = extractRealItemsFromTable(tables, result.fields.Items);
+    let columnMap = {};
+
+    if (itemsExtraction.items && itemsExtraction.items.length > 0) {
+        result.fields.Items = itemsExtraction.items;
+        columnMap = itemsExtraction.columnMap;
+    } else if (itemsExtraction.length > 0) {
+        // תמיכה לאחור - אם azureItems קיימים (מערך ישן)
+        result.fields.Items = itemsExtraction;
+    } else if (itemsExtraction.columnMap && Object.keys(itemsExtraction.columnMap).length > 0) {
+        // יש columnMap אבל אין items מהטבלה - השתמש ב-azureItems
+        columnMap = itemsExtraction.columnMap;
     }
 
     const detectedNumbers = detectNumbersByContext(rawContent, result.fields);
@@ -359,7 +396,7 @@ function processAzureInvoice(azureInput) {
         result.fields.UnidentifiedNumbers = uniqueData;
     }
 
-    const structure = buildStructure(result.fields);
+    const structure = buildStructure(result.fields, columnMap);
     const data = buildData(result);
 
     return {
@@ -512,17 +549,24 @@ function deduplicateItems(items) {
 }
 
 function extractRealItemsFromTable(tables, azureItems) {
-    if (azureItems && azureItems.length > 0) {
-        return azureItems;
-    }
-    
+    // ⚠️ חשוב! תמיד נתח את הטבלה תחילה כדי לבנות columnMap
     if (!tables || tables.length === 0) {
-        return [];
+        // אין טבלה - אם יש azureItems, החזר אותם עם columnMap ריק
+        if (azureItems && azureItems.length > 0) {
+            return {
+                items: azureItems,
+                columnMap: {}
+            };
+        }
+        return {
+            items: [],
+            columnMap: {}
+        };
     }
-    
+
     let mainTable = {};
     let maxCells = 0;
-    
+
     for (let i = 0; i < tables.length; i++) {
         const table = tables[i];
         if (table.cells && table.cells.length > maxCells) {
@@ -530,14 +574,24 @@ function extractRealItemsFromTable(tables, azureItems) {
             maxCells = table.cells.length;
         }
     }
-    
+
     if (!mainTable.cells) {
-        return [];
+        // אין תאים בטבלה - אם יש azureItems, החזר אותם עם columnMap ריק
+        if (azureItems && azureItems.length > 0) {
+            return {
+                items: azureItems,
+                columnMap: {}
+            };
+        }
+        return {
+            items: [],
+            columnMap: {}
+        };
     }
-    
+
     const headers = [];
     const dataCells = [];
-    
+
     for (let i = 0; i < mainTable.cells.length; i++) {
         const cell = mainTable.cells[i];
         if (cell.kind === 'columnHeader') {
@@ -546,31 +600,35 @@ function extractRealItemsFromTable(tables, azureItems) {
             dataCells.push(cell);
         }
     }
-    
+
+    // בניית מפת עמודות מורחבת עם originalHeader - תמיד!
     const columnMap = {};
     for (let i = 0; i < headers.length; i++) {
         const header = headers[i];
+        const fieldInfo = guessFieldNameGeneric(header.content, header.columnIndex);
         columnMap[header.columnIndex] = {
             content: header.content,
-            fieldName: guessFieldNameGeneric(header.content, header.columnIndex)
+            fieldName: fieldInfo.fieldName,
+            originalHeader: fieldInfo.originalHeader,
+            isUnknown: fieldInfo.isUnknown
         };
     }
-    
+
     const rowsData = {};
     for (let i = 0; i < dataCells.length; i++) {
         const cell = dataCells[i];
         const rowIdx = cell.rowIndex;
-        
+
         if (!rowsData[rowIdx]) {
             rowsData[rowIdx] = {};
         }
-        
+
         const colInfo = columnMap[cell.columnIndex];
         if (colInfo && cell.content && cell.content.trim()) {
             rowsData[rowIdx][colInfo.fieldName] = parseValue(cell.content);
         }
     }
-    
+
     const items = [];
     const allRows = [];
 
@@ -593,44 +651,136 @@ function extractRealItemsFromTable(tables, azureItems) {
         }
     }
 
-    return items;
+    // ✅ אם אין פריטים מהטבלה אבל יש azureItems - השתמש בהם
+    // אבל שמור את columnMap שנבנה מהטבלה!
+    if (items.length === 0 && azureItems && azureItems.length > 0) {
+        return {
+            items: azureItems,
+            columnMap: columnMap
+        };
+    }
+
+    return {
+        items: items,
+        columnMap: columnMap
+    };
+}
+
+// ============================================================================
+// מילון תרגום מורחב - עברית לאנגלית
+// ============================================================================
+
+/**
+ * מילון תרגום מכותרות עבריות/אנגליות לשמות שדות סטנדרטיים
+ * כל ערך מכיל:
+ * - field: שם השדה באנגלית
+ * - hebrewHeaders: מערך של כותרות בעברית
+ * - englishHeaders: מערך של כותרות באנגלית
+ */
+function getHeaderTranslationMap() {
+    return [
+        {
+            field: 'LineNumber',
+            hebrewHeaders: ['שורה', 'מס שורה', "מס' שורה", 'מספר שורה', 'ש', '#'],
+            englishHeaders: ['line', 'line number', 'line no', 'row', 'row number', '#']
+        },
+        {
+            field: 'CustomerOrder',
+            hebrewHeaders: ['הזמנתכם', 'הזמנת לקוח', "מס' הזמנה", 'מספר הזמנה', 'הזמנה'],
+            englishHeaders: ['customer order', 'your order', 'order number', 'order no', 'po number', 'po']
+        },
+        {
+            field: 'ProductCode',
+            hebrewHeaders: ['מק"ט', 'מקט', 'קוד פריט', 'קוד מוצר', 'מק״ט'],
+            englishHeaders: ['sku', 'item code', 'product code', 'code', 'item', 'part number', 'part no']
+        },
+        {
+            field: 'Description',
+            hebrewHeaders: ['תאור', 'תאור מוצר', 'תיאור', 'תיאור מוצר', 'שם מוצר', 'פריט'],
+            englishHeaders: ['description', 'item description', 'product description', 'name', 'product name', 'item name']
+        },
+        {
+            field: 'Quantity',
+            hebrewHeaders: ['כמות', 'כמ', 'כמות מוזמנת'],
+            englishHeaders: ['quantity', 'qty', 'amount', 'ordered qty']
+        },
+        {
+            field: 'Unit',
+            hebrewHeaders: ['יחידה', 'יח', 'יח מידה', 'יחידת מידה'],
+            englishHeaders: ['unit', 'uom', 'unit of measure', 'measure']
+        },
+        {
+            field: 'UnitPrice',
+            hebrewHeaders: ['מחיר ליחידה', 'מחיר יחידה', 'מחיר', 'מחיר ליח', "מחיר ליח'"],
+            englishHeaders: ['unit price', 'price', 'price per unit', 'rate']
+        },
+        {
+            field: 'TotalPrice',
+            hebrewHeaders: ['סה"כ', 'סה״כ', 'סה"כ מחיר', 'סכום', 'סך הכל', 'סכום כולל'],
+            englishHeaders: ['total', 'total price', 'amount', 'sum', 'total amount', 'line total']
+        },
+        {
+            field: 'Discount',
+            hebrewHeaders: ['הנחה', 'אחוז הנחה', '% הנחה'],
+            englishHeaders: ['discount', 'discount %', 'disc', 'discount percent']
+        },
+        {
+            field: 'Tax',
+            hebrewHeaders: ['מע"מ', 'מעמ', 'מס', 'מע״מ'],
+            englishHeaders: ['tax', 'vat', 'sales tax']
+        }
+    ];
 }
 
 function guessFieldNameGeneric(content, colIndex) {
     if (!content || content.trim() === '') {
-        return 'Col' + colIndex;
+        return {
+            fieldName: 'UnknownColumn_' + colIndex,
+            originalHeader: '',
+            isUnknown: true
+        };
     }
 
-    const text = content.toLowerCase();
+    const originalHeader = content.trim();
+    const text = content.toLowerCase().trim();
 
-    // מיפוי מילות מפתח לשמות שדות
-    const fieldMappings = [
-        { keywords: ['total', 'amount', 'סכום', 'סה'], exact: ['='], field: 'Amount' },
-        { keywords: ['discount', 'הנח'], exact: ['%'], field: 'Discount' },
-        { keywords: ['qty', 'quantity', 'כמות'], field: 'Quantity' },
-        { keywords: ['price', 'מחיר'], field: 'UnitPrice' },
-        { keywords: ['code', 'sku', 'item', 'מק', 'פריט'], field: 'ProductCode' },
-        { keywords: ['desc', 'name', 'תאור', 'שם'], field: 'Description' },
-        { keywords: ['unit', 'יח'], field: 'Unit' }
-    ];
+    // נסה למצוא התאמה במילון התרגום
+    const translationMap = getHeaderTranslationMap();
 
-    for (let i = 0; i < fieldMappings.length; i++) {
-        const mapping = fieldMappings[i];
+    for (let i = 0; i < translationMap.length; i++) {
+        const mapping = translationMap[i];
 
-        // בדיקת התאמה מדויקת
-        if (mapping.exact) {
-            for (let j = 0; j < mapping.exact.length; j++) {
-                if (content === mapping.exact[j]) return mapping.field;
+        // בדיקה מול כותרות עבריות
+        for (let j = 0; j < mapping.hebrewHeaders.length; j++) {
+            const hebrewHeader = mapping.hebrewHeaders[j].toLowerCase();
+            if (text === hebrewHeader || text.indexOf(hebrewHeader) >= 0) {
+                return {
+                    fieldName: mapping.field,
+                    originalHeader: originalHeader,
+                    isUnknown: false
+                };
             }
         }
 
-        // בדיקת מילות מפתח
-        for (let k = 0; k < mapping.keywords.length; k++) {
-            if (text.indexOf(mapping.keywords[k]) >= 0) return mapping.field;
+        // בדיקה מול כותרות אנגליות
+        for (let k = 0; k < mapping.englishHeaders.length; k++) {
+            const englishHeader = mapping.englishHeaders[k].toLowerCase();
+            if (text === englishHeader || text.indexOf(englishHeader) >= 0) {
+                return {
+                    fieldName: mapping.field,
+                    originalHeader: originalHeader,
+                    isUnknown: false
+                };
+            }
         }
     }
 
-    return 'Col' + colIndex;
+    // אם לא נמצאה התאמה - החזר עמודה לא מזוהה
+    return {
+        fieldName: 'UnknownColumn_' + colIndex,
+        originalHeader: originalHeader,
+        isUnknown: true
+    };
 }
 
 function isRealItemRow(rowData) {
@@ -640,20 +790,21 @@ function isRealItemRow(rowData) {
         return false;
     }
 
-    const hasAmount = rowData.Amount !== undefined;
+    // ✅ תמיכה בשמות שדות חדשים (TotalPrice) וישנים (Amount)
+    const hasAmount = rowData.Amount !== undefined || rowData.TotalPrice !== undefined;
     const hasQuantity = rowData.Quantity !== undefined;
     const hasUnitPrice = rowData.UnitPrice !== undefined;
 
     // שורה אמיתית חייבת לכלול לפחות אחד מהשדות המספריים:
-    // Amount, Quantity, או UnitPrice
+    // Amount/TotalPrice, Quantity, או UnitPrice
     // שורות עם רק ProductCode + Description הן שורות המשך
     if (!hasAmount && !hasQuantity && !hasUnitPrice) {
         return false;
     }
 
-    // אם יש Amount בודק שהוא תקין
+    // אם יש Amount או TotalPrice בודק שהוא תקין
     if (hasAmount) {
-        const amount = rowData.Amount;
+        const amount = rowData.Amount || rowData.TotalPrice;
         if (typeof amount === 'number' && amount > 0) {
             return true;
         }
@@ -1384,16 +1535,16 @@ function isCommonLabel(label) {
     });
 }
 
-function buildStructure(fields) {
+function buildStructure(fields, columnMap) {
     const structure = {
         docType: "string",
         fields: {}
     };
-    
+
     for (const fieldName in fields) {
         const fieldValue = fields[fieldName];
         if (fieldName === 'Items') {
-            structure.Items = buildItemsStructure(fieldValue);
+            structure.Items = buildItemsStructure(fieldValue, columnMap);
         }
         else if (fieldName === 'UnidentifiedNumbers') {
             structure.fields.UnidentifiedNumbers = ["object"];
@@ -1405,22 +1556,91 @@ function buildStructure(fields) {
             structure.fields[fieldName] = getFieldType(fieldName, fieldValue);
         }
     }
-    
+
     return structure;
 }
 
-function buildItemsStructure(items) {
+/**
+ * בונה מיפוי בין שדות Azure (Amount_amount) לכותרות מקוריות
+ * על ידי התאמה לפי לוגיקה - Amount_amount/TotalPrice → "סה"כ מחיר"
+ */
+function buildAzureFieldToHeaderMap(columnMap) {
+    const azureToOriginal = {};
+
+    if (!columnMap || typeof columnMap !== 'object') {
+        return azureToOriginal;
+    }
+
+    // מיפוי ידוע מראש: שדות Azure ← שדות חדשים
+    const knownMapping = {
+        'Amount_amount': 'TotalPrice',
+        'Amount_currency': 'TotalPrice',
+        'UnitPrice_amount': 'UnitPrice',
+        'UnitPrice_currency': 'UnitPrice',
+        'Discount': 'Discount',
+        'ProductCode': 'ProductCode',
+        'Description': 'Description',
+        'Quantity': 'Quantity',
+        'Unit': 'Unit'
+    };
+
+    // בנה מיפוי מהcolumnMap
+    for (const colIndex in columnMap) {
+        const colInfo = columnMap[colIndex];
+        const newFieldName = colInfo.fieldName;
+        const originalHeader = colInfo.originalHeader;
+
+        // מצא את שם השדה ב-Azure שמתאים לשדה החדש
+        for (const azureField in knownMapping) {
+            if (knownMapping[azureField] === newFieldName) {
+                azureToOriginal[azureField] = originalHeader;
+            }
+        }
+    }
+
+    return azureToOriginal;
+}
+
+function buildItemsStructure(items, columnMap) {
     if (!items || items.length === 0) {
         return [];
     }
-    
+
     const itemStructure = {};
     const firstItem = items[0];
-    
+
+    // בנה מיפוי משדות Azure לכותרות מקוריות
+    const azureToOriginal = buildAzureFieldToHeaderMap(columnMap);
+
+    // בניית structure מורחב עם originalHeader
     for (const fieldName in firstItem) {
-        itemStructure[fieldName] = getFieldType(fieldName, firstItem[fieldName]);
+        const fieldValue = firstItem[fieldName];
+        const fieldType = getFieldType(fieldName, fieldValue);
+
+        // חפש את originalHeader - תחילה במיפוי Azure, אחר כך במפת העמודות
+        let originalHeader = '';
+
+        // בדוק אם זה שדה מ-Azure (Amount_amount, וכו')
+        if (azureToOriginal[fieldName]) {
+            originalHeader = azureToOriginal[fieldName];
+        } else if (columnMap && typeof columnMap === 'object') {
+            // זה שדה מהטבלה - חפש בcolumnMap
+            for (const colIndex in columnMap) {
+                const colInfo = columnMap[colIndex];
+                if (colInfo.fieldName === fieldName) {
+                    originalHeader = colInfo.originalHeader;
+                    break;
+                }
+            }
+        }
+
+        // בנה אובייקט מורחב לכל שדה
+        itemStructure[fieldName] = {
+            type: fieldType,
+            originalHeader: originalHeader || fieldName
+        };
     }
-    
+
     return [itemStructure];
 }
 
