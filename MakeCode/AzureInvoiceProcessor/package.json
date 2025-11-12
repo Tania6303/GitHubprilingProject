@@ -1,5 +1,37 @@
 {
+  "name": "@tania6303/azure-invoice-processor",
+  "version": "2.23.0",
+  "description": "Azure Invoice Processor with expanded structure mapping for vendor identification",
+  "main": "v2.0(30.10.25)",
+  "scripts": {
+    "test": "node test-v2.23-simple.js"
+  },
+  "keywords": [
+    "azure",
+    "invoice",
+    "document-intelligence",
+    "ocr",
+    "parser",
+    "hebrew",
+    "vendor-mapping"
+  ],
+  "author": {
+    "name": "Tania",
+    "email": "tania@procom.co.il"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tania6303/GitHubprilingProject.git"
+  },
   "dependencies": {
     "@azure-rest/ai-document-intelligence": "^1.1.0"
+  },
+  "files": [
+    "v2.0(30.10.25)",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }
