@@ -1,6 +1,6 @@
 // ================================================================
 // Azure Invoice Processor v2.23 - EXPANDED STRUCTURE: vendor mapping
-// עודכן: 12 נובמבר 2025 (FIX)
+// עודכן: 12 נובמבר 2025 (FIX #2)
 // ================================================================
 // שינויים ב-v2.23:
 // 🎯 EXPANDED STRUCTURE: מבנה מורחב לזיהוי ספק עתידי
@@ -28,6 +28,7 @@
 //       - לפני: ProductCode: "string"
 //       - עכשיו: ProductCode: { type: "string", originalHeader: "מק\"ט" }
 //       - מאפשר זיהוי ספק עתידי לפי הכותרות המקוריות
+//       - 🔧 FIX: buildAzureFieldToHeaderMap() למיפוי שדות Azure
 //
 //    5. ✅ שמירת עמודות לא מזוהות
 //       - עמודות שלא מזוהו ← UnknownColumn_N
@@ -37,6 +38,11 @@
 //    6. ✅ isRealItemRow() - תמיכה ב-TotalPrice
 //       - תמיכה בשמות שדות חדשים (TotalPrice) וישנים (Amount)
 //       - מזהה שורות תקינות עם TotalPrice במקום Amount
+//
+//    7. ✅ buildAzureFieldToHeaderMap() - מיפוי שדות Azure
+//       - ממפה Amount_amount → TotalPrice → "סה\"כ מחיר"
+//       - ממפה UnitPrice_amount → UnitPrice → "מחיר ליחידה"
+//       - תואם בין שדות Azure המעובדים לכותרות המקוריות
 //
 // שינויים קודמים (v2.22):
 // 🧹 CODE CLEANUP: ריפקטור וייעול קוד
@@ -374,8 +380,11 @@ function processAzureInvoice(azureInput) {
         result.fields.Items = itemsExtraction.items;
         columnMap = itemsExtraction.columnMap;
     } else if (itemsExtraction.length > 0) {
-        // תמיכה לאחור - אם azureItems קיימים
+        // תמיכה לאחור - אם azureItems קיימים (מערך ישן)
         result.fields.Items = itemsExtraction;
+    } else if (itemsExtraction.columnMap && Object.keys(itemsExtraction.columnMap).length > 0) {
+        // יש columnMap אבל אין items מהטבלה - השתמש ב-azureItems
+        columnMap = itemsExtraction.columnMap;
     }
 
     const detectedNumbers = detectNumbersByContext(rawContent, result.fields);
@@ -1551,6 +1560,47 @@ function buildStructure(fields, columnMap) {
     return structure;
 }
 
+/**
+ * בונה מיפוי בין שדות Azure (Amount_amount) לכותרות מקוריות
+ * על ידי התאמה לפי לוגיקה - Amount_amount/TotalPrice → "סה"כ מחיר"
+ */
+function buildAzureFieldToHeaderMap(columnMap) {
+    const azureToOriginal = {};
+
+    if (!columnMap || typeof columnMap !== 'object') {
+        return azureToOriginal;
+    }
+
+    // מיפוי ידוע מראש: שדות Azure ← שדות חדשים
+    const knownMapping = {
+        'Amount_amount': 'TotalPrice',
+        'Amount_currency': 'TotalPrice',
+        'UnitPrice_amount': 'UnitPrice',
+        'UnitPrice_currency': 'UnitPrice',
+        'Discount': 'Discount',
+        'ProductCode': 'ProductCode',
+        'Description': 'Description',
+        'Quantity': 'Quantity',
+        'Unit': 'Unit'
+    };
+
+    // בנה מיפוי מהcolumnMap
+    for (const colIndex in columnMap) {
+        const colInfo = columnMap[colIndex];
+        const newFieldName = colInfo.fieldName;
+        const originalHeader = colInfo.originalHeader;
+
+        // מצא את שם השדה ב-Azure שמתאים לשדה החדש
+        for (const azureField in knownMapping) {
+            if (knownMapping[azureField] === newFieldName) {
+                azureToOriginal[azureField] = originalHeader;
+            }
+        }
+    }
+
+    return azureToOriginal;
+}
+
 function buildItemsStructure(items, columnMap) {
     if (!items || items.length === 0) {
         return [];
@@ -1559,14 +1609,22 @@ function buildItemsStructure(items, columnMap) {
     const itemStructure = {};
     const firstItem = items[0];
 
+    // בנה מיפוי משדות Azure לכותרות מקוריות
+    const azureToOriginal = buildAzureFieldToHeaderMap(columnMap);
+
     // בניית structure מורחב עם originalHeader
     for (const fieldName in firstItem) {
         const fieldValue = firstItem[fieldName];
         const fieldType = getFieldType(fieldName, fieldValue);
 
-        // חפש את originalHeader במפת העמודות
+        // חפש את originalHeader - תחילה במיפוי Azure, אחר כך במפת העמודות
         let originalHeader = '';
-        if (columnMap && typeof columnMap === 'object') {
+
+        // בדוק אם זה שדה מ-Azure (Amount_amount, וכו')
+        if (azureToOriginal[fieldName]) {
+            originalHeader = azureToOriginal[fieldName];
+        } else if (columnMap && typeof columnMap === 'object') {
+            // זה שדה מהטבלה - חפש בcolumnMap
             for (const colIndex in columnMap) {
                 const colInfo = columnMap[colIndex];
                 if (colInfo.fieldName === fieldName) {
