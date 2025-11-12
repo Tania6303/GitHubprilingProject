@@ -1,6 +1,6 @@
 {
   "name": "@tania6303/azure-invoice-processor",
-  "version": "2.23.0",
+  "version": "2.24.0",
   "description": "Azure Invoice Processor with expanded structure mapping for vendor identification",
   "main": "v2.0(30.10.25)",
   "scripts": {
