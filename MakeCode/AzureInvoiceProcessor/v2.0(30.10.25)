@@ -1,6 +1,6 @@
 // ================================================================
 // Azure Invoice Processor v2.23 - EXPANDED STRUCTURE: vendor mapping
-// עודכן: 12 נובמבר 2025
+// עודכן: 12 נובמבר 2025 (FIX)
 // ================================================================
 // שינויים ב-v2.23:
 // 🎯 EXPANDED STRUCTURE: מבנה מורחב לזיהוי ספק עתידי
@@ -22,6 +22,7 @@
 //       - לפני: מחזיר רק מערך פריטים
 //       - עכשיו: { items: [], columnMap: {} }
 //       - columnMap שומר originalHeader לכל עמודה
+//       - 🔧 FIX: תמיד מנתח טבלה תחילה (לא מדלג על ניתוח!)
 //
 //    4. ✅ buildItemsStructure() - structure מורחב
 //       - לפני: ProductCode: "string"
@@ -32,6 +33,10 @@
 //       - עמודות שלא מזוהו ← UnknownColumn_N
 //       - שומר originalHeader גם לעמודות לא ידועות
 //       - אף מידע לא נזרק!
+//
+//    6. ✅ isRealItemRow() - תמיכה ב-TotalPrice
+//       - תמיכה בשמות שדות חדשים (TotalPrice) וישנים (Amount)
+//       - מזהה שורות תקינות עם TotalPrice במקום Amount
 //
 // שינויים קודמים (v2.22):
 // 🧹 CODE CLEANUP: ריפקטור וייעול קוד
@@ -535,11 +540,15 @@ function deduplicateItems(items) {
 }
 
 function extractRealItemsFromTable(tables, azureItems) {
-    if (azureItems && azureItems.length > 0) {
-        return azureItems;
-    }
-
+    // ⚠️ חשוב! תמיד נתח את הטבלה תחילה כדי לבנות columnMap
     if (!tables || tables.length === 0) {
+        // אין טבלה - אם יש azureItems, החזר אותם עם columnMap ריק
+        if (azureItems && azureItems.length > 0) {
+            return {
+                items: azureItems,
+                columnMap: {}
+            };
+        }
         return {
             items: [],
             columnMap: {}
@@ -558,6 +567,13 @@ function extractRealItemsFromTable(tables, azureItems) {
     }
 
     if (!mainTable.cells) {
+        // אין תאים בטבלה - אם יש azureItems, החזר אותם עם columnMap ריק
+        if (azureItems && azureItems.length > 0) {
+            return {
+                items: azureItems,
+                columnMap: {}
+            };
+        }
         return {
             items: [],
             columnMap: {}
@@ -576,7 +592,7 @@ function extractRealItemsFromTable(tables, azureItems) {
         }
     }
 
-    // בניית מפת עמודות מורחבת עם originalHeader
+    // בניית מפת עמודות מורחבת עם originalHeader - תמיד!
     const columnMap = {};
     for (let i = 0; i < headers.length; i++) {
         const header = headers[i];
@@ -624,6 +640,15 @@ function extractRealItemsFromTable(tables, azureItems) {
                 items.push(row);
             }
         }
+    }
+
+    // ✅ אם אין פריטים מהטבלה אבל יש azureItems - השתמש בהם
+    // אבל שמור את columnMap שנבנה מהטבלה!
+    if (items.length === 0 && azureItems && azureItems.length > 0) {
+        return {
+            items: azureItems,
+            columnMap: columnMap
+        };
     }
 
     return {
@@ -756,20 +781,21 @@ function isRealItemRow(rowData) {
         return false;
     }
 
-    const hasAmount = rowData.Amount !== undefined;
+    // ✅ תמיכה בשמות שדות חדשים (TotalPrice) וישנים (Amount)
+    const hasAmount = rowData.Amount !== undefined || rowData.TotalPrice !== undefined;
     const hasQuantity = rowData.Quantity !== undefined;
     const hasUnitPrice = rowData.UnitPrice !== undefined;
 
     // שורה אמיתית חייבת לכלול לפחות אחד מהשדות המספריים:
-    // Amount, Quantity, או UnitPrice
+    // Amount/TotalPrice, Quantity, או UnitPrice
     // שורות עם רק ProductCode + Description הן שורות המשך
     if (!hasAmount && !hasQuantity && !hasUnitPrice) {
         return false;
     }
 
-    // אם יש Amount בודק שהוא תקין
+    // אם יש Amount או TotalPrice בודק שהוא תקין
     if (hasAmount) {
-        const amount = rowData.Amount;
+        const amount = rowData.Amount || rowData.TotalPrice;
         if (typeof amount === 'number' && amount > 0) {
             return true;
         }
