@@ -9,6 +9,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: priling
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,6 +23,4 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish to npm
-        run: cd MakeCode/AzureInvoiceProcessor && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: cd MakeCode/AzureInvoiceProcessor && npm publish --provenance --access public
