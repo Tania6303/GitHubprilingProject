@@ -1,43 +1,90 @@
-# Azure Invoice Processor v2.0
+# @tania6303/azure-invoice-processor v2.23
 
-## 📋 תפקיד
-
-מעבד OCR מתקדם שמנתח חשבוניות באמצעות Azure Document Intelligence API ומחלץ מידע מובנה.
+מעבד OCR מתקדם שמנתח חשבוניות באמצעות Azure Document Intelligence API עם מיפוי מורחב לזיהוי ספקים.
 
 ---
 
-## 🎯 מה המודול עושה?
+## 📦 התקנה
+
+```bash
+npm install @tania6303/azure-invoice-processor
+```
+
+---
+
+## 🎯 מה החבילה עושה?
 
 **קלט:** תוצאות Azure OCR גולמיות
-**פלט:** JSON מובנה עם שדות מזוהים + UnidentifiedNumbers
+**פלט:** JSON מובנה עם שדות מזוהים + מבנה מורחב עם originalHeader
 
 ### תהליך:
 1. **קבלת OCR** - מקבל analyzeResult מ-Azure
 2. **חילוץ שדות** - מזהה שדות ידועים (InvoiceId, InvoiceDate, וכו')
 3. **זיהוי פריטים** - מחלץ פריטים מטבלאות
-4. **זיהוי ייחודי** - מזהה מספרים ייחודיים (תעודות, רכבים, קודי חלקים)
-5. **החזרת תוצאה** - JSON מובנה לשימוש במודולים הבאים
+4. **מיפוי כותרות** - שומר כותרות מקוריות (עברית/אנגלית) לכל שדה
+5. **זיהוי ייחודי** - מזהה מספרים ייחודיים (תעודות, רכבים, קודי חלקים)
+6. **החזרת תוצאה** - JSON מובנה לשימוש במודולים הבאים
 
 ---
 
 ## ✨ תכונות מיוחדות
 
-### **🆕 חדש ב-v2.0 (31.10.25):**
+### **🆕 חדש ב-v2.23 (12.11.25):**
 
-#### 1. **זיהוי מספרי תעודות**
+#### 1. **מבנה מורחב עם originalHeader**
 ```javascript
-extractDocumentNumbers(content, existing)
+structure: {
+  Items: [{
+    ProductCode: {
+      type: "string",
+      originalHeader: "מק\"ט"  // ← הכותרת המקורית!
+    }
+  }]
+}
 ```
-- זיהוי **DOCNO** (25XXXXXX - 8 ספרות)
-- זיהוי **BOOKNUM** (108XXXXXX - 9 ספרות)
-- מוסיף ל-UnidentifiedNumbers עם תווית מתאימה
+- שמירת כותרת מקורית מהמסמך
+- תמיכה בזיהוי ספק עתידי
+- מיפוי אוטומטי עברית ↔ אנגלית
 
-#### 2. **סינון VIN מזויף**
+#### 2. **מילון תרגום דו-לשוני**
 ```javascript
-extractSpecialLengthNumbers(content, existing)
+getHeaderTranslationMap()
 ```
-- מסנן מספרים שמתחילים ב-"202" (תאריכים)
-- מונע זיהוי מוטעה של תאריכים כ-VIN
+- 10 שדות סטנדרטיים
+- תמיכה מלאה בעברית ואנגלית
+- מיפוי חכם: "סה\"כ מחיר" → TotalPrice
+
+#### 3. **שמירת כל העמודות**
+- עמודות לא מזוהות ← `UnknownColumn_N`
+- שומר originalHeader גם לעמודות לא ידועות
+- **אף מידע לא נזרק!**
+
+---
+
+## 💻 שימוש
+
+```javascript
+// Option 1: Require (CommonJS)
+const processor = require('@tania6303/azure-invoice-processor');
+
+// Option 2: Import (ES6)
+import processor from '@tania6303/azure-invoice-processor';
+
+// הכנת קלט מ-Azure
+const azureResult = {
+  contentLong: rawContent,
+  pages: azurePages,
+  tables: azureTables,
+  documents: azureDocuments,
+  modelId: 'prebuilt-invoice'
+};
+
+// עיבוד
+const result = processor(azureResult);
+
+console.log(result.structure);  // מבנה עם originalHeader
+console.log(result.data);       // נתונים
+```
 
 ---
 
@@ -45,13 +92,11 @@ extractSpecialLengthNumbers(content, existing)
 
 ```javascript
 {
-  azureJsonInput: {
-    analyzeResult: {
-      content: "...",      // טקסט גולמי
-      tables: [...],       // טבלאות
-      documents: [...]     // מסמכים מזוהים
-    }
-  }
+  contentLong: "...",      // טקסט גולמי מ-Azure
+  pages: [...],            // עמודים
+  tables: [...],           // טבלאות
+  documents: [...],        // מסמכים מזוהים
+  modelId: "prebuilt-invoice"
 }
 ```
 
@@ -64,32 +109,45 @@ extractSpecialLengthNumbers(content, existing)
   status: "success",
 
   structure: {
-    docType: "invoice",
-    fields: {...}
+    docType: "string",
+    fields: {...},
+    Items: [{
+      LineNumber: {
+        type: "string",
+        originalHeader: "שורה"  // ← כותרת מקורית!
+      },
+      ProductCode: {
+        type: "string",
+        originalHeader: "מק\"ט"
+      },
+      TotalPrice: {
+        type: "number",
+        originalHeader: "סה\"כ מחיר"
+      }
+    }]
   },
 
   data: {
     docType: "invoice",
     fields: {
-      InvoiceId: "...",
-      InvoiceDate: "...",
-      InvoiceTotal_amount: 1000,
-      Items: [...],
-      UnidentifiedNumbers: [
-        {
-          label: "מס׳ הקצאה (BOOKNUM)",
-          value: "108379736",
-          context: "..."
-        },
-        ...
-      ]
+      InvoiceId: "SI256008511",
+      InvoiceDate: "2025-09-30",
+      Items: [{
+        LineNumber: "1",
+        ProductCode: "C61050-50",
+        Description: "צינור קוברה 50 גמיש",
+        Quantity: 600,
+        TotalPrice: 1380.00
+      }],
+      UnidentifiedNumbers: [...]
     }
   },
 
   metadata: {
     modelId: "prebuilt-invoice",
-    totalFields: 10,
-    uniqueDataFound: 8
+    totalFields: 36,
+    uniqueDataFound: 8,
+    pageCount: 1
   }
 }
 ```
@@ -179,57 +237,67 @@ Azure OCR
 
 ---
 
+## 🗺️ שדות נתמכים
+
+| עברית | אנגלית | סוג |
+|-------|---------|-----|
+| שורה | LineNumber | string |
+| הזמנתכם | CustomerOrder | string |
+| מק"ט | ProductCode | string |
+| תאור מוצר | Description | string |
+| כמות | Quantity | number |
+| יחידה | Unit | string |
+| מחיר ליחידה | UnitPrice | number |
+| סה"כ מחיר | TotalPrice | number |
+| הנחה | Discount | number |
+| מע"מ | Tax | number |
+
+---
+
 ## 📝 היסטוריית גרסאות
 
-### **v2.3 - 9 נובמבר 2025 19:00**
-- 🔄 חילוץ גנרי של UnidentifiedNumbers (ללא תבניות ספציפיות)
-- 📋 כל המספרים והקודים מהטקסט מועברים הלאה
-- 🎯 הקודים הבאים מחפשים מה שהם צריכים
+### **v2.23 - 12 נובמבר 2025** 🎯
+- ✨ **מבנה מורחב:** כל שדה עם `type` + `originalHeader`
+- 🌍 **מילון תרגום:** 10 שדות עם תמיכה דו-לשונית
+- 🔧 **buildAzureFieldToHeaderMap():** מיפוי שדות Azure לכותרות מקוריות
+- 🔄 **extractRealItemsFromTable():** תמיד מנתח טבלה תחילה
+- 💾 **שמירה מלאה:** עמודות לא מזוהות נשמרות כ-UnknownColumn_N
 
-### **v2.2 - 9 נובמבר 2025 16:15**
-- ✅ תיקון כפילויות פריטים: הוספת `deduplicateItems()`
-- ✅ תיקון `isRealItemRow()` - דרישה ל-Amount/Quantity/UnitPrice
-- ✅ בדיקת ביטחון - שמירת פריטים עם ProductCode אם הכל סונן
+### **v2.22 - 10 נובמבר 2025**
+- 🧹 ריפקטור וייעול קוד
+- 📦 מיזוג פונקציות כפולות
 
-### **v2.1 - 9 נובמבר 2025 14:30**
-- 🔄 שינוי קלט: מ-azureJsonInput יחיד ל-5 קלטים נפרדים
-- 📊 הוספת pageCount למטה-דאטה
+### **v2.21 - 9 נובמבר 2025**
+- 🔴 תיקון: רשימות עם URLs
 
-### **v2.0 - 31 אוקטובר 2025**
-- ✅ הוספת `extractDocumentNumbers()` - זיהוי DOCNO/BOOKNUM
-- ✅ שיפור `extractSpecialLengthNumbers()` - סינון VIN מזויף
-- ✅ תיעוד מלא של כל הפונקציות
+### **v2.20 - 9 נובמבר 2025**
+- 🔴 תיקון: טלפונים ניידים, OCR artifacts
 
 ---
 
-## 💡 טיפים
+## 📦 פרסום ב-npm
 
-### **למה UnidentifiedNumbers חשובים?**
-מספרים אלה משמשים את המודולים הבאים למציאת:
-- תעודות (BOOKNUM → docs_list)
-- תיקי יבוא (IMPFNUM → import_files)
-- רכבים (מספר רכב → vehicles)
+```bash
+# התחברות (פעם אחת)
+npm login
 
-### **איך לשפר זיהוי?**
-1. הוסף תבניות חדשות ל-extractUniqueData()
-2. שפר זיהוי תוויות (labels) בפונקציות
-3. הוסף context לזיהוי מדויק יותר
+# פרסום החבילה
+npm publish --access public
 
----
-
-## 🐛 Troubleshooting
-
-**בעיה:** מספרי תעודות לא מזוהים
-**פתרון:** בדוק שהתבנית `108\d{6}` או `25\d{6}` תואמת למספרים שלך
-
-**בעיה:** VIN מזויף מזוהה
-**פתרון:** המסנן כבר מטפל במספרים שמתחילים ב-202
-
-**בעיה:** פריטים לא מזוהים בטבלה
-**פתרון:** בדוק את זיהוי כותרות העמודות ב-guessFieldNameGeneric()
+# עדכון גרסה
+npm version patch  # 2.23.0 → 2.23.1
+npm version minor  # 2.23.0 → 2.24.0
+npm version major  # 2.23.0 → 3.0.0
+```
 
 ---
 
-**גרסה:** 2.3
-**תאריך עדכון אחרון:** 9 נובמבר 2025
-**מחבר:** Claude Code (Anthropic)
+## 📄 רישיון
+
+MIT
+
+---
+
+**גרסה:** 2.23.0
+**תאריך עדכון אחרון:** 12 נובמבר 2025
+**מחבר:** Tania
