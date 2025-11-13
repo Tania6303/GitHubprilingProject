@@ -1,6 +1,6 @@
 // ================================================================
 // Azure Invoice Processor v2.23 - EXPANDED STRUCTURE: vendor mapping
-// עודכן: 12 נובמבר 2025 (FIX #2)
+// עודכן: 13 נובמבר 2025 (FIX #2)
 // ================================================================
 // שינויים ב-v2.23:
 // 🎯 EXPANDED STRUCTURE: מבנה מורחב לזיהוי ספק עתידי
@@ -694,6 +694,63 @@ function getHeaderTranslationMap() {
             hebrewHeaders: ['מק"ט', 'מקט', 'קוד פריט', 'קוד מוצר', 'מק״ט'],
             englishHeaders: ['sku', 'item code', 'product code', 'code', 'item', 'part number', 'part no']
         },
+        // ===== SPECIFIC COMPOUND TERMS (must come BEFORE generic terms!) =====
+        {
+            field: 'ChargeDescription',
+            hebrewHeaders: ['תאור חיוב', 'תיאור חיוב'],
+            englishHeaders: ['charge description']
+        },
+        {
+            field: 'PricePerSqm',
+            hebrewHeaders: ['מחיר למ"ר', 'מחיר למ״ר', 'מחיר למטר', 'מחיר למ\'\'ר'],
+            englishHeaders: ['price per sqm', 'price per m2', 'price per square meter']
+        },
+        {
+            field: 'BillableArea',
+            hebrewHeaders: ['שטח לחיוב', 'שטח לחיוב במ"ר', 'שטח לחיוב במ״ר', 'שטח במ"ר'],
+            englishHeaders: ['billable area', 'area in sqm', 'chargeable area']
+        },
+        {
+            field: 'AmountToCharge',
+            hebrewHeaders: ['סכום לחיוב', 'סה"כ לחיוב'],
+            englishHeaders: ['amount to charge', 'total to charge']
+        },
+        {
+            field: 'AmountBeforeLinkage',
+            hebrewHeaders: ['סכום לפני הצמדה', 'סכום לפני הצמדה', 'סכום לפני'],
+            englishHeaders: ['amount before linkage', 'amount before indexation']
+        },
+        {
+            field: 'LinkageCurrency',
+            hebrewHeaders: ['מטבע הצמדה', 'מטבע'],
+            englishHeaders: ['linkage currency', 'currency']
+        },
+        {
+            field: 'BaseRate',
+            hebrewHeaders: ['שער בסיס', 'שער יסוד'],
+            englishHeaders: ['base rate', 'basic rate']
+        },
+        {
+            field: 'CurrentRate',
+            hebrewHeaders: ['שער נוכחי', 'שער עדכני'],
+            englishHeaders: ['current rate', 'present rate']
+        },
+        {
+            field: 'FromDate',
+            hebrewHeaders: ['מתאריך', 'מ-תאריך', 'תאריך התחלה'],
+            englishHeaders: ['from date', 'start date']
+        },
+        {
+            field: 'ToDate',
+            hebrewHeaders: ['עד תאריך', 'עד-תאריך', 'תאריך סיום'],
+            englishHeaders: ['to date', 'end date', 'until date']
+        },
+        {
+            field: 'PaymentDetails',
+            hebrewHeaders: ['ד.תשלום', 'ד תשלום', 'פרטי תשלום'],
+            englishHeaders: ['payment details', 'payment info']
+        },
+        // ===== GENERIC TERMS (after specific terms) =====
         {
             field: 'Description',
             hebrewHeaders: ['תאור', 'תאור מוצר', 'תיאור', 'תיאור מוצר', 'שם מוצר', 'פריט'],
@@ -711,13 +768,13 @@ function getHeaderTranslationMap() {
         },
         {
             field: 'UnitPrice',
-            hebrewHeaders: ['מחיר ליחידה', 'מחיר יחידה', 'מחיר', 'מחיר ליח', "מחיר ליח'"],
-            englishHeaders: ['unit price', 'price', 'price per unit', 'rate']
+            hebrewHeaders: ['מחיר ליחידה', 'מחיר יחידה', 'מחיר ליח', "מחיר ליח'", 'מחיר'],
+            englishHeaders: ['unit price', 'price per unit', 'price']
         },
         {
             field: 'TotalPrice',
-            hebrewHeaders: ['סה"כ', 'סה״כ', 'סה"כ מחיר', 'סכום', 'סך הכל', 'סכום כולל'],
-            englishHeaders: ['total', 'total price', 'amount', 'sum', 'total amount', 'line total']
+            hebrewHeaders: ['סה"כ', 'סה״כ', 'סה"כ מחיר', 'סך הכל', 'סכום כולל', 'סכום'],
+            englishHeaders: ['total', 'total price', 'sum', 'total amount', 'line total', 'amount']
         },
         {
             field: 'Discount',
@@ -747,13 +804,14 @@ function guessFieldNameGeneric(content, colIndex) {
     // נסה למצוא התאמה במילון התרגום
     const translationMap = getHeaderTranslationMap();
 
+    // PASS 1: Try EXACT matches first (highest priority)
     for (let i = 0; i < translationMap.length; i++) {
         const mapping = translationMap[i];
 
-        // בדיקה מול כותרות עבריות
+        // בדיקה מול כותרות עבריות - התאמה מדויקת
         for (let j = 0; j < mapping.hebrewHeaders.length; j++) {
             const hebrewHeader = mapping.hebrewHeaders[j].toLowerCase();
-            if (text === hebrewHeader || text.indexOf(hebrewHeader) >= 0) {
+            if (text === hebrewHeader) {
                 return {
                     fieldName: mapping.field,
                     originalHeader: originalHeader,
@@ -762,10 +820,39 @@ function guessFieldNameGeneric(content, colIndex) {
             }
         }
 
-        // בדיקה מול כותרות אנגליות
+        // בדיקה מול כותרות אנגליות - התאמה מדויקת
         for (let k = 0; k < mapping.englishHeaders.length; k++) {
             const englishHeader = mapping.englishHeaders[k].toLowerCase();
-            if (text === englishHeader || text.indexOf(englishHeader) >= 0) {
+            if (text === englishHeader) {
+                return {
+                    fieldName: mapping.field,
+                    originalHeader: originalHeader,
+                    isUnknown: false
+                };
+            }
+        }
+    }
+
+    // PASS 2: Try substring matches (lower priority, for partial matches)
+    for (let i = 0; i < translationMap.length; i++) {
+        const mapping = translationMap[i];
+
+        // בדיקה מול כותרות עבריות - התאמה חלקית
+        for (let j = 0; j < mapping.hebrewHeaders.length; j++) {
+            const hebrewHeader = mapping.hebrewHeaders[j].toLowerCase();
+            if (text.indexOf(hebrewHeader) >= 0) {
+                return {
+                    fieldName: mapping.field,
+                    originalHeader: originalHeader,
+                    isUnknown: false
+                };
+            }
+        }
+
+        // בדיקה מול כותרות אנגליות - התאמה חלקית
+        for (let k = 0; k < mapping.englishHeaders.length; k++) {
+            const englishHeader = mapping.englishHeaders[k].toLowerCase();
+            if (text.indexOf(englishHeader) >= 0) {
                 return {
                     fieldName: mapping.field,
                     originalHeader: originalHeader,
