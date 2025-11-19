@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.9 - 19.11.25.15:50)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.10 - 19.11.25.15:55)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
@@ -491,6 +491,15 @@ function checkDocsExist(docsList) {
         console.log(`  ❌ docsList is null/undefined`);
         return false;
     }
+
+    // תמיכה במערך ישיר (פורמט Make)
+    if (Array.isArray(docsList)) {
+        const hasData = docsList.length > 0 && docsList[0] !== "";
+        console.log(`  📦 docsList is array, length=${docsList.length}, hasData=${hasData}`);
+        return hasData;
+    }
+
+    // פורמט מובנה (DOC_YES_NO + list_of_docs)
     if (docsList.DOC_YES_NO !== "Y") {
         console.log(`  ❌ DOC_YES_NO = "${docsList.DOC_YES_NO}" (expected "Y")`);
         return false;
