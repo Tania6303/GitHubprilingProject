@@ -1,39 +1,79 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.4 - 06.11.25.16:30)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.11 - 19.11.25.16:05)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
 // 📁 קבצי בדיקה: MakeCode/Processing Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Processing Invoice/EXEMPTS" | head -5
 //
-// ✨ חדש בגרסה 4.4:
-// - 🎯 זיהוי דינמי של תבניות תעודות: מזהה אוטומטית תבנית BOOKNUM (107/108XXXXXX) מה-OCR
-// - 📚 הסברה משופרת ל-LLM: הנחיות מותאמות אישית עם דוגמאות קונקרטיות מה-OCR
-// - 🔍 לוג מפורט: "✨ זוהתה תבנית BOOKNUM: 108XXXXXX (3 דוגמאות: 108187003, 108187002...)"
-//
-// ✨ חדש בגרסה 4.3:
-// - fallback לחיפוש רכבים ב-AZURE_TEXT (כש-Azure לא מזהה אוטומטית)
-// - לוגים מפורטים: "⚠️ לא נמצאו רכבים במקומות המובנים - מחפש ב-AZURE_TEXT..."
-// - מונע זיהוי מספרי כרטיס כרכבים (בדיקת context)
-//
-// ✨ חדש בגרסה 4.2:
-// - תיקון חישוב מחיר: InvoiceTotal - TotalTax = סה"כ לפני מע"מ (עבודות + חלקים)
-//
-// ✨ חדש בגרסה 4.1:
-// - פונקציית cleanInvoiceForPriority() - מנקה שדות למידה לפני שליחה
-// - זיהוי רכבים משופר - מונע זיהוי כרטיס כרכב
-//
-// ✨ חדש בגרסה 4.0:
-// - חילוץ רכבים מתקדם לפי vehicle_processing_rules.search_locations
-// - תמיכה ב-VehicleNumbers (שדה חדש מ-Azure v3.0)
-// - תמיכה ב-Items[].VehicleNumber (קישור ישיר)
-// - יצירת פריטי רכבים אוטומטית
-// - מיפוי לחשבונות לפי vehicle_account_mapping
-//
-// ✨ מגרסה 3.0:
-// - תמיכה במבנה החדש של UnidentifiedNumbers (מערך אובייקטים)
-// - ניצול התוויות (label) וההקשר (context) לזיהוי חכם יותר
+// ⚠️ קשור ל: MakeCode/Production Invoice/v1.0-production.js
+// אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 // ============================================================================
+
+// ============================================================================
+// פונקציית עזר - המרת קלט מ-Make למבנה הצפוי
+// ============================================================================
+
+function normalizeInput(rawInput) {
+    console.log(`🔄 normalizeInput - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
+
+    // אם הקלט כבר במבנה הנכון - החזר אותו
+    if (rawInput.learned_config && rawInput.AZURE_RESULT) {
+        console.log(`  ✅ Input already in correct format`);
+        return rawInput;
+    }
+
+    // אם הקלט במבנה מערך עם name/value (מ-Make)
+    if (Array.isArray(rawInput) && rawInput[0] && rawInput[0].input) {
+        console.log(`  📦 Converting from Make format (array with input)`);
+        console.log(`  Input array length: ${rawInput[0].input.length}`);
+        rawInput[0].input.forEach(item => console.log(`    - ${item.name}`));
+        const inputArray = rawInput[0].input;
+        const normalized = {};
+
+        inputArray.forEach(item => {
+            if (item.name === 'learned_config') {
+                normalized.learned_config = item.value;
+            } else if (item.name === 'docs_list') {
+                // המר מערך ישיר למבנה הצפוי
+                if (Array.isArray(item.value)) {
+                    const hasData = item.value.length > 0 && item.value[0] !== "";
+                    normalized.docs_list = {
+                        DOC_YES_NO: hasData ? "Y" : "N",
+                        list_of_docs: item.value.filter(v => v !== "")
+                    };
+                    console.log(`  📄 docs_list converted: DOC_YES_NO=${hasData ? "Y" : "N"}, list length=${normalized.docs_list.list_of_docs.length}`);
+                } else {
+                    normalized.docs_list = item.value;
+                    console.log(`  📄 docs_list passed as-is`);
+                }
+            } else if (item.name === 'import_files') {
+                // המר מערך ישיר למבנה הצפוי
+                if (Array.isArray(item.value)) {
+                    normalized.import_files = {
+                        IMPFILES: item.value.filter(v => v !== "")
+                    };
+                } else {
+                    normalized.import_files = item.value;
+                }
+            } else if (item.name === 'AZURE_RESULT') {
+                normalized.AZURE_RESULT = item.value;
+            } else if (item.name === 'AZURE_TEXT') {
+                normalized.AZURE_TEXT = item.value;
+            }
+        });
+
+        // אם אין AZURE_TEXT, נסה לחלץ מ-AZURE_RESULT
+        if (!normalized.AZURE_TEXT && normalized.AZURE_RESULT) {
+            normalized.AZURE_TEXT = "";
+        }
+
+        return normalized;
+    }
+
+    // מקרה לא מוכר - החזר כמו שזה
+    return rawInput;
+}
 
 // ============================================================================
 // פונקציית עזר - ניקוי invoice לפני שליחה ל-Priority
@@ -85,13 +125,8 @@ function processInvoiceComplete(input) {
         // א. בדיקת יבוא
         const hasImport = checkImportExists(input.import_files);
 
-        // ב. בדיקת תעודות - ב-OCR או ב-docs_list!
-        const hasDocsInOCR = checkDocsInOCR(
-            input.AZURE_RESULT.data.fields,
-            input.AZURE_TEXT
-        );
-        const hasDocsInList = checkDocsExist(input.docs_list);
-        const hasDocs = hasDocsInOCR || hasDocsInList;
+        // ב. בדיקת תעודות - רק לפי docs_list (האם יש תעודות במערכת)
+        const hasDocs = checkDocsExist(input.docs_list);
 
         // ✨ חדש! זיהוי תבניות תעודות מה-OCR
         const documentPatterns = detectDocumentPatterns(
@@ -187,7 +222,7 @@ function processInvoiceComplete(input) {
             const ocrUnidentified = ocrFields.UnidentifiedNumbers || [];
 
             // ספור כמה BOOKNUM נמצאו ב-OCR
-            const booknumPattern = /^108\d{6}$/;
+            const booknumPattern = /^10\d{7}$/;
             let expectedDocsCount = 0;
 
             if (typeof ocrUnidentified[0] === 'object' && ocrUnidentified[0].value) {
@@ -426,14 +461,33 @@ function checkImportExists(importFiles) {
 }
 
 function checkDocsExist(docsList) {
-    if (!docsList || docsList.DOC_YES_NO !== "Y") return false;
-    return docsList.list_of_docs && docsList.list_of_docs.length > 0;
+    console.log(`📄 checkDocsExist - docsList:`, JSON.stringify(docsList));
+    if (!docsList) {
+        console.log(`  ❌ docsList is null/undefined`);
+        return false;
+    }
+
+    // תמיכה במערך ישיר (פורמט Make)
+    if (Array.isArray(docsList)) {
+        const hasData = docsList.length > 0 && docsList[0] !== "";
+        console.log(`  📦 docsList is array, length=${docsList.length}, hasData=${hasData}`);
+        return hasData;
+    }
+
+    // פורמט מובנה (DOC_YES_NO + list_of_docs)
+    if (docsList.DOC_YES_NO !== "Y") {
+        console.log(`  ❌ DOC_YES_NO = "${docsList.DOC_YES_NO}" (expected "Y")`);
+        return false;
+    }
+    const hasListDocs = docsList.list_of_docs && docsList.list_of_docs.length > 0;
+    console.log(`  ✅ DOC_YES_NO = "Y", list_of_docs.length = ${docsList.list_of_docs?.length || 0}`);
+    return hasListDocs;
 }
 
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
     const docPattern = /^25\d{6}$/;          // DOCNO pattern
-    const booknumPattern = /^108\d{6}$/;     // BOOKNUM pattern
+    const booknumPattern = /^10\d{7}$/;     // BOOKNUM pattern (10XXXXXXX - 9 digits starting with 10)
 
     let foundInUnidentified = false;
 
@@ -454,7 +508,7 @@ function checkDocsInOCR(ocrFields, azureText) {
     if (azureText) {
         // Search for both DOCNO and BOOKNUM patterns with word boundaries
         const docMatches = azureText.match(/\b25\d{6}\b/g);
-        const booknumMatches = azureText.match(/\b108\d{6}\b/g);
+        const booknumMatches = azureText.match(/\b10\d{7}\b/g);
         if ((docMatches && docMatches.length > 0) || (booknumMatches && booknumMatches.length > 0)) {
             return true;
         }
@@ -481,9 +535,9 @@ function detectDocumentPatterns(ocrFields, azureText) {
             ? unidentified.map(item => item.value).filter(v => v)
             : unidentified;
 
-        // תבניות אפשריות ל-BOOKNUM (107XXXXXX, 108XXXXXX, וכו')
+        // תבניות אפשריות ל-BOOKNUM (10XXXXXXX - 9 ספרות שמתחילות ב-10)
         values.forEach(val => {
-            if (/^10[78]\d{6}$/.test(val)) {
+            if (/^10\d{7}$/.test(val)) {
                 detected.booknum_found.push(val);
             }
             if (/^25\d{6}$/.test(val)) {
@@ -494,7 +548,7 @@ function detectDocumentPatterns(ocrFields, azureText) {
 
     // חפש גם ב-AZURE_TEXT אם לא נמצא ב-UnidentifiedNumbers
     if (detected.booknum_found.length === 0 && azureText) {
-        const booknumMatches = azureText.match(/\b10[78]\d{6}\b/g);
+        const booknumMatches = azureText.match(/\b10\d{7}\b/g);
         if (booknumMatches) {
             detected.booknum_found = [...new Set(booknumMatches)]; // unique values
         }
@@ -532,11 +586,21 @@ function identifyDebitType(ocrFields) {
 }
 
 function findMatchingTemplate(structures, hasImport, hasDocs, debitType) {
-    return structures.findIndex(s =>
+    console.log(`🔍 מחפש תבנית: has_import=${hasImport}, has_doc=${hasDocs}, debit_type=${debitType}`);
+    console.log(`📋 תבניות זמינות: ${structures.length}`);
+
+    structures.forEach((s, i) => {
+        console.log(`  תבנית ${i}: has_import=${s.has_import}, has_doc=${s.has_doc}, debit_type=${s.debit_type}`);
+    });
+
+    const index = structures.findIndex(s =>
         s.has_import === hasImport &&
         s.has_doc === hasDocs &&
         s.debit_type === debitType
     );
+
+    console.log(`✅ תבנית שנמצאה: index=${index}`);
+    return index;
 }
 
 // ============================================================================
@@ -1927,12 +1991,15 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
 // ============================================================================
 
 if (typeof input !== 'undefined') {
+    // המר את הקלט מ-Make למבנה הצפוי
+    const normalizedInput = normalizeInput(input);
+
     const processInput = {
-        learned_config: input.learned_config,
-        docs_list: input.docs_list,
-        import_files: input.import_files,
-        AZURE_RESULT: input.AZURE_RESULT,
-        AZURE_TEXT: input.AZURE_TEXT
+        learned_config: normalizedInput.learned_config,
+        docs_list: normalizedInput.docs_list,
+        import_files: normalizedInput.import_files,
+        AZURE_RESULT: normalizedInput.AZURE_RESULT,
+        AZURE_TEXT: normalizedInput.AZURE_TEXT || ""
     };
 
     const result = processInvoiceComplete(processInput);
@@ -1945,5 +2012,6 @@ if (typeof input !== 'undefined') {
 // ייצוא פונקציות למודול
 // ============================================================================
 module.exports = {
-    processInvoiceComplete
+    processInvoiceComplete,
+    normalizeInput
 };
