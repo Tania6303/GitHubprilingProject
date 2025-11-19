@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.5 - 19.11.25.15:13)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.6 - 19.11.25.15:20)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
@@ -588,11 +588,21 @@ function identifyDebitType(ocrFields) {
 }
 
 function findMatchingTemplate(structures, hasImport, hasDocs, debitType) {
-    return structures.findIndex(s =>
+    console.log(`🔍 מחפש תבנית: has_import=${hasImport}, has_doc=${hasDocs}, debit_type=${debitType}`);
+    console.log(`📋 תבניות זמינות: ${structures.length}`);
+
+    structures.forEach((s, i) => {
+        console.log(`  תבנית ${i}: has_import=${s.has_import}, has_doc=${s.has_doc}, debit_type=${s.debit_type}`);
+    });
+
+    const index = structures.findIndex(s =>
         s.has_import === hasImport &&
         s.has_doc === hasDocs &&
         s.debit_type === debitType
     );
+
+    console.log(`✅ תבנית שנמצאה: index=${index}`);
+    return index;
 }
 
 // ============================================================================
