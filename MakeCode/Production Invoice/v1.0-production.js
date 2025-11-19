@@ -1,4 +1,4 @@
-// Production Invoice v1.7.5 (06.11.25 - 16:00)
+// Production Invoice v1.7.6 (19.11.25 - 16:00)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
 // ⚠️ תיקון קריטי 1: needItems - אם has_doc=true לעולם לא ליצור פריטים (גם אם documents.length=0)
@@ -748,7 +748,7 @@ function checkImportExists(importFiles) {
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
     const docPattern = /^25\d{6}$/;
-    const booknumPattern = /^108\d{6}$/;
+    const booknumPattern = /^10\d{7}$/;  // BOOKNUM pattern (10XXXXXXX - 9 digits)
     if (unidentified.length > 0) {
         if (typeof unidentified[0] === 'object' && unidentified[0].value) {
             if (unidentified.some(item => docPattern.test(item.value) || booknumPattern.test(item.value))) {
@@ -761,7 +761,7 @@ function checkDocsInOCR(ocrFields, azureText) {
         }
     }
     if (azureText) {
-        if (azureText.match(/\b25\d{6}\b/g) || azureText.match(/\b108\d{6}\b/g)) {
+        if (azureText.match(/\b25\d{6}\b/g) || azureText.match(/\b10\d{7}\b/g)) {
             return true;
         }
     }
