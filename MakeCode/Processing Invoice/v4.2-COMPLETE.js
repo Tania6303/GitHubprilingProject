@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.7 - 19.11.25.15:25)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.7 - 19.11.25.15:30)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
@@ -243,7 +243,7 @@ function processInvoiceComplete(input) {
             const ocrUnidentified = ocrFields.UnidentifiedNumbers || [];
 
             // ספור כמה BOOKNUM נמצאו ב-OCR
-            const booknumPattern = /^10[78]\d{6}$/;
+            const booknumPattern = /^10\d{7}$/;
             let expectedDocsCount = 0;
 
             if (typeof ocrUnidentified[0] === 'object' && ocrUnidentified[0].value) {
@@ -489,7 +489,7 @@ function checkDocsExist(docsList) {
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
     const docPattern = /^25\d{6}$/;          // DOCNO pattern
-    const booknumPattern = /^10[78]\d{6}$/;     // BOOKNUM pattern (107 or 108)
+    const booknumPattern = /^10\d{7}$/;     // BOOKNUM pattern (10XXXXXXX - 9 digits starting with 10)
 
     let foundInUnidentified = false;
 
@@ -510,7 +510,7 @@ function checkDocsInOCR(ocrFields, azureText) {
     if (azureText) {
         // Search for both DOCNO and BOOKNUM patterns with word boundaries
         const docMatches = azureText.match(/\b25\d{6}\b/g);
-        const booknumMatches = azureText.match(/\b108\d{6}\b/g);
+        const booknumMatches = azureText.match(/\b10\d{7}\b/g);
         if ((docMatches && docMatches.length > 0) || (booknumMatches && booknumMatches.length > 0)) {
             return true;
         }
@@ -537,9 +537,9 @@ function detectDocumentPatterns(ocrFields, azureText) {
             ? unidentified.map(item => item.value).filter(v => v)
             : unidentified;
 
-        // תבניות אפשריות ל-BOOKNUM (107XXXXXX, 108XXXXXX, וכו')
+        // תבניות אפשריות ל-BOOKNUM (10XXXXXXX - 9 ספרות שמתחילות ב-10)
         values.forEach(val => {
-            if (/^10[78]\d{6}$/.test(val)) {
+            if (/^10\d{7}$/.test(val)) {
                 detected.booknum_found.push(val);
             }
             if (/^25\d{6}$/.test(val)) {
@@ -550,7 +550,7 @@ function detectDocumentPatterns(ocrFields, azureText) {
 
     // חפש גם ב-AZURE_TEXT אם לא נמצא ב-UnidentifiedNumbers
     if (detected.booknum_found.length === 0 && azureText) {
-        const booknumMatches = azureText.match(/\b10[78]\d{6}\b/g);
+        const booknumMatches = azureText.match(/\b10\d{7}\b/g);
         if (booknumMatches) {
             detected.booknum_found = [...new Set(booknumMatches)]; // unique values
         }
