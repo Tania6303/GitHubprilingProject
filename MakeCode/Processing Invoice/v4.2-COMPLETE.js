@@ -36,6 +36,62 @@
 // ============================================================================
 
 // ============================================================================
+// פונקציית עזר - המרת קלט מ-Make למבנה הצפוי
+// ============================================================================
+
+function normalizeInput(rawInput) {
+    // אם הקלט כבר במבנה הנכון - החזר אותו
+    if (rawInput.learned_config && rawInput.AZURE_RESULT) {
+        return rawInput;
+    }
+
+    // אם הקלט במבנה מערך עם name/value (מ-Make)
+    if (Array.isArray(rawInput) && rawInput[0] && rawInput[0].input) {
+        const inputArray = rawInput[0].input;
+        const normalized = {};
+
+        inputArray.forEach(item => {
+            if (item.name === 'learned_config') {
+                normalized.learned_config = item.value;
+            } else if (item.name === 'docs_list') {
+                // המר מערך ישיר למבנה הצפוי
+                if (Array.isArray(item.value)) {
+                    normalized.docs_list = {
+                        DOC_YES_NO: item.value.length > 0 && item.value[0] !== "" ? "Y" : "N",
+                        list_of_docs: item.value.filter(v => v !== "")
+                    };
+                } else {
+                    normalized.docs_list = item.value;
+                }
+            } else if (item.name === 'import_files') {
+                // המר מערך ישיר למבנה הצפוי
+                if (Array.isArray(item.value)) {
+                    normalized.import_files = {
+                        IMPFILES: item.value.filter(v => v !== "")
+                    };
+                } else {
+                    normalized.import_files = item.value;
+                }
+            } else if (item.name === 'AZURE_RESULT') {
+                normalized.AZURE_RESULT = item.value;
+            } else if (item.name === 'AZURE_TEXT') {
+                normalized.AZURE_TEXT = item.value;
+            }
+        });
+
+        // אם אין AZURE_TEXT, נסה לחלץ מ-AZURE_RESULT
+        if (!normalized.AZURE_TEXT && normalized.AZURE_RESULT) {
+            normalized.AZURE_TEXT = "";
+        }
+
+        return normalized;
+    }
+
+    // מקרה לא מוכר - החזר כמו שזה
+    return rawInput;
+}
+
+// ============================================================================
 // פונקציית עזר - ניקוי invoice לפני שליחה ל-Priority
 // ============================================================================
 
@@ -1927,12 +1983,15 @@ function generateTechnicalConfig(config, ocrFields, searchResults, executionRepo
 // ============================================================================
 
 if (typeof input !== 'undefined') {
+    // המר את הקלט מ-Make למבנה הצפוי
+    const normalizedInput = normalizeInput(input);
+
     const processInput = {
-        learned_config: input.learned_config,
-        docs_list: input.docs_list,
-        import_files: input.import_files,
-        AZURE_RESULT: input.AZURE_RESULT,
-        AZURE_TEXT: input.AZURE_TEXT
+        learned_config: normalizedInput.learned_config,
+        docs_list: normalizedInput.docs_list,
+        import_files: normalizedInput.import_files,
+        AZURE_RESULT: normalizedInput.AZURE_RESULT,
+        AZURE_TEXT: normalizedInput.AZURE_TEXT || ""
     };
 
     const result = processInvoiceComplete(processInput);
@@ -1945,5 +2004,6 @@ if (typeof input !== 'undefined') {
 // ייצוא פונקציות למודול
 // ============================================================================
 module.exports = {
-    processInvoiceComplete
+    processInvoiceComplete,
+    normalizeInput
 };
