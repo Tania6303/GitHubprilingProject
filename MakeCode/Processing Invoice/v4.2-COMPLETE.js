@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.8 - 19.11.25.15:45)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.9 - 19.11.25.15:50)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
@@ -40,13 +40,19 @@
 // ============================================================================
 
 function normalizeInput(rawInput) {
+    console.log(`🔄 normalizeInput - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
+
     // אם הקלט כבר במבנה הנכון - החזר אותו
     if (rawInput.learned_config && rawInput.AZURE_RESULT) {
+        console.log(`  ✅ Input already in correct format`);
         return rawInput;
     }
 
     // אם הקלט במבנה מערך עם name/value (מ-Make)
     if (Array.isArray(rawInput) && rawInput[0] && rawInput[0].input) {
+        console.log(`  📦 Converting from Make format (array with input)`);
+        console.log(`  Input array length: ${rawInput[0].input.length}`);
+        rawInput[0].input.forEach(item => console.log(`    - ${item.name}`));
         const inputArray = rawInput[0].input;
         const normalized = {};
 
@@ -56,12 +62,15 @@ function normalizeInput(rawInput) {
             } else if (item.name === 'docs_list') {
                 // המר מערך ישיר למבנה הצפוי
                 if (Array.isArray(item.value)) {
+                    const hasData = item.value.length > 0 && item.value[0] !== "";
                     normalized.docs_list = {
-                        DOC_YES_NO: item.value.length > 0 && item.value[0] !== "" ? "Y" : "N",
+                        DOC_YES_NO: hasData ? "Y" : "N",
                         list_of_docs: item.value.filter(v => v !== "")
                     };
+                    console.log(`  📄 docs_list converted: DOC_YES_NO=${hasData ? "Y" : "N"}, list length=${normalized.docs_list.list_of_docs.length}`);
                 } else {
                     normalized.docs_list = item.value;
+                    console.log(`  📄 docs_list passed as-is`);
                 }
             } else if (item.name === 'import_files') {
                 // המר מערך ישיר למבנה הצפוי
@@ -477,8 +486,18 @@ function checkImportExists(importFiles) {
 }
 
 function checkDocsExist(docsList) {
-    if (!docsList || docsList.DOC_YES_NO !== "Y") return false;
-    return docsList.list_of_docs && docsList.list_of_docs.length > 0;
+    console.log(`📄 checkDocsExist - docsList:`, JSON.stringify(docsList));
+    if (!docsList) {
+        console.log(`  ❌ docsList is null/undefined`);
+        return false;
+    }
+    if (docsList.DOC_YES_NO !== "Y") {
+        console.log(`  ❌ DOC_YES_NO = "${docsList.DOC_YES_NO}" (expected "Y")`);
+        return false;
+    }
+    const hasListDocs = docsList.list_of_docs && docsList.list_of_docs.length > 0;
+    console.log(`  ✅ DOC_YES_NO = "Y", list_of_docs.length = ${docsList.list_of_docs?.length || 0}`);
+    return hasListDocs;
 }
 
 function checkDocsInOCR(ocrFields, azureText) {
