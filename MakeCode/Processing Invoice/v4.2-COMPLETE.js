@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.6 - 19.11.25.15:20)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.7 - 19.11.25.15:25)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
@@ -243,7 +243,7 @@ function processInvoiceComplete(input) {
             const ocrUnidentified = ocrFields.UnidentifiedNumbers || [];
 
             // ספור כמה BOOKNUM נמצאו ב-OCR
-            const booknumPattern = /^108\d{6}$/;
+            const booknumPattern = /^10[78]\d{6}$/;
             let expectedDocsCount = 0;
 
             if (typeof ocrUnidentified[0] === 'object' && ocrUnidentified[0].value) {
@@ -489,7 +489,7 @@ function checkDocsExist(docsList) {
 function checkDocsInOCR(ocrFields, azureText) {
     const unidentified = ocrFields.UnidentifiedNumbers || [];
     const docPattern = /^25\d{6}$/;          // DOCNO pattern
-    const booknumPattern = /^108\d{6}$/;     // BOOKNUM pattern
+    const booknumPattern = /^10[78]\d{6}$/;     // BOOKNUM pattern (107 or 108)
 
     let foundInUnidentified = false;
 
