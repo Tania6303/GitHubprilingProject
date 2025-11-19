@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.7 - 19.11.25.15:30)
+// קוד 2 - עיבוד חשבוניות (גרסה 4.8 - 19.11.25.15:45)
 // מקבל: OCR + הגדרות + תעודות + יבוא
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
@@ -141,13 +141,8 @@ function processInvoiceComplete(input) {
         // א. בדיקת יבוא
         const hasImport = checkImportExists(input.import_files);
 
-        // ב. בדיקת תעודות - ב-OCR או ב-docs_list!
-        const hasDocsInOCR = checkDocsInOCR(
-            input.AZURE_RESULT.data.fields,
-            input.AZURE_TEXT
-        );
-        const hasDocsInList = checkDocsExist(input.docs_list);
-        const hasDocs = hasDocsInOCR || hasDocsInList;
+        // ב. בדיקת תעודות - רק לפי docs_list (האם יש תעודות במערכת)
+        const hasDocs = checkDocsExist(input.docs_list);
 
         // ✨ חדש! זיהוי תבניות תעודות מה-OCR
         const documentPatterns = detectDocumentPatterns(
