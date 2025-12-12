@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.7.8 - 12.12.25)
+// קוד 3 - ייצור חשבוניות (גרסה 1.7.9 - 12.12.25)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
@@ -11,6 +11,7 @@
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
 // v1.7.8: תמיכה ב-template_index מהקלט (לתמיכה במספר תבניות לספק)
+// v1.7.9: תיקון - תמיכה ב-template_index כמחרוזת (Make שולח מחרוזת)
 // ============================================================================
 
 // ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
@@ -628,10 +629,22 @@ function processInvoiceComplete(input) {
             }];
         }
         // ✅ חדש! אם קיבלנו template_index בקלט - להשתמש בו ישירות
+        // תמיכה גם במספר וגם במחרוזת (Make שולח מחרוזת)
         let templateIndex;
-        if (typeof inputData.template_index === 'number') {
-            templateIndex = inputData.template_index;
-            executionReport.found.push(`תבנית: index=${templateIndex} (מקלט - template_index)`);
+        const rawTemplateIndex = inputData.template_index;
+        if (rawTemplateIndex !== undefined && rawTemplateIndex !== null && rawTemplateIndex !== '') {
+            templateIndex = parseInt(rawTemplateIndex, 10);
+            if (!isNaN(templateIndex) && templateIndex >= 0) {
+                executionReport.found.push(`תבנית: index=${templateIndex} (מקלט - template_index)`);
+            } else {
+                // template_index לא תקין - fallback
+                templateIndex = findMatchingTemplate(allStructures, hasImport, hasDocs, debitType);
+                if (templateIndex === -1) {
+                    executionReport.errors.push("לא נמצאה תבנית מתאימה!");
+                    throw new Error("לא נמצאה תבנית מתאימה");
+                }
+                executionReport.found.push(`תבנית: נמצאה התאמה (index=${templateIndex}) (זיהוי אוטומטי - template_index לא תקין)`);
+            }
         } else {
             // fallback - זיהוי אוטומטי לפי מאפייני המסמך
             templateIndex = findMatchingTemplate(allStructures, hasImport, hasDocs, debitType);
