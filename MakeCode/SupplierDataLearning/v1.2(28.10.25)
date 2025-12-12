@@ -1,6 +1,7 @@
-// Supplier Data Learning - גרסה 1.2
-// תאריך: 28 אוקטובר 2025
+// Supplier Data Learning - גרסה 1.3
+// תאריך: 12 דצמבר 2025
 // עדכונים: מבנה JSON חדש, לוגיקה משופרת, תמיכה ברכבים, DEBIT כתבנית נפרדת
+// v1.3: תיקון באג בחירת דוגמאות + הוספת template_index ל-recommended_samples
 
 // ============================================================================
 // פונקציות עזר - המרת תאריכים
@@ -625,26 +626,28 @@ function createMultiSampleTemplate(analysis) {
 }
 
 // ============================================================================
-// יצירת דוגמאות מומלצות (אקראיות)
+// יצירת דוגמאות מומלצות - לכל תבנית דוגמה מתאימה
 // ============================================================================
 
 function createRecommendedSamples(analysis) {
     const mergedTypes = mergeIdenticalTemplates(analysis.document_types);
     const samples = [];
-    
-    mergedTypes.forEach(() => {
-        // בחירה אקראית מתוך כל החשבוניות
-        const randomIndex = Math.floor(Math.random() * analysis.all_data.length);
-        const randomInvoice = analysis.all_data[randomIndex];
-        
+
+    mergedTypes.forEach((docType, index) => {
+        // ✅ תיקון: בחירה מתוך החשבוניות של התבנית הספציפית (לא מכל הנתונים!)
+        const templateSamples = docType.all_samples || [docType.sample];
+        const randomIndex = Math.floor(Math.random() * templateSamples.length);
+        const sampleInvoice = templateSamples[randomIndex];
+
         samples.push({
-            sample_ivnum: randomInvoice.IVNUM || '',
-            sample_booknum: randomInvoice.BOOKNUM || '',
-            sample_impfnum: randomInvoice.IMPFNUM || '',
-            sample_supname: randomInvoice.SUPNAME || ''
+            template_index: index,  // ✅ חדש! קישור לתבנית
+            sample_ivnum: sampleInvoice.IVNUM || '',
+            sample_booknum: sampleInvoice.BOOKNUM || '',
+            sample_impfnum: sampleInvoice.IMPFNUM || '',
+            sample_supname: sampleInvoice.SUPNAME || ''
         });
     });
-    
+
     return {
         samples: samples
     };

@@ -1,6 +1,7 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.7.7 - 19.11.25.16:05)
+// קוד 3 - ייצור חשבוניות (גרסה 1.7.8 - 12.12.25)
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
+//        + template_index (אופציונלי)
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
 //
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
@@ -8,6 +9,8 @@
 //
 // ⚠️ קשור ל: MakeCode/Processing Invoice/v4.2-COMPLETE.js
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
+//
+// v1.7.8: תמיכה ב-template_index מהקלט (לתמיכה במספר תבניות לספק)
 // ============================================================================
 
 // ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
@@ -624,14 +627,22 @@ function processInvoiceComplete(input) {
                 DEBIT: "D"
             }];
         }
-        const templateIndex = findMatchingTemplate(allStructures, hasImport, hasDocs, debitType);
-        if (templateIndex === -1) {
-            executionReport.errors.push("לא נמצאה תבנית מתאימה!");
-            throw new Error("לא נמצאה תבנית מתאימה");
+        // ✅ חדש! אם קיבלנו template_index בקלט - להשתמש בו ישירות
+        let templateIndex;
+        if (typeof inputData.template_index === 'number') {
+            templateIndex = inputData.template_index;
+            executionReport.found.push(`תבנית: index=${templateIndex} (מקלט - template_index)`);
+        } else {
+            // fallback - זיהוי אוטומטי לפי מאפייני המסמך
+            templateIndex = findMatchingTemplate(allStructures, hasImport, hasDocs, debitType);
+            if (templateIndex === -1) {
+                executionReport.errors.push("לא נמצאה תבנית מתאימה!");
+                throw new Error("לא נמצאה תבנית מתאימה");
+            }
+            executionReport.found.push(`תבנית: נמצאה התאמה (index=${templateIndex}) (זיהוי אוטומטי)`);
         }
         const structure = allStructures[templateIndex];
         const template = allTemplates[templateIndex] || allTemplates[0];
-        executionReport.found.push(`תבנית: נמצאה התאמה (index=${templateIndex})`);
         executionReport.stage = "שלב 2: הבנת דפוסים";
         const patterns = extractPatterns(learnedConfig.recommended_samples, docsList);
         executionReport.found.push(`דפוסים: נמצאו`);
@@ -1434,7 +1445,8 @@ if (typeof input !== 'undefined') {
             vehicles: input.vehicles || "{}",
             AZURE_RESULT: input.AZURE_RESULT || { data: { fields: {} } },
             AZURE_TEXT_CLEAN: input.AZURE_TEXT_CLEAN || "",
-            AZURE_TEXT: input.AZURE_TEXT || ""
+            AZURE_TEXT: input.AZURE_TEXT || "",
+            template_index: input.template_index  // ✅ חדש! העברת template_index
         };
         result = processInvoiceComplete({ input: [
             { name: "learned_config", value: processInput.learned_config },
@@ -1443,7 +1455,8 @@ if (typeof input !== 'undefined') {
             { name: "vehicles", value: processInput.vehicles },
             { name: "AZURE_RESULT", value: processInput.AZURE_RESULT },
             { name: "AZURE_TEXT_CLEAN", value: processInput.AZURE_TEXT_CLEAN },
-            { name: "AZURE_TEXT", value: processInput.AZURE_TEXT }
+            { name: "AZURE_TEXT", value: processInput.AZURE_TEXT },
+            { name: "template_index", value: processInput.template_index }  // ✅ חדש!
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
