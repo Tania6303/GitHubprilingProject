@@ -1,1 +1,0 @@
-'{"status":"error","error_type":"Error","message":"לא נמצאה תבנית מתאימה"}'
