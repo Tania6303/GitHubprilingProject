@@ -1,11 +1,12 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 5.0)
-// עדכון אחרון: 13.12.25 16:00
+// קוד 2 - עיבוד חשבוניות (גרסה 5.1)
+// עדכון אחרון: 13.12.25 18:00
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
 //
 // תיקונים:
+// - 18:00 תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
 // - 16:00 תמיכה בעטיפת learned_config מ-Make
 // - 15:30 תמיכה בקלט כמחרוזת JSON (JSON.parse)
 // - 15:00 הגנות על AZURE_RESULT null
@@ -21,7 +22,7 @@
 // ============================================================================
 
 function normalizeInput(rawInput) {
-    console.log(`🔄 normalizeInput v5.0 16:00 - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
+    console.log(`🔄 normalizeInput v5.1 18:00 - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
 
     // ✅ אם הקלט הוא מחרוזת JSON - לפרסר אותה
     if (typeof rawInput === 'string') {
@@ -451,8 +452,9 @@ function searchBooknum(ocrFields, sample) {
     let booknum = ocrFields.InvoiceId || "";
     booknum = String(booknum).replace(/^SI/i, '');
 
-    if (sample && sample.sample_booknum) {
-        const expectedLength = sample.sample_booknum.length;
+    // v1.7: sample הוא אובייקט מלא עם BOOKNUM (לא sample_booknum)
+    if (sample && sample.BOOKNUM) {
+        const expectedLength = String(sample.BOOKNUM).length;
         if (booknum.length > expectedLength) {
             booknum = booknum.slice(-expectedLength);
         }
