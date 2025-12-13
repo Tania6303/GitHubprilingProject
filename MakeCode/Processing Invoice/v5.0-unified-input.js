@@ -14,26 +14,45 @@
 // ============================================================================
 
 function normalizeInput(rawInput) {
-    console.log(`🔄 normalizeInput - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
+    console.log(`🔄 normalizeInput v5.0 - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
+    console.log(`🔄 rawInput keys: ${rawInput ? Object.keys(rawInput).slice(0, 10).join(', ') : 'null'}`);
 
     // אם הקלט הוא מערך עם תוצאה (פורמט Make)
     if (Array.isArray(rawInput)) {
+        console.log(`  📦 Input is array, length=${rawInput.length}`);
         if (rawInput[0] && rawInput[0].result) {
             console.log(`  ✅ Found result in array[0]`);
             return rawInput[0].result;
         }
-        console.log(`  📦 Array without result, taking first element`);
+        if (rawInput[0] && rawInput[0].status) {
+            console.log(`  ✅ Found status in array[0], returning as-is`);
+            return rawInput[0];
+        }
+        console.log(`  📦 Array without result/status, taking first element`);
         return rawInput[0];
     }
 
-    // אם יש result בתוך הקלט
+    // אם יש result בתוך הקלט (פורמט Make עם logs)
     if (rawInput.result) {
         console.log(`  ✅ Found result property`);
         return rawInput.result;
     }
 
+    // אם יש status ו-templates - זה הקלט הנכון
+    if (rawInput.status && rawInput.templates) {
+        console.log(`  ✅ Input has status and templates - correct format`);
+        return rawInput;
+    }
+
+    // נסה למצוא את המבנה הנכון עמוק יותר
+    if (rawInput.merged_config) {
+        console.log(`  ✅ Found merged_config property`);
+        return rawInput.merged_config;
+    }
+
     // אחרת - הקלט כמו שהוא
-    console.log(`  ✅ Input as-is`);
+    console.log(`  ⚠️ Input structure unknown, returning as-is`);
+    console.log(`  ⚠️ Has templates: ${!!rawInput.templates}, Has status: ${!!rawInput.status}`);
     return rawInput;
 }
 
@@ -190,22 +209,40 @@ function processUnifiedConfig(mergedConfig) {
 // ============================================================================
 
 function processTemplate(template, mergedConfig, executionReport) {
-    const structure = template.structure;
-    const templateData = template.template;
+    console.log(`\n📋 processTemplate - template_index: ${template.template_index}`);
+    console.log(`   scan_status: ${template.scan_status}`);
+    console.log(`   has AZURE_RESULT: ${!!template.AZURE_RESULT}`);
+    console.log(`   has docs: ${!!template.docs}`);
+
+    const structure = template.structure || {};
+    const templateData = template.template || {};
     const docs = template.docs;
     const imfp = template.imfp;
     const azureResult = template.AZURE_RESULT;
-    const azureText = template.azuretext;
+    const azureText = template.azuretext || "";
+
+    // בדיקת תקינות AZURE_RESULT
+    if (!azureResult) {
+        console.log(`   ⚠️ AZURE_RESULT is null/undefined for template ${template.template_index}`);
+        executionReport.warnings.push(`תבנית ${template.template_index}: אין תוצאת Azure`);
+    }
 
     // בדיקות בסיסיות
-    const hasImport = structure.has_import;
+    const hasImport = structure.has_import || false;
     const hasDocs = checkDocsExist(docs);
-    const debitType = structure.debit_type;
+    const debitType = structure.debit_type || "D";
 
     executionReport.found.push(`תבנית ${template.template_index}: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);
 
-    // חילוץ דפוסים מ-OCR
-    const ocrFields = azureResult?.data?.fields || {};
+    // חילוץ דפוסים מ-OCR - עם הגנות
+    let ocrFields = {};
+    if (azureResult && azureResult.data && azureResult.data.fields) {
+        ocrFields = azureResult.data.fields;
+    } else if (azureResult && azureResult.fields) {
+        ocrFields = azureResult.fields;
+    }
+    console.log(`   ocrFields keys: ${Object.keys(ocrFields).slice(0, 5).join(', ')}`);
+
     const documentPatterns = detectDocumentPatterns(ocrFields, azureText);
 
     // חוקי רכבים
