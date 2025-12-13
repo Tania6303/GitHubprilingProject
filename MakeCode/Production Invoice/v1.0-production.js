@@ -1,5 +1,7 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.7.9 - 12.12.25)
+// קוד 3 - ייצור חשבוניות (גרסה 1.8.0 - 13.12.25)
+// עדכון אחרון: 13.12.25 18:30
+//
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
 // מחזיר: JSON לפריוריטי (PINVOICES + תעודות/פריטים/רכבים) + דוח ביצוע + validation + field_mapping
@@ -7,11 +9,13 @@
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
 //
-// ⚠️ קשור ל: MakeCode/Processing Invoice/v4.2-COMPLETE.js
+// ⚠️ קשור ל: MakeCode/Processing Invoice/v5.1
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
-// v1.7.8: תמיכה ב-template_index מהקלט (לתמיכה במספר תבניות לספק)
+// תיקונים:
+// v1.8.0: תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
 // v1.7.9: תיקון - תמיכה ב-template_index כמחרוזת (Make שולח מחרוזת)
+// v1.7.8: תמיכה ב-template_index מהקלט (לתמיכה במספר תבניות לספק)
 // ============================================================================
 
 // ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
@@ -816,10 +820,12 @@ function extractPatterns(recommendedSamples, docsList) {
     };
     if (recommendedSamples && recommendedSamples.samples && recommendedSamples.samples.length > 0) {
         const sample = recommendedSamples.samples[0];
-        if (sample.sample_booknum) {
+        // v1.7: תמיכה בפורמט חדש (sample.BOOKNUM) וישן (sample.sample_booknum)
+        const sampleBooknum = sample.BOOKNUM || sample.sample_booknum;
+        if (sampleBooknum) {
             patterns.booknum_pattern = {
-                length: sample.sample_booknum.length,
-                example: sample.sample_booknum
+                length: String(sampleBooknum).length,
+                example: sampleBooknum
             };
         }
     }
