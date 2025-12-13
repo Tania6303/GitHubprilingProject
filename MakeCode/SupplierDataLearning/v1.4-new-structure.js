@@ -1,9 +1,8 @@
-// Supplier Data Learning - גרסה 1.6
-// עדכון אחרון: 13.12.25 17:30
+// Supplier Data Learning - גרסה 1.7
+// עדכון אחרון: 13.12.25 17:45
 //
 // עדכונים:
-// - 17:30 שדות ראשיים מופרדים (sample_ivnum, sample_booknum...) + מערכי SUBFORM בנפרד
-// - 17:00 sample מכיל את כל החשבונית המלאה (לא רק שדות בודדים)
+// - 17:45 sample כ-sampleCollection - אובייקט אחד עם כל השדות המורחבים בפנים
 // - v1.4: שינוי מבנה הפלט - templates[] מכיל את כל המידע לכל תבנית
 // - מבנה חדש: מידע ספק ברמה עליונה, מערך תבניות עם כל המידע לכל תבנית
 
@@ -594,32 +593,9 @@ function createTemplatesArray(analysis) {
             template: createMergedTemplateData(docType, analysis),
 
             // ========================================
-            // שדות ראשיים מהדוגמה - נגישים ישירות ב-Make
+            // sampleCollection - החשבונית המלאה לדוגמה
             // ========================================
-            sample_ivnum: sampleInvoice.IVNUM || '',
-            sample_booknum: sampleInvoice.BOOKNUM || '',
-            sample_supname: sampleInvoice.SUPNAME || '',
-            sample_supdes: sampleInvoice.SUPDES || '',
-            sample_docno: sampleInvoice.DOCNO || '',
-            sample_ivdate: sampleInvoice.IVDATE || '',
-            sample_details: sampleInvoice.DETAILS || '',
-            sample_ordname: sampleInvoice.ORDNAME || '',
-            sample_impfnum: sampleInvoice.IMPFNUM || '',
-            sample_code: sampleInvoice.CODE || '',
-            sample_debit: sampleInvoice.DEBIT || '',
-            sample_vat: sampleInvoice.VAT || '',
-            sample_qprice: sampleInvoice.QPRICE || '',
-            sample_totprice: sampleInvoice.TOTPRICE || '',
-            sample_totquant: sampleInvoice.TOTQUANT || '',
-            sample_sdinumit: sampleInvoice.SDINUMIT || '',
-            sample_fncnum: sampleInvoice.FNCNUM || '',
-            sample_paydate: sampleInvoice.PAYDATE || '',
-
-            // ========================================
-            // מערכי פירוט - SUBFORM
-            // ========================================
-            sample_items: sampleInvoice.PINVOICEITEMS_SUBFORM || sampleInvoice.PINVOICEITEMS || [],
-            sample_cont: sampleInvoice.PINVOICESCONT_SUBFORM || sampleInvoice.PINVOICESCONT || []
+            sample: sampleInvoice
 
             // ========================================
             // שדות שיתווספו ע"י Make אחרי עיבוד:
