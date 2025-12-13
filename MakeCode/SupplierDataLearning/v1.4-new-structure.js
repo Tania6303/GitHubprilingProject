@@ -1,7 +1,10 @@
-// Supplier Data Learning - גרסה 1.4
-// תאריך: 12 דצמבר 2025
-// עדכונים: מבנה חדש - מידע ספק ברמה עליונה, מערך תבניות עם כל המידע לכל תבנית
-// v1.4: שינוי מבנה הפלט - templates[] מכיל את כל המידע לכל תבנית
+// Supplier Data Learning - גרסה 1.5
+// עדכון אחרון: 13.12.25 17:00
+//
+// עדכונים:
+// - 17:00 sample מכיל את כל החשבונית המלאה (לא רק שדות בודדים)
+// - v1.4: שינוי מבנה הפלט - templates[] מכיל את כל המידע לכל תבנית
+// - מבנה חדש: מידע ספק ברמה עליונה, מערך תבניות עם כל המידע לכל תבנית
 
 // ============================================================================
 // פונקציות עזר - המרת תאריכים
@@ -589,13 +592,8 @@ function createTemplatesArray(analysis) {
             // דוגמת תבנית מלאה (PINVOICES format)
             template: createMergedTemplateData(docType, analysis),
 
-            // מידע לסריקה (sample)
-            sample: {
-                sample_ivnum: sampleInvoice.IVNUM || '',
-                sample_booknum: sampleInvoice.BOOKNUM || '',
-                sample_impfnum: sampleInvoice.IMPFNUM || '',
-                sample_supname: sampleInvoice.SUPNAME || ''
-            }
+            // מידע לסריקה (sample) - החשבונית המלאה לדוגמה
+            sample: sampleInvoice
 
             // ========================================
             // שדות שיתווספו ע"י Make אחרי עיבוד:
