@@ -1,11 +1,12 @@
 // ============================================================================
 // קוד 2 - עיבוד חשבוניות (גרסה 5.0)
-// עדכון אחרון: 13.12.25 15:30
+// עדכון אחרון: 13.12.25 16:00
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
 //
 // תיקונים:
+// - 16:00 תמיכה בעטיפת learned_config מ-Make
 // - 15:30 תמיכה בקלט כמחרוזת JSON (JSON.parse)
 // - 15:00 הגנות על AZURE_RESULT null
 // - 14:30 לוגים מפורטים לזיהוי מבנה קלט
@@ -20,9 +21,9 @@
 // ============================================================================
 
 function normalizeInput(rawInput) {
-    console.log(`🔄 normalizeInput v5.0 - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
+    console.log(`🔄 normalizeInput v5.0 16:00 - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
 
-    // ✅ חדש! אם הקלט הוא מחרוזת JSON - לפרסר אותה
+    // ✅ אם הקלט הוא מחרוזת JSON - לפרסר אותה
     if (typeof rawInput === 'string') {
         console.log(`  📝 Input is string, parsing JSON...`);
         try {
@@ -35,6 +36,38 @@ function normalizeInput(rawInput) {
     }
 
     console.log(`🔄 rawInput keys: ${rawInput ? Object.keys(rawInput).slice(0, 10).join(', ') : 'null'}`);
+
+    // ✅ חדש! אם יש learned_config - זה עטיפה מ-Make
+    if (rawInput.learned_config) {
+        console.log(`  📦 Found learned_config wrapper, extracting...`);
+        let learnedConfig = rawInput.learned_config;
+
+        // אם learned_config הוא מחרוזת - לפרסר
+        if (typeof learnedConfig === 'string') {
+            console.log(`  📝 learned_config is string, parsing...`);
+            try {
+                learnedConfig = JSON.parse(learnedConfig);
+                console.log(`  ✅ Successfully parsed learned_config`);
+            } catch (e) {
+                console.log(`  ❌ Failed to parse learned_config: ${e.message}`);
+                return rawInput;
+            }
+        }
+
+        // אם יש logs ו-result בתוך - לחלץ את result
+        if (learnedConfig.result) {
+            console.log(`  ✅ Found result inside learned_config`);
+            return learnedConfig.result;
+        }
+
+        // אם יש status ו-templates ישירות - זה הקלט הנכון
+        if (learnedConfig.status && learnedConfig.templates) {
+            console.log(`  ✅ learned_config has status and templates`);
+            return learnedConfig;
+        }
+
+        return learnedConfig;
+    }
 
     // אם הקלט הוא מערך עם תוצאה (פורמט Make)
     if (Array.isArray(rawInput)) {
