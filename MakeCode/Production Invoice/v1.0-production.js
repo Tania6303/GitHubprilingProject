@@ -820,12 +820,10 @@ function extractPatterns(recommendedSamples, docsList) {
     };
     if (recommendedSamples && recommendedSamples.samples && recommendedSamples.samples.length > 0) {
         const sample = recommendedSamples.samples[0];
-        // v1.7: תמיכה בפורמט חדש (sample.BOOKNUM) וישן (sample.sample_booknum)
-        const sampleBooknum = sample.BOOKNUM || sample.sample_booknum;
-        if (sampleBooknum) {
+        if (sample.sample_booknum) {
             patterns.booknum_pattern = {
-                length: String(sampleBooknum).length,
-                example: sampleBooknum
+                length: sample.sample_booknum.length,
+                example: sample.sample_booknum
             };
         }
     }
