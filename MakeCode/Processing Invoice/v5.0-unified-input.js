@@ -15,6 +15,19 @@
 
 function normalizeInput(rawInput) {
     console.log(`🔄 normalizeInput v5.0 - rawInput type: ${typeof rawInput}, isArray: ${Array.isArray(rawInput)}`);
+
+    // ✅ חדש! אם הקלט הוא מחרוזת JSON - לפרסר אותה
+    if (typeof rawInput === 'string') {
+        console.log(`  📝 Input is string, parsing JSON...`);
+        try {
+            rawInput = JSON.parse(rawInput);
+            console.log(`  ✅ Successfully parsed JSON string`);
+        } catch (e) {
+            console.log(`  ❌ Failed to parse JSON string: ${e.message}`);
+            return rawInput;
+        }
+    }
+
     console.log(`🔄 rawInput keys: ${rawInput ? Object.keys(rawInput).slice(0, 10).join(', ') : 'null'}`);
 
     // אם הקלט הוא מערך עם תוצאה (פורמט Make)
