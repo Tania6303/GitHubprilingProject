@@ -1,6 +1,6 @@
 // GENERIC JSON to HTML - HTML AS-IS AT BOTTOM
 // MakeCode Module for converting any JSON structure to styled HTML
-// Version: 3.2.0 | Date: 2025-12-14
+// Version: 3.3.0 | Date: 2025-12-14
 
 // Input: json (any structure), language (hebrew/english)
 
@@ -64,40 +64,7 @@ function getFontSize(level) {
   return sizes[Math.min(level, sizes.length - 1)];
 }
 
-// בניית תפריט היררכי
-function buildMenuTree(value, level = 0, path = '') {
-  if (typeof value !== 'object' || value === null) return '';
-
-  let menuHtml = '';
-  const entries = Object.entries(value);
-
-  entries.forEach(([key, val]) => {
-    const isComplex = typeof val === 'object' && val !== null;
-    if (!isComplex) return; // רק אובייקטים מורכבים בתפריט
-
-    sectionCounter++;
-    const sectionId = `section_${sectionCounter}`;
-    const hasChildren = typeof val === 'object' && val !== null &&
-      Object.values(val).some(v => typeof v === 'object' && v !== null);
-
-    const childrenMenu = hasChildren ? buildMenuTree(val, level + 1, sectionId) : '';
-
-    menuHtml += `
-      <div class="menu-item-wrapper">
-        <div class="menu-item level-${level}" data-section="${sectionId}">
-          ${hasChildren ? `<span class="menu-toggle" onclick="toggleMenuItem(event, '${sectionId}_children')">▼</span>` : '<span class="menu-spacer"></span>'}
-          <span class="menu-text" onclick="showSection('${sectionId}')">${formatFieldName(key)}</span>
-        </div>
-        ${hasChildren ? `<div class="menu-children" id="${sectionId}_children">${childrenMenu}</div>` : ''}
-      </div>`;
-  });
-
-  return menuHtml;
-}
-
 // רקורסיה - מציג כל ערך
-sectionCounter = 0; // איפוס למספור הסקשנים
-
 function renderValue(value, level = 0, fieldName = '') {
   const fontSize = getFontSize(level);
 
@@ -194,12 +161,7 @@ function renderValue(value, level = 0, fieldName = '') {
   return html;
 }
 
-// בניית תפריט צדדי היררכי
-sectionCounter = 0;
-const sidebarMenu = buildMenuTree(inputData);
-
 // בניית תוכן ראשי
-sectionCounter = 0;
 const mainContent = renderValue(inputData, 0, '');
 
 // בניית חלק HTML בסוף
@@ -233,159 +195,42 @@ const html = `<!DOCTYPE html>
       font-size: 14px;
       line-height: 1.5;
       color: #1f2937;
-    }
-
-    /* Layout */
-    .layout {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 280px;
-      background: #1f2937;
-      color: white;
-      position: fixed;
-      ${config.dir === 'rtl' ? 'right' : 'left'}: 0;
-      top: 0;
-      bottom: 0;
-      overflow-y: auto;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sidebar-header {
-      padding: 15px;
-      background: #111827;
-      border-bottom: 1px solid #374151;
-    }
-
-    .sidebar-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: white;
-      margin-bottom: 12px;
-    }
-
-    .sidebar-controls {
-      display: flex;
-      gap: 8px;
-    }
-
-    .sidebar-btn {
-      flex: 1;
-      padding: 8px 12px;
-      background: #374151;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s;
-    }
-
-    .sidebar-btn:hover {
-      background: #4b5563;
-    }
-
-    /* Menu Tree */
-    .menu-tree {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px 0;
-    }
-
-    .menu-item-wrapper {
-      /* wrapper for item + children */
-    }
-
-    .menu-item {
-      display: flex;
-      align-items: center;
-      padding: 8px 12px;
-      color: #d1d5db;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.15s;
-      border-${config.dir === 'rtl' ? 'right' : 'left'}: 3px solid transparent;
-    }
-
-    .menu-item:hover {
-      background: #374151;
-      color: white;
-    }
-
-    .menu-item.active {
-      background: #374151;
-      border-${config.dir === 'rtl' ? 'right' : 'left'}-color: #6366f1;
-      color: white;
-    }
-
-    /* רמות עומק בתפריט */
-    .menu-item.level-0 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 12px; font-weight: 600; }
-    .menu-item.level-1 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 28px; font-size: 12px; }
-    .menu-item.level-2 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 44px; font-size: 12px; }
-    .menu-item.level-3 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 60px; font-size: 11px; }
-    .menu-item.level-4 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 72px; font-size: 11px; }
-    .menu-item.level-5 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 84px; font-size: 11px; }
-
-    .menu-toggle {
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      color: #9ca3af;
-      transition: transform 0.2s;
-      flex-shrink: 0;
-    }
-
-    .menu-toggle:hover {
-      color: white;
-    }
-
-    .menu-toggle.collapsed {
-      transform: rotate(-90deg);
-    }
-
-    .menu-spacer {
-      width: 18px;
-      flex-shrink: 0;
-    }
-
-    .menu-text {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .menu-children {
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-
-    .menu-children.collapsed {
-      display: none;
-    }
-
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      ${config.dir === 'rtl' ? 'margin-right' : 'margin-left'}: 280px;
       padding: 20px;
     }
 
     .container {
-      max-width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
       background: white;
       padding: 25px;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .toolbar-btn {
+      padding: 8px 16px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .toolbar-btn:hover {
+      background: #e5e7eb;
     }
 
     /* Info List */
@@ -595,84 +440,32 @@ const html = `<!DOCTYPE html>
       background: #fffbeb;
     }
 
-    /* Hidden - for filtering */
-    .hidden {
-      display: none !important;
-    }
-
-    /* Show All Button */
-    .show-all-btn {
-      display: none;
-      background: #6366f1;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 20px;
-      font-family: inherit;
-    }
-
-    .show-all-btn:hover {
-      background: #4f46e5;
-    }
-
     /* Print */
     @media print {
-      .sidebar { display: none; }
-      .main-content { margin: 0; }
+      body { padding: 10px; background: white; }
+      .container { box-shadow: none; }
       .section-body { display: block !important; }
-      body { background: white; }
+      .toolbar { display: none; }
     }
 
     /* Mobile */
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        position: relative;
-        max-height: 50vh;
-      }
-      .main-content {
-        margin: 0;
-      }
-      .layout {
-        flex-direction: column;
-      }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .container { padding: 15px; }
     }
   </style>
 </head>
 <body>
-  <div class="layout">
-    <nav class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-title">🗂️ ניווט במסמך</div>
-        <div class="sidebar-controls">
-          <button class="sidebar-btn" onclick="expandAllMenu()">▼ הרחב תפריט</button>
-          <button class="sidebar-btn" onclick="collapseAllMenu()">▶ סגור תפריט</button>
-        </div>
-        <div class="sidebar-controls" style="margin-top:8px">
-          <button class="sidebar-btn" onclick="expandAllContent()">📄 הרחב תוכן</button>
-          <button class="sidebar-btn" onclick="collapseAllContent()">📄 סגור תוכן</button>
-        </div>
-      </div>
-      <div class="menu-tree">
-        ${sidebarMenu}
-      </div>
-    </nav>
-
-    <main class="main-content">
-      <div class="container">
-        <button id="showAllBtn" class="show-all-btn" onclick="showAll()">◀ הצג הכל</button>
-        ${mainContent}
-        ${htmlSection}
-      </div>
-    </main>
+  <div class="container">
+    <div class="toolbar">
+      <button class="toolbar-btn" onclick="expandAll()">▼ הרחב הכל</button>
+      <button class="toolbar-btn" onclick="collapseAll()">▶ סגור הכל</button>
+    </div>
+    ${mainContent}
+    ${htmlSection}
   </div>
 
   <script>
-    // Toggle section in main content (expand/collapse)
     function toggleSection(id) {
       const body = document.getElementById(id);
       const icon = document.getElementById('icon_' + id);
@@ -682,83 +475,12 @@ const html = `<!DOCTYPE html>
       }
     }
 
-    // Toggle menu item children in sidebar
-    function toggleMenuItem(event, id) {
-      event.stopPropagation();
-      const children = document.getElementById(id);
-      const toggle = event.target;
-      if (children) {
-        children.classList.toggle('collapsed');
-        toggle.classList.toggle('collapsed');
-      }
-    }
-
-    // Show only selected section - הצג רק את הסקשן הנבחר
-    function showSection(id) {
-      // הסתר את כל הסקשנים ברמה העליונה
-      document.querySelectorAll('.container > .section').forEach(el => {
-        el.classList.add('hidden');
-      });
-      document.querySelectorAll('.container > .info-list').forEach(el => {
-        el.classList.add('hidden');
-      });
-
-      // הצג את הסקשן הנבחר
-      const section = document.getElementById(id);
-      if (section) {
-        section.classList.remove('hidden');
-        // פתח את הסקשן
-        const bodyId = id + '_body';
-        const body = document.getElementById(bodyId);
-        const icon = document.getElementById('icon_' + bodyId);
-        if (body) {
-          body.classList.remove('collapsed');
-          if (icon) icon.classList.remove('collapsed');
-        }
-      }
-
-      // הדגש את הפריט בתפריט
-      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-      const menuItem = document.querySelector('.menu-item[data-section="' + id + '"]');
-      if (menuItem) menuItem.classList.add('active');
-
-      // הצג כפתור "הצג הכל"
-      document.getElementById('showAllBtn').style.display = 'block';
-
-      // גלול למעלה
-      document.querySelector('.main-content').scrollTop = 0;
-    }
-
-    // Show all sections - הצג את כל הסקשנים
-    function showAll() {
-      document.querySelectorAll('.container > .section').forEach(el => {
-        el.classList.remove('hidden');
-      });
-      document.querySelectorAll('.container > .info-list').forEach(el => {
-        el.classList.remove('hidden');
-      });
-      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-      document.getElementById('showAllBtn').style.display = 'none';
-    }
-
-    // Expand/Collapse all menu items
-    function expandAllMenu() {
-      document.querySelectorAll('.menu-children').forEach(el => el.classList.remove('collapsed'));
-      document.querySelectorAll('.menu-toggle').forEach(el => el.classList.remove('collapsed'));
-    }
-
-    function collapseAllMenu() {
-      document.querySelectorAll('.menu-children').forEach(el => el.classList.add('collapsed'));
-      document.querySelectorAll('.menu-toggle').forEach(el => el.classList.add('collapsed'));
-    }
-
-    // Expand/Collapse all content sections
-    function expandAllContent() {
+    function expandAll() {
       document.querySelectorAll('.section-body').forEach(el => el.classList.remove('collapsed'));
       document.querySelectorAll('.toggle-icon').forEach(el => el.classList.remove('collapsed'));
     }
 
-    function collapseAllContent() {
+    function collapseAll() {
       document.querySelectorAll('.section-body').forEach(el => el.classList.add('collapsed'));
       document.querySelectorAll('.toggle-icon').forEach(el => el.classList.add('collapsed'));
     }
