@@ -1,12 +1,30 @@
 // GENERIC JSON to HTML - HTML AS-IS AT BOTTOM
 // MakeCode Module for converting any JSON structure to styled HTML
-// Version: 1.1.0 | Date: 2025-12-14
+// Version: 1.2.0 | Date: 2025-12-14
 
 // Input: json (any structure), language (hebrew/english)
 
-// קלט גנרי - מקבל כל JSON תקני כמו שהוא
-const inputData = input.json || input;
-const language = input.language || 'hebrew';
+// קלט גנרי - תומך במספר פורמטים של Make.com
+let inputData;
+
+// אם הקלט הוא מחרוזת JSON - פרסר אותה
+if (typeof input === 'string') {
+  try {
+    inputData = JSON.parse(input);
+  } catch (e) {
+    inputData = input;
+  }
+} else if (input && typeof input.json === 'string') {
+  try {
+    inputData = JSON.parse(input.json);
+  } catch (e) {
+    inputData = input.json;
+  }
+} else {
+  inputData = input.json || input;
+}
+
+const language = (input && input.language) || 'hebrew';
 
 const langConfig = {
   'hebrew': { code: 'he', dir: 'rtl' },
