@@ -1,6 +1,6 @@
 // GENERIC JSON to HTML - HTML AS-IS AT BOTTOM
 // MakeCode Module for converting any JSON structure to styled HTML
-// Version: 3.0.0 | Date: 2025-12-14
+// Version: 3.1.0 | Date: 2025-12-14
 
 // Input: json (any structure), language (hebrew/english)
 
@@ -39,9 +39,8 @@ function getHeaderColor(level) {
   return headerColors[Math.min(level, headerColors.length - 1)];
 }
 
-// מערך לאיסוף HTML ותפריט
+// מערך לאיסוף HTML
 const htmlFields = [];
-const menuItems = [];
 let sectionCounter = 0;
 
 // בדיקה אם זה HTML
@@ -65,8 +64,41 @@ function getFontSize(level) {
   return sizes[Math.min(level, sizes.length - 1)];
 }
 
+// בניית תפריט היררכי
+function buildMenuTree(value, level = 0, path = '') {
+  if (typeof value !== 'object' || value === null) return '';
+
+  let menuHtml = '';
+  const entries = Object.entries(value);
+
+  entries.forEach(([key, val]) => {
+    const isComplex = typeof val === 'object' && val !== null;
+    if (!isComplex) return; // רק אובייקטים מורכבים בתפריט
+
+    sectionCounter++;
+    const sectionId = `section_${sectionCounter}`;
+    const hasChildren = typeof val === 'object' && val !== null &&
+      Object.values(val).some(v => typeof v === 'object' && v !== null);
+
+    const childrenMenu = hasChildren ? buildMenuTree(val, level + 1, sectionId) : '';
+
+    menuHtml += `
+      <div class="menu-item-wrapper">
+        <div class="menu-item level-${level}" data-section="${sectionId}">
+          ${hasChildren ? `<span class="menu-toggle" onclick="toggleMenuItem(event, '${sectionId}_children')">▼</span>` : '<span class="menu-spacer"></span>'}
+          <span class="menu-text" onclick="scrollToSection('${sectionId}')">${formatFieldName(key)}</span>
+        </div>
+        ${hasChildren ? `<div class="menu-children" id="${sectionId}_children">${childrenMenu}</div>` : ''}
+      </div>`;
+  });
+
+  return menuHtml;
+}
+
 // רקורסיה - מציג כל ערך
-function renderValue(value, level = 0, fieldName = '', isTopLevel = false) {
+sectionCounter = 0; // איפוס למספור הסקשנים
+
+function renderValue(value, level = 0, fieldName = '') {
   const fontSize = getFontSize(level);
 
   if (value === null || value === undefined) {
@@ -101,7 +133,7 @@ function renderValue(value, level = 0, fieldName = '', isTopLevel = false) {
       return `<ul class="simple-list" style="font-size:${fontSize}px">${value.map(v => `<li>${renderValue(v, level)}</li>`).join('')}</ul>`;
     }
 
-    // מערך של אובייקטים - רשימה אנכית (לא טבלה)
+    // מערך של אובייקטים - רשימה אנכית
     return value.map((v, i) =>
       `<div class="array-item" style="font-size:${fontSize}px">
         <span class="array-index">${i + 1}</span>
@@ -129,7 +161,7 @@ function renderValue(value, level = 0, fieldName = '', isTopLevel = false) {
 
   let html = '';
 
-  // שדות פשוטים - רשימה אנכית (לא grid)
+  // שדות פשוטים - רשימה אנכית
   if (simpleFields.length > 0) {
     html += `<div class="info-list" style="font-size:${fontSize}px">`;
     simpleFields.forEach(([key, val]) => {
@@ -147,11 +179,6 @@ function renderValue(value, level = 0, fieldName = '', isTopLevel = false) {
     sectionCounter++;
     const sectionId = `section_${sectionCounter}`;
 
-    // הוסף לתפריט רק ברמה הראשונה
-    if (isTopLevel) {
-      menuItems.push({ id: sectionId, name: formatFieldName(key), level: level });
-    }
-
     html += `
       <div class="section level-${Math.min(level, 5)}" id="${sectionId}">
         <div class="section-header" style="background:${getHeaderColor(level)};font-size:${Math.max(fontSize, 12)}px" onclick="toggleSection('${sectionId}_body')">
@@ -167,16 +194,13 @@ function renderValue(value, level = 0, fieldName = '', isTopLevel = false) {
   return html;
 }
 
-// בניית תוכן ראשי
-const mainContent = renderValue(inputData, 0, '', true);
+// בניית תפריט צדדי היררכי
+sectionCounter = 0;
+const sidebarMenu = buildMenuTree(inputData);
 
-// בניית תפריט צדדי
-let sidebarMenu = '';
-if (menuItems.length > 0) {
-  sidebarMenu = menuItems.map(item =>
-    `<a href="#${item.id}" class="menu-item" onclick="scrollToSection('${item.id}')">${item.name}</a>`
-  ).join('');
-}
+// בניית תוכן ראשי
+sectionCounter = 0;
+const mainContent = renderValue(inputData, 0, '');
 
 // בניית חלק HTML בסוף
 let htmlSection = '';
@@ -211,7 +235,7 @@ const html = `<!DOCTYPE html>
       color: #1f2937;
     }
 
-    /* Layout - תפריט צדדי + תוכן */
+    /* Layout */
     .layout {
       display: flex;
       min-height: 100vh;
@@ -219,29 +243,30 @@ const html = `<!DOCTYPE html>
 
     /* Sidebar */
     .sidebar {
-      width: 220px;
+      width: 280px;
       background: #1f2937;
       color: white;
-      padding: 15px 0;
       position: fixed;
       ${config.dir === 'rtl' ? 'right' : 'left'}: 0;
       top: 0;
       bottom: 0;
       overflow-y: auto;
       z-index: 100;
+      display: flex;
+      flex-direction: column;
     }
 
     .sidebar-header {
-      padding: 10px 15px 20px;
+      padding: 15px;
+      background: #111827;
       border-bottom: 1px solid #374151;
-      margin-bottom: 10px;
     }
 
     .sidebar-title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
-      color: #9ca3af;
-      margin-bottom: 10px;
+      color: white;
+      margin-bottom: 12px;
     }
 
     .sidebar-controls {
@@ -251,40 +276,107 @@ const html = `<!DOCTYPE html>
 
     .sidebar-btn {
       flex: 1;
-      padding: 6px 10px;
+      padding: 8px 12px;
       background: #374151;
       border: none;
-      border-radius: 4px;
+      border-radius: 5px;
       color: white;
-      font-size: 11px;
+      font-size: 12px;
       cursor: pointer;
       font-family: inherit;
+      transition: background 0.2s;
     }
 
     .sidebar-btn:hover {
       background: #4b5563;
     }
 
+    /* Menu Tree */
+    .menu-tree {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+
+    .menu-item-wrapper {
+      /* wrapper for item + children */
+    }
+
     .menu-item {
-      display: block;
-      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
       color: #d1d5db;
-      text-decoration: none;
       font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
       border-${config.dir === 'rtl' ? 'right' : 'left'}: 3px solid transparent;
-      transition: all 0.2s;
     }
 
     .menu-item:hover {
       background: #374151;
       color: white;
+    }
+
+    .menu-item.active {
+      background: #374151;
       border-${config.dir === 'rtl' ? 'right' : 'left'}-color: #6366f1;
+      color: white;
+    }
+
+    /* רמות עומק בתפריט */
+    .menu-item.level-0 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 12px; font-weight: 600; }
+    .menu-item.level-1 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 28px; font-size: 12px; }
+    .menu-item.level-2 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 44px; font-size: 12px; }
+    .menu-item.level-3 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 60px; font-size: 11px; }
+    .menu-item.level-4 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 72px; font-size: 11px; }
+    .menu-item.level-5 { padding-${config.dir === 'rtl' ? 'right' : 'left'}: 84px; font-size: 11px; }
+
+    .menu-toggle {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #9ca3af;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .menu-toggle:hover {
+      color: white;
+    }
+
+    .menu-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .menu-spacer {
+      width: 18px;
+      flex-shrink: 0;
+    }
+
+    .menu-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .menu-children {
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .menu-children.collapsed {
+      display: none;
     }
 
     /* Main Content */
     .main-content {
       flex: 1;
-      ${config.dir === 'rtl' ? 'margin-right' : 'margin-left'}: 220px;
+      ${config.dir === 'rtl' ? 'margin-right' : 'margin-left'}: 280px;
       padding: 20px;
     }
 
@@ -296,7 +388,7 @@ const html = `<!DOCTYPE html>
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-    /* Info List - שדות פשוטים ברשימה אנכית */
+    /* Info List */
     .info-list {
       background: #f9fafb;
       border-radius: 6px;
@@ -371,7 +463,6 @@ const html = `<!DOCTYPE html>
       display: none;
     }
 
-    /* Nested sections - smaller margins */
     .section .section {
       margin-bottom: 10px;
     }
@@ -440,7 +531,7 @@ const html = `<!DOCTYPE html>
       border-${config.dir === 'rtl' ? 'right' : 'left'}: 3px solid #6366f1;
     }
 
-    /* Array Items - אנכי */
+    /* Array Items */
     .array-item {
       display: flex;
       gap: 10px;
@@ -517,7 +608,7 @@ const html = `<!DOCTYPE html>
       .sidebar {
         width: 100%;
         position: relative;
-        height: auto;
+        max-height: 50vh;
       }
       .main-content {
         margin: 0;
@@ -532,13 +623,19 @@ const html = `<!DOCTYPE html>
   <div class="layout">
     <nav class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-title">ניווט מהיר</div>
+        <div class="sidebar-title">🗂️ ניווט במסמך</div>
         <div class="sidebar-controls">
-          <button class="sidebar-btn" onclick="expandAll()">▼ הרחב</button>
-          <button class="sidebar-btn" onclick="collapseAll()">▶ סגור</button>
+          <button class="sidebar-btn" onclick="expandAllMenu()">▼ הרחב תפריט</button>
+          <button class="sidebar-btn" onclick="collapseAllMenu()">▶ סגור תפריט</button>
+        </div>
+        <div class="sidebar-controls" style="margin-top:8px">
+          <button class="sidebar-btn" onclick="expandAllContent()">📄 הרחב תוכן</button>
+          <button class="sidebar-btn" onclick="collapseAllContent()">📄 סגור תוכן</button>
         </div>
       </div>
-      ${sidebarMenu}
+      <div class="menu-tree">
+        ${sidebarMenu}
+      </div>
     </nav>
 
     <main class="main-content">
@@ -550,6 +647,7 @@ const html = `<!DOCTYPE html>
   </div>
 
   <script>
+    // Toggle section in main content
     function toggleSection(id) {
       const body = document.getElementById(id);
       const icon = document.getElementById('icon_' + id);
@@ -559,20 +657,23 @@ const html = `<!DOCTYPE html>
       }
     }
 
-    function expandAll() {
-      document.querySelectorAll('.section-body').forEach(el => el.classList.remove('collapsed'));
-      document.querySelectorAll('.toggle-icon').forEach(el => el.classList.remove('collapsed'));
+    // Toggle menu item children
+    function toggleMenuItem(event, id) {
+      event.stopPropagation();
+      const children = document.getElementById(id);
+      const toggle = event.target;
+      if (children) {
+        children.classList.toggle('collapsed');
+        toggle.classList.toggle('collapsed');
+      }
     }
 
-    function collapseAll() {
-      document.querySelectorAll('.section-body').forEach(el => el.classList.add('collapsed'));
-      document.querySelectorAll('.toggle-icon').forEach(el => el.classList.add('collapsed'));
-    }
-
+    // Scroll to section and expand
     function scrollToSection(id) {
       const el = document.getElementById(id);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
         // פתח את הסקשן אם סגור
         const bodyId = id + '_body';
         const body = document.getElementById(bodyId);
@@ -581,7 +682,34 @@ const html = `<!DOCTYPE html>
           body.classList.remove('collapsed');
           if (icon) icon.classList.remove('collapsed');
         }
+
+        // הדגש את הפריט בתפריט
+        document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+        const menuItem = document.querySelector('.menu-item[data-section="' + id + '"]');
+        if (menuItem) menuItem.classList.add('active');
       }
+    }
+
+    // Expand/Collapse all menu items
+    function expandAllMenu() {
+      document.querySelectorAll('.menu-children').forEach(el => el.classList.remove('collapsed'));
+      document.querySelectorAll('.menu-toggle').forEach(el => el.classList.remove('collapsed'));
+    }
+
+    function collapseAllMenu() {
+      document.querySelectorAll('.menu-children').forEach(el => el.classList.add('collapsed'));
+      document.querySelectorAll('.menu-toggle').forEach(el => el.classList.add('collapsed'));
+    }
+
+    // Expand/Collapse all content sections
+    function expandAllContent() {
+      document.querySelectorAll('.section-body').forEach(el => el.classList.remove('collapsed'));
+      document.querySelectorAll('.toggle-icon').forEach(el => el.classList.remove('collapsed'));
+    }
+
+    function collapseAllContent() {
+      document.querySelectorAll('.section-body').forEach(el => el.classList.add('collapsed'));
+      document.querySelectorAll('.toggle-icon').forEach(el => el.classList.add('collapsed'));
     }
   </script>
 </body>
