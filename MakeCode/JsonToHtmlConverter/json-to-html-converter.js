@@ -3,7 +3,7 @@
 
 // Input: json (any structure), language (hebrew/english)
 
-// טיפול בקלט - תמיכה במערכים ובאובייקטים
+// טיפול בקלט - גנרי לכל מבנה
 let rawInput = input.json || input;
 
 // אם הקלט הוא מערך עם איבר אחד, קח את האיבר הראשון
@@ -11,8 +11,21 @@ if (Array.isArray(rawInput) && rawInput.length === 1) {
   rawInput = rawInput[0];
 }
 
-// אם יש שדה TEMPLATE, קח אותו
-const inputData = rawInput.TEMPLATE || rawInput;
+// אם זה אובייקט עם מפתח יחיד שהערך שלו הוא אובייקט - פתח את העטיפה
+// (מתאים ל-TEMPLATE, DATA, RESULT, או כל שם אחר)
+function unwrapSingleKey(obj) {
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return obj;
+  const keys = Object.keys(obj);
+  if (keys.length === 1) {
+    const value = obj[keys[0]];
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      return value;
+    }
+  }
+  return obj;
+}
+
+const inputData = unwrapSingleKey(rawInput);
 const language = input.language || 'hebrew';
 
 const langConfig = {
