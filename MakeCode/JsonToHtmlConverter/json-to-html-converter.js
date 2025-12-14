@@ -1,6 +1,6 @@
 // GENERIC JSON to HTML - HTML AS-IS AT BOTTOM
 // MakeCode Module for converting any JSON structure to styled HTML
-// Version: 3.1.0 | Date: 2025-12-14
+// Version: 3.2.0 | Date: 2025-12-14
 
 // Input: json (any structure), language (hebrew/english)
 
@@ -86,7 +86,7 @@ function buildMenuTree(value, level = 0, path = '') {
       <div class="menu-item-wrapper">
         <div class="menu-item level-${level}" data-section="${sectionId}">
           ${hasChildren ? `<span class="menu-toggle" onclick="toggleMenuItem(event, '${sectionId}_children')">▼</span>` : '<span class="menu-spacer"></span>'}
-          <span class="menu-text" onclick="scrollToSection('${sectionId}')">${formatFieldName(key)}</span>
+          <span class="menu-text" onclick="showSection('${sectionId}')">${formatFieldName(key)}</span>
         </div>
         ${hasChildren ? `<div class="menu-children" id="${sectionId}_children">${childrenMenu}</div>` : ''}
       </div>`;
@@ -595,6 +595,30 @@ const html = `<!DOCTYPE html>
       background: #fffbeb;
     }
 
+    /* Hidden - for filtering */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Show All Button */
+    .show-all-btn {
+      display: none;
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+      font-family: inherit;
+    }
+
+    .show-all-btn:hover {
+      background: #4f46e5;
+    }
+
     /* Print */
     @media print {
       .sidebar { display: none; }
@@ -640,6 +664,7 @@ const html = `<!DOCTYPE html>
 
     <main class="main-content">
       <div class="container">
+        <button id="showAllBtn" class="show-all-btn" onclick="showAll()">◀ הצג הכל</button>
         ${mainContent}
         ${htmlSection}
       </div>
@@ -647,7 +672,7 @@ const html = `<!DOCTYPE html>
   </div>
 
   <script>
-    // Toggle section in main content
+    // Toggle section in main content (expand/collapse)
     function toggleSection(id) {
       const body = document.getElementById(id);
       const icon = document.getElementById('icon_' + id);
@@ -657,7 +682,7 @@ const html = `<!DOCTYPE html>
       }
     }
 
-    // Toggle menu item children
+    // Toggle menu item children in sidebar
     function toggleMenuItem(event, id) {
       event.stopPropagation();
       const children = document.getElementById(id);
@@ -668,26 +693,52 @@ const html = `<!DOCTYPE html>
       }
     }
 
-    // Scroll to section and expand
-    function scrollToSection(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Show only selected section - הצג רק את הסקשן הנבחר
+    function showSection(id) {
+      // הסתר את כל הסקשנים ברמה העליונה
+      document.querySelectorAll('.container > .section').forEach(el => {
+        el.classList.add('hidden');
+      });
+      document.querySelectorAll('.container > .info-list').forEach(el => {
+        el.classList.add('hidden');
+      });
 
-        // פתח את הסקשן אם סגור
+      // הצג את הסקשן הנבחר
+      const section = document.getElementById(id);
+      if (section) {
+        section.classList.remove('hidden');
+        // פתח את הסקשן
         const bodyId = id + '_body';
         const body = document.getElementById(bodyId);
         const icon = document.getElementById('icon_' + bodyId);
-        if (body && body.classList.contains('collapsed')) {
+        if (body) {
           body.classList.remove('collapsed');
           if (icon) icon.classList.remove('collapsed');
         }
-
-        // הדגש את הפריט בתפריט
-        document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-        const menuItem = document.querySelector('.menu-item[data-section="' + id + '"]');
-        if (menuItem) menuItem.classList.add('active');
       }
+
+      // הדגש את הפריט בתפריט
+      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+      const menuItem = document.querySelector('.menu-item[data-section="' + id + '"]');
+      if (menuItem) menuItem.classList.add('active');
+
+      // הצג כפתור "הצג הכל"
+      document.getElementById('showAllBtn').style.display = 'block';
+
+      // גלול למעלה
+      document.querySelector('.main-content').scrollTop = 0;
+    }
+
+    // Show all sections - הצג את כל הסקשנים
+    function showAll() {
+      document.querySelectorAll('.container > .section').forEach(el => {
+        el.classList.remove('hidden');
+      });
+      document.querySelectorAll('.container > .info-list').forEach(el => {
+        el.classList.remove('hidden');
+      });
+      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+      document.getElementById('showAllBtn').style.display = 'none';
     }
 
     // Expand/Collapse all menu items
