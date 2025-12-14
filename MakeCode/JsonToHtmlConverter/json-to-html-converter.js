@@ -1,5 +1,6 @@
 // GENERIC JSON to HTML - HTML AS-IS AT BOTTOM
 // MakeCode Module for converting any JSON structure to styled HTML
+// Version: 1.1.0 | Date: 2025-12-14
 
 // Input: json (any structure), language (hebrew/english)
 
