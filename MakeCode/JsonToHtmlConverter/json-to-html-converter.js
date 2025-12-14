@@ -3,7 +3,16 @@
 
 // Input: json (any structure), language (hebrew/english)
 
-const inputData = input.json || input;
+// טיפול בקלט - תמיכה במערכים ובאובייקטים
+let rawInput = input.json || input;
+
+// אם הקלט הוא מערך עם איבר אחד, קח את האיבר הראשון
+if (Array.isArray(rawInput) && rawInput.length === 1) {
+  rawInput = rawInput[0];
+}
+
+// אם יש שדה TEMPLATE, קח אותו
+const inputData = rawInput.TEMPLATE || rawInput;
 const language = input.language || 'hebrew';
 
 const langConfig = {
@@ -299,7 +308,5 @@ const html = `<!DOCTYPE html>
 </body>
 </html>`;
 
-return {
-  html: html,
-  filename: 'document.html'
-};
+// Make.com - החזר ישירות את ה-HTML
+return html;
