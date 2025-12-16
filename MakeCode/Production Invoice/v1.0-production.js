@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.8.3 - 16.12.25)
-// עדכון אחרון: 16.12.25 17:15
+// קוד 3 - ייצור חשבוניות (גרסה 1.8.4 - 16.12.25)
+// עדכון אחרון: 16.12.25 17:25
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -13,11 +13,11 @@
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
 // תיקונים:
+// v1.8.4: חילוץ PDES מ-AZURE_TEXT_CLEAN (כשאין Description ב-Items)
 // v1.8.3: תיקון DETAILS - הסרת בדיקת vehicles (מערך ריק הוא truthy!)
 // v1.8.2: תיקון AZURE_RESULT quote בהתחלה, PRICE מ-SubTotal לפריט יחיד
 // v1.8.1: לעולם לא מחזיר שגיאה! אם אין התאמה - לוקח תבנית 0 + מדווח בפירוט
 // v1.8.0: תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
-// v1.7.9: תיקון - תמיכה ב-template_index כמחרוזת (Make שולח מחרוזת)
 // ============================================================================
 
 // ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
@@ -1249,6 +1249,33 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
         subtotal = ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount;
     }
 
+    // חילוץ תיאור מ-AZURE_TEXT_CLEAN אם אין Description ב-Items
+    let extractedDescription = "";
+    const azureText = ocrFields.AZURE_TEXT_CLEAN || "";
+    if (azureText) {
+        const lines = azureText.split('\n').map(l => l.trim()).filter(l => l);
+
+        // חיפוש תיאור שירות - שנה + טקסט (למשל "2025 ריטיינר יולי")
+        for (const line of lines) {
+            // דפוס: שנה (2020-2030) + טקסט
+            if (/^20[2-3]\d\s+\S/.test(line)) {
+                extractedDescription = line;
+                break;
+            }
+            // דפוס: מילות מפתח של תיאור שירות
+            if ((line.includes('ריטיינר') || line.includes('שירות') ||
+                 line.includes('ייעוץ') || line.includes('הנהלת חשבונות')) &&
+                line.length > 5 && line.length < 100) {
+                extractedDescription = line;
+                break;
+            }
+        }
+
+        if (extractedDescription) {
+            console.log(`📝 PDES חולץ מ-AZURE_TEXT: "${extractedDescription}"`);
+        }
+    }
+
     ocrItems.forEach((ocrItem, index) => {
         let price = 0;
 
@@ -1270,13 +1297,16 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
             console.log(`⚠️ PRICE מ-TotalPrice (כולל מע"מ): ${price}`);
         }
 
+        // PDES - תיאור הפריט (מספר מקורות אפשריים)
+        let pdes = ocrItem.Description || extractedDescription || templateItem.PDES || "";
+
         const item = {
             PARTNAME: templateItem.PARTNAME || "item",
             TUNITNAME: ocrItem.Unit || templateItem.TUNITNAME || "יח'",
             VATFLAG: templateItem.VATFLAG || "Y",
             ACCNAME: templateItem.ACCNAME || "",
             SPECIALVATFLAG: templateItem.SPECIALVATFLAG || "Y",
-            PDES: ocrItem.Description || templateItem.PDES || "",
+            PDES: pdes,
             TQUANT: ocrItem.Quantity || 1,
             PRICE: price
         };
