@@ -1188,10 +1188,15 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         }
     }
 
-    // DETAILS - לפי PDES של שורה 1 (אם יש פריטים)
+    // DETAILS - לפי PDES של שורה 1 (רק אם אין כבר DETAILS)
     if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
-        invoice.DETAILS = invoice.PINVOICEITEMS_SUBFORM[0].PDES || null;
-        console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+        if (!invoice.DETAILS) {
+            // אם אין DETAILS - קח מ-PDES של הפריט הראשון
+            invoice.DETAILS = invoice.PINVOICEITEMS_SUBFORM[0].PDES || null;
+            console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+        } else {
+            console.log(`✅ DETAILS kept from searchResults: ${invoice.DETAILS}`);
+        }
     }
 
     if (template.PINVOICESCONT_SUBFORM) {
@@ -1236,15 +1241,34 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
     if (!ocrItems || ocrItems.length === 0) return [];
     const items = [];
     const templateItem = template.PINVOICEITEMS_SUBFORM?.[0] || {};
+
+    // חישוב SubTotal לפני מע"מ
+    let subtotal = ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
+    if (!subtotal && ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount) {
+        subtotal = ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount;
+    }
+
     ocrItems.forEach((ocrItem, index) => {
         let price = 0;
-        if (ocrItem.UnitPrice) {
-            price = ocrItem.UnitPrice;
-        } else if (ocrItem.Amount && ocrItem.Quantity) {
-            price = ocrItem.Amount / (ocrItem.Quantity || 1);
-        } else if (ocrItem.Amount) {
-            price = ocrItem.Amount;
+
+        // אם יש רק פריט אחד - עדיף לקחת SubTotal (לפני מע"מ)
+        if (ocrItems.length === 1 && subtotal > 0) {
+            price = subtotal;
+            console.log(`📊 PRICE מ-SubTotal (פריט יחיד): ${price}`);
         }
+        // אחרת - בדיקת מקורות שונים למחיר
+        else if (ocrItem.UnitPrice) {
+            price = ocrItem.UnitPrice;
+        } else if (ocrItem.Amount) {
+            price = ocrItem.Amount / (ocrItem.Quantity || 1);
+        } else if (ocrItem.Amount_amount) {
+            price = ocrItem.Amount_amount / (ocrItem.Quantity || 1);
+        } else if (ocrItem.TotalPrice) {
+            // TotalPrice - מחיר כולל מע"מ (פחות מדויק)
+            price = ocrItem.TotalPrice;
+            console.log(`⚠️ PRICE מ-TotalPrice (כולל מע"מ): ${price}`);
+        }
+
         const item = {
             PARTNAME: templateItem.PARTNAME || "item",
             TUNITNAME: ocrItem.Unit || templateItem.TUNITNAME || "יח'",
