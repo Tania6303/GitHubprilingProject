@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.8.4 - 16.12.25)
-// עדכון אחרון: 16.12.25 17:25
+// קוד 3 - ייצור חשבוניות (גרסה 1.8.5 - 16.12.25)
+// עדכון אחרון: 16.12.25 17:45
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -13,11 +13,11 @@
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
 // תיקונים:
+// v1.8.5: DETAILS fallback מ-template.DETAILS (כשאין searchResults ואין PDES)
 // v1.8.4: חילוץ PDES מ-AZURE_TEXT_CLEAN (כשאין Description ב-Items)
 // v1.8.3: תיקון DETAILS - הסרת בדיקת vehicles (מערך ריק הוא truthy!)
 // v1.8.2: תיקון AZURE_RESULT quote בהתחלה, PRICE מ-SubTotal לפריט יחיד
 // v1.8.1: לעולם לא מחזיר שגיאה! אם אין התאמה - לוקח תבנית 0 + מדווח בפירוט
-// v1.8.0: תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
 // ============================================================================
 
 // ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
@@ -1189,12 +1189,24 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         }
     }
 
-    // DETAILS - לפי PDES של שורה 1 (רק אם אין כבר DETAILS)
+    // DETAILS - לפי PDES של שורה 1, או מהתבנית
     if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
         if (!invoice.DETAILS) {
-            // אם אין DETAILS - קח מ-PDES של הפריט הראשון
-            invoice.DETAILS = invoice.PINVOICEITEMS_SUBFORM[0].PDES || null;
-            console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+            // אם אין DETAILS - נסה PDES של הפריט הראשון
+            const pdesValue = invoice.PINVOICEITEMS_SUBFORM[0].PDES;
+            if (pdesValue && pdesValue.trim()) {
+                invoice.DETAILS = pdesValue;
+                console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+            }
+            // אם עדיין אין - קח מהתבנית
+            else if (template.DETAILS) {
+                invoice.DETAILS = template.DETAILS;
+                console.log(`✅ DETAILS set from template: ${invoice.DETAILS}`);
+            }
+            else {
+                invoice.DETAILS = null;
+                console.log(`⚠️ DETAILS: לא נמצא מקור`);
+            }
         } else {
             console.log(`✅ DETAILS kept from searchResults: ${invoice.DETAILS}`);
         }
