@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.8.1 - 13.12.25)
-// עדכון אחרון: 13.12.25 19:30
+// קוד 3 - ייצור חשבוניות (גרסה 1.8.2 - 16.12.25)
+// עדכון אחרון: 16.12.25 15:00
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -13,6 +13,7 @@
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
 // תיקונים:
+// v1.8.2: תיקון double-escaped JSON ב-AZURE_RESULT (גורם ל-IVDATE/BOOKNUM ריקים)
 // v1.8.1: לעולם לא מחזיר שגיאה! אם אין התאמה - לוקח תבנית 0 + מדווח בפירוט
 // v1.8.0: תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
 // v1.7.9: תיקון - תמיכה ב-template_index כמחרוזת (Make שולח מחרוזת)
@@ -503,10 +504,17 @@ function processInvoiceComplete(input) {
         }
 
         let azureResult = inputData.AZURE_RESULT || { data: { fields: {} } };
+        // תיקון: טיפול ב-double-escaped JSON (כשהערך מגיע כ-"\"{...}\"")
         if (typeof azureResult === 'string') {
             try {
                 azureResult = JSON.parse(azureResult);
+                // בדיקה אם עדיין מחרוזת (double-escaped)
+                if (typeof azureResult === 'string') {
+                    console.log('⚠️ AZURE_RESULT היה double-escaped, מפרסר שוב');
+                    azureResult = JSON.parse(azureResult);
+                }
             } catch (e) {
+                console.log('❌ שגיאה בפרסור AZURE_RESULT:', e.message);
                 azureResult = { data: { fields: {} } };
             }
         }
