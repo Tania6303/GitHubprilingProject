@@ -504,17 +504,33 @@ function processInvoiceComplete(input) {
         }
 
         let azureResult = inputData.AZURE_RESULT || { data: { fields: {} } };
-        // תיקון: טיפול ב-double-escaped JSON (כשהערך מגיע כ-"\"{...}\"")
+        // תיקון v1.8.2: טיפול בפורמטים שונים של AZURE_RESULT
+        // פורמט 1: מחרוזת JSON רגילה - {"data":...}
+        // פורמט 2: מחרוזת עם quotes חיצוניים - "{"data":...}" (מ-Make.com)
+        // פורמט 3: double-escaped - "\"{\"data\":...}\""
         if (typeof azureResult === 'string') {
             try {
-                azureResult = JSON.parse(azureResult);
-                // בדיקה אם עדיין מחרוזת (double-escaped)
+                let jsonStr = azureResult.trim();
+
+                // פורמט 2: אם מתחיל ב-"{ - הסר quote מיותר בהתחלה
+                // (Make.com שולח: "{"structure":...,"status":"success"})
+                if (jsonStr.startsWith('"{')) {
+                    jsonStr = jsonStr.slice(1);  // הסר רק את ה-" בהתחלה
+                    console.log('⚠️ AZURE_RESULT: הוסר quote בהתחלה');
+                }
+
+                azureResult = JSON.parse(jsonStr);
+
+                // פורמט 3: בדיקה אם עדיין מחרוזת (double-escaped)
                 if (typeof azureResult === 'string') {
-                    console.log('⚠️ AZURE_RESULT היה double-escaped, מפרסר שוב');
+                    console.log('⚠️ AZURE_RESULT: double-escaped, מפרסר שוב');
                     azureResult = JSON.parse(azureResult);
                 }
+
+                console.log('✅ AZURE_RESULT נפרסר בהצלחה, יש data:', !!azureResult.data);
             } catch (e) {
                 console.log('❌ שגיאה בפרסור AZURE_RESULT:', e.message);
+                console.log('   10 תווים ראשונים:', JSON.stringify(String(inputData.AZURE_RESULT).substring(0, 10)));
                 azureResult = { data: { fields: {} } };
             }
         }
