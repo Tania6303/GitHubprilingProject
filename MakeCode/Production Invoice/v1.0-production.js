@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.8.2 - 16.12.25)
-// עדכון אחרון: 16.12.25 15:00
+// קוד 3 - ייצור חשבוניות (גרסה 1.8.3 - 16.12.25)
+// עדכון אחרון: 16.12.25 17:15
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -13,11 +13,11 @@
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
 // תיקונים:
-// v1.8.2: תיקון double-escaped JSON ב-AZURE_RESULT (גורם ל-IVDATE/BOOKNUM ריקים)
+// v1.8.3: תיקון DETAILS - הסרת בדיקת vehicles (מערך ריק הוא truthy!)
+// v1.8.2: תיקון AZURE_RESULT quote בהתחלה, PRICE מ-SubTotal לפריט יחיד
 // v1.8.1: לעולם לא מחזיר שגיאה! אם אין התאמה - לוקח תבנית 0 + מדווח בפירוט
 // v1.8.0: תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
 // v1.7.9: תיקון - תמיכה ב-template_index כמחרוזת (Make שולח מחרוזת)
-// v1.7.8: תמיכה ב-template_index מהקלט (לתמיכה במספר תבניות לספק)
 // ============================================================================
 
 // ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
@@ -1135,12 +1135,13 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         IVDATE: searchResults.ivdate,
         BOOKNUM: searchResults.booknum
     };
-    // DETAILS - יוגדר מאוחר יותר לפי שורה 1 של PDES (אם יש פריטים)
-    // אם זה לא רכבים ויש details מ-OCR
-    if (searchResults.details && searchResults.details.trim() && !searchResults.vehicles) {
+    // DETAILS - מ-searchResults.details (אם לא ריק ולא גנרי)
+    // לא תלוי ברכבים - תמיד לקחת details אם קיים
+    if (searchResults.details && searchResults.details.trim()) {
         const isGeneric = ['עבודה', 'work', 'labor'].some(term => searchResults.details.trim() === term);
         if (!isGeneric) {
             invoice.DETAILS = searchResults.details;
+            console.log(`✅ DETAILS מ-searchResults: ${invoice.DETAILS}`);
         }
     }
 
