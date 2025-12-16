@@ -9,22 +9,24 @@
                 "🔍 inputData.SUPNAME exists? false\n",
                 "✅ docs_list parsed: 0 תעודות\n",
                 "✅ vehicles parsed: 0 רכבים\n",
-                "❌ שגיאה בפרסור AZURE_RESULT: Unexpected non-whitespace character after JSON at position 3\n",
+                "⚠️ AZURE_RESULT: הוסר quote בהתחלה\n",
+                "✅ AZURE_RESULT נפרסר בהצלחה, יש data: true\n",
                 "🔧 בונה structure מתוך processing_scenario.all_templates\n",
                 "✅ נבנו 1 structures: [{\"has_import\":false,\"has_doc\":false,\"has_vehicles\":false,\"debit_type\":\"D\",\"has_budcode\":true,\"inventory_management\":\"not_managed_inventory\"}]\n",
                 "🚗 vehicleRules: false mapping: 0\n",
-                "BOOKNUM: \"\" → \"\"\n",
+                "BOOKNUM: \"052569\" → \"052569\"\n",
                 "🔧 needItems=true (has_doc=false, found docs=0)\n",
+                "נוצרו 1 פריטים מ-OCR\n",
                 "✅ DETAILS set from first item PDES: null\n",
-                "{\n  \"status\": \"success\",\n  \"supplier_identification\": {\n    \"supplier_code\": \"3710\",\n    \"supplier_name\": \"דרין טרגל ושות`\",\n    \"identification_method\": \"vendor_tax_id\",\n    \"confidence\": \"high\"\n  },\n  \"invoice_data\": {\n    \"PINVOICES\": [\n      {\n        \"SUPNAME\": \"3710\",\n        \"CODE\": \"ש\\\"ח\",\n        \"DEBIT\": \"D\",\n        \"IVDATE\": \"\",\n        \"BOOKNUM\": \"\",\n        \"PINVOICEITEMS_SUBFORM\": [\n          {\n            \"PARTNAME\": \"zzz02\",\n            \"TUNITNAME\": \"יח'\",\n            \"VATFLAG\": \"Y\",\n            \"ACCNAME\": \"49998\",\n            \"PDES\": \"\",\n            \"TQUANT\": 1,\n            \"PRICE\": 0\n          }\n        ],\n        \"DETAILS\": null,\n        \"PINVOICESCONT_SUBFORM\": []\n      }\n    ]\n  },\n  \"validation\": {\n    \"all_valid\": false,\n    \"checks\": {\n      \"required_fields_check\": \"failed\",\n      \"invoice_structure_check\": \"passed\",\n      \"amount_validation\": \"not_applicable\",\n      \"field_mapping\": {\n        \"SUPNAME\": {\n          \"source\": \"Template\",\n          \"field\": \"supplier_code\",\n          \"value\": \"3710\"\n        },\n        \"CODE\": {\n          \"source\": \"Template\",\n          \"value\": \"ש\\\"ח\"\n        },\n        \"DEBIT\": {\n          \"source\": \"Template\",\n          \"value\": \"D\"\n        },\n        \"IVDATE\": {\n          \"source\": \"OCR\",\n          \"field\": \"InvoiceDate\",\n          \"value\": \"\"\n        },\n        \"BOOKNUM\": {\n          \"source\": \"OCR\",\n          \"field\": \"InvoiceId\",\n          \"value\": \"\"\n        },\n        \"DETAILS\": {\n          \"source\": \"First Item PDES\",\n          \"value\": null\n        },\n        \"PINVOICEITEMS_SUBFORM\": {\n          \"source\": \"OCR Items\",\n          \"count\": 1\n        }\n      }\n    },\n    \"warnings\": [\n      \"שדות חובה חסרים: IVDATE, BOOKNUM\",\n      \"ℹ️ לא ניתן לבדוק סכומים\"\n    ]\n  },\n  \"learning_analysis\": {\n    \"learning_required\": false,\n    \"new_patterns\": {\n      \"new_partnames\": [],\n      \"new_vehicles\": [],\n      \"unknown_accounts\": []\n    },\n    \"learning_instructions\": [],\n    \"recommendation\": \"אין צורך בלמידה\"\n  },\n  \"execution_report\": {\n    \"stage\": \"שלב 7: ניקוי והכנה לפריוריטי\",\n    \"found\": [\n      \"סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D\",\n      \"תבנית: נמצאה התאמה (index=0) (זיהוי אוטומטי - template_index לא תקין)\",\n      \"דפוסים: נמצאו\",\n      \"details: \\\"טלפון: 073-2400700 פקס: 09-8628554\\\"\",\n      \"items: 0 פריטים\"\n    ],\n    \"not_found\": [],\n    \"warnings\": [],\n    \"errors\": [],\n    \"template_match\": {\n      \"status\": \"matched\",\n      \"template_index\": 0,\n      \"reason\": \"זיהוי אוטומטי (template_index בקלט לא תקין)\",\n      \"document_characteristics\": {\n        \"has_import\": false,\n        \"has_doc\": false,\n        \"debit_type\": \"D\"\n      },\n      \"available_templates\": 1\n    }\n  },\n  \"metadata\": {\n    \"ocr_invoice_id\": \"\",\n    \"ocr_invoice_date\": \"\",\n    \"ocr_total_amount\": 0,\n    \"ocr_subtotal\": null,\n    \"ocr_tax\": 0,\n    \"processing_timestamp\": \"2025-12-16T14:44:48.422Z\",\n    \"version\": \"1.0-production\",\n    \"template_index\": 0,\n    \"template_type\": \"regular\",\n    \"has_vehicles\": false,\n    \"vehicle_numbers\": [],\n    \"vehicle_count\": 0,\n    \"has_documents\": false,\n    \"document_count\": 0,\n    \"has_import\": false\n  }\n}\n",
+                "{\n  \"status\": \"success\",\n  \"supplier_identification\": {\n    \"supplier_code\": \"3710\",\n    \"supplier_name\": \"דרין טרגל ושות`\",\n    \"identification_method\": \"vendor_tax_id\",\n    \"confidence\": \"high\"\n  },\n  \"invoice_data\": {\n    \"PINVOICES\": [\n      {\n        \"SUPNAME\": \"3710\",\n        \"CODE\": \"ש\\\"ח\",\n        \"DEBIT\": \"D\",\n        \"IVDATE\": \"25/08/25\",\n        \"BOOKNUM\": \"052569\",\n        \"PINVOICEITEMS_SUBFORM\": [\n          {\n            \"PARTNAME\": \"zzz02\",\n            \"TUNITNAME\": \"יח'\",\n            \"VATFLAG\": \"Y\",\n            \"ACCNAME\": \"49998\",\n            \"SPECIALVATFLAG\": \"Y\",\n            \"PDES\": \"\",\n            \"TQUANT\": 1,\n            \"PRICE\": 0\n          }\n        ],\n        \"DETAILS\": null,\n        \"PINVOICESCONT_SUBFORM\": []\n      }\n    ]\n  },\n  \"validation\": {\n    \"all_valid\": true,\n    \"checks\": {\n      \"required_fields_check\": \"passed\",\n      \"invoice_structure_check\": \"passed\",\n      \"amount_validation\": \"not_applicable\",\n      \"field_mapping\": {\n        \"SUPNAME\": {\n          \"source\": \"Template\",\n          \"field\": \"supplier_code\",\n          \"value\": \"3710\"\n        },\n        \"CODE\": {\n          \"source\": \"Template\",\n          \"value\": \"ש\\\"ח\"\n        },\n        \"DEBIT\": {\n          \"source\": \"Template\",\n          \"value\": \"D\"\n        },\n        \"IVDATE\": {\n          \"source\": \"OCR\",\n          \"field\": \"InvoiceDate\",\n          \"value\": \"25/08/25\",\n          \"ocr_value\": \"2025-08-25\"\n        },\n        \"BOOKNUM\": {\n          \"source\": \"OCR\",\n          \"field\": \"InvoiceId\",\n          \"value\": \"052569\",\n          \"ocr_value\": \"052569\"\n        },\n        \"DETAILS\": {\n          \"source\": \"First Item PDES\",\n          \"value\": null\n        },\n        \"PINVOICEITEMS_SUBFORM\": {\n          \"source\": \"OCR Items\",\n          \"count\": 1\n        }\n      }\n    },\n    \"warnings\": [\n      \"ℹ️ לא ניתן לבדוק סכומים\"\n    ]\n  },\n  \"learning_analysis\": {\n    \"learning_required\": false,\n    \"new_patterns\": {\n      \"new_partnames\": [],\n      \"new_vehicles\": [],\n      \"unknown_accounts\": []\n    },\n    \"learning_instructions\": [],\n    \"recommendation\": \"אין צורך בלמידה\"\n  },\n  \"execution_report\": {\n    \"stage\": \"שלב 7: ניקוי והכנה לפריוריטי\",\n    \"found\": [\n      \"סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D\",\n      \"תבנית: נמצאה התאמה (index=0) (זיהוי אוטומטי - template_index לא תקין)\",\n      \"דפוסים: נמצאו\",\n      \"booknum: \\\"052569\\\"\",\n      \"ivdate: \\\"25/08/25\\\"\",\n      \"details: \\\"טלפון: 073-2400700 פקס: 09-8628554\\\"\",\n      \"items: 1 פריטים\"\n    ],\n    \"not_found\": [],\n    \"warnings\": [],\n    \"errors\": [],\n    \"template_match\": {\n      \"status\": \"matched\",\n      \"template_index\": 0,\n      \"reason\": \"זיהוי אוטומטי (template_index בקלט לא תקין)\",\n      \"document_characteristics\": {\n        \"has_import\": false,\n        \"has_doc\": false,\n        \"debit_type\": \"D\"\n      },\n      \"available_templates\": 1\n    }\n  },\n  \"metadata\": {\n    \"ocr_invoice_id\": \"052569\",\n    \"ocr_invoice_date\": \"2025-08-25\",\n    \"ocr_total_amount\": 8850,\n    \"ocr_subtotal\": 7500,\n    \"ocr_tax\": 1350,\n    \"processing_timestamp\": \"2025-12-16T14:55:19.574Z\",\n    \"version\": \"1.0-production\",\n    \"template_index\": 0,\n    \"template_type\": \"regular\",\n    \"has_vehicles\": false,\n    \"vehicle_numbers\": [],\n    \"vehicle_count\": 0,\n    \"has_documents\": false,\n    \"document_count\": 0,\n    \"has_import\": false\n  }\n}\n",
                 "v1.7.1: items = 1\n",
-                "v1.7.1: BOOKNUM = \n",
+                "v1.7.1: BOOKNUM = 052569\n",
                 "v1.7.1: DOCNO = undefined\n",
                 "==========================================\n"
             ],
             "stderr": []
         },
-        "executionTimeMs": 1860,
+        "executionTimeMs": 1378,
         "result": {
             "status": "success",
             "supplier_identification": {
@@ -39,14 +41,15 @@
                         "SUPNAME": "3710",
                         "CODE": "ש\"ח",
                         "DEBIT": "D",
-                        "IVDATE": "",
-                        "BOOKNUM": "",
+                        "IVDATE": "25/08/25",
+                        "BOOKNUM": "052569",
                         "PINVOICEITEMS_SUBFORM": [
                             {
                                 "PARTNAME": "zzz02",
                                 "TUNITNAME": "יח'",
                                 "VATFLAG": "Y",
                                 "ACCNAME": "49998",
+                                "SPECIALVATFLAG": "Y",
                                 "PDES": "",
                                 "TQUANT": 1,
                                 "PRICE": 0
@@ -58,9 +61,9 @@
                 ]
             },
             "validation": {
-                "all_valid": false,
+                "all_valid": true,
                 "checks": {
-                    "required_fields_check": "failed",
+                    "required_fields_check": "passed",
                     "invoice_structure_check": "passed",
                     "amount_validation": "not_applicable",
                     "field_mapping": {
@@ -80,12 +83,14 @@
                         "IVDATE": {
                             "source": "OCR",
                             "field": "InvoiceDate",
-                            "value": ""
+                            "value": "25/08/25",
+                            "ocr_value": "2025-08-25"
                         },
                         "BOOKNUM": {
                             "source": "OCR",
                             "field": "InvoiceId",
-                            "value": ""
+                            "value": "052569",
+                            "ocr_value": "052569"
                         },
                         "DETAILS": {
                             "source": "First Item PDES",
@@ -98,7 +103,6 @@
                     }
                 },
                 "warnings": [
-                    "שדות חובה חסרים: IVDATE, BOOKNUM",
                     "ℹ️ לא ניתן לבדוק סכומים"
                 ]
             },
@@ -118,8 +122,10 @@
                     "סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D",
                     "תבנית: נמצאה התאמה (index=0) (זיהוי אוטומטי - template_index לא תקין)",
                     "דפוסים: נמצאו",
+                    "booknum: \"052569\"",
+                    "ivdate: \"25/08/25\"",
                     "details: \"טלפון: 073-2400700 פקס: 09-8628554\"",
-                    "items: 0 פריטים"
+                    "items: 1 פריטים"
                 ],
                 "not_found": [],
                 "warnings": [],
@@ -137,12 +143,12 @@
                 }
             },
             "metadata": {
-                "ocr_invoice_id": "",
-                "ocr_invoice_date": "",
-                "ocr_total_amount": 0,
-                "ocr_subtotal": null,
-                "ocr_tax": 0,
-                "processing_timestamp": "2025-12-16T14:44:48.422Z",
+                "ocr_invoice_id": "052569",
+                "ocr_invoice_date": "2025-08-25",
+                "ocr_total_amount": 8850,
+                "ocr_subtotal": 7500,
+                "ocr_tax": 1350,
+                "processing_timestamp": "2025-12-16T14:55:19.574Z",
                 "version": "1.0-production",
                 "template_index": 0,
                 "template_type": "regular",
