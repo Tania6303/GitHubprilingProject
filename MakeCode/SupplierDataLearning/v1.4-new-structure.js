@@ -1,7 +1,10 @@
-// Supplier Data Learning - גרסה 1.3
-// תאריך: 12 דצמבר 2025
-// עדכונים: מבנה JSON חדש, לוגיקה משופרת, תמיכה ברכבים, DEBIT כתבנית נפרדת
-// v1.3: תיקון באג בחירת דוגמאות + הוספת template_index ל-recommended_samples
+// Supplier Data Learning - גרסה 1.7
+// עדכון אחרון: 13.12.25 17:45
+//
+// עדכונים:
+// - 17:45 sample כ-sampleCollection - אובייקט אחד עם כל השדות המורחבים בפנים
+// - v1.4: שינוי מבנה הפלט - templates[] מכיל את כל המידע לכל תבנית
+// - מבנה חדש: מידע ספק ברמה עליונה, מערך תבניות עם כל המידע לכל תבנית
 
 // ============================================================================
 // פונקציות עזר - המרת תאריכים
@@ -9,20 +12,20 @@
 
 function convertDateToFormat(dateStr) {
     if (!dateStr) return '';
-    
+
     // אם כבר בפורמט DD/MM/YY
     if (typeof dateStr === 'string' && dateStr.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
         return dateStr;
     }
-    
+
     // אם ISO format
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
-    
+
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = String(date.getFullYear()).slice(-2);
-    
+
     return `${day}/${month}/${year}`;
 }
 
@@ -33,12 +36,12 @@ function convertDateToFormat(dateStr) {
 function identifyDocumentType(invoice) {
     const hasImport = !!invoice.IMPFNUM;
     const debitType = invoice.DEBIT || 'D';
-    
+
     const accnames = new Set();
     let hasDateRange = false;
     let hasBudcode = false;
     let hasPdaccname = false;
-    
+
     if (invoice.PINVOICEITEMS || invoice.PINVOICEITEMS_SUBFORM) {
         const items = invoice.PINVOICEITEMS || invoice.PINVOICEITEMS_SUBFORM;
         items.forEach(item => {
@@ -48,13 +51,13 @@ function identifyDocumentType(invoice) {
             if (item.PDACCNAME) hasPdaccname = true;
         });
     }
-    
-    const hasDoc = !!((invoice.PIVDOC && invoice.PIVDOC.length > 0) || 
+
+    const hasDoc = !!((invoice.PIVDOC && invoice.PIVDOC.length > 0) ||
                       (invoice.PIVDOC_SUBFORM && invoice.PIVDOC_SUBFORM.length > 0) ||
                       invoice.DOCNO);
-    
+
     const accnamesSorted = Array.from(accnames).sort().join(',');
-    
+
     return {
         type_key: `${hasImport ? 'IMP' : 'REG'}_${debitType}_ACC_${accnamesSorted}_DR_${hasDateRange}_BUD_${hasBudcode}_PD_${hasPdaccname}_DOC_${hasDoc}`,
         has_import: hasImport,
@@ -73,21 +76,21 @@ function identifyDocumentType(invoice) {
 
 function analyzeInventoryManagement(invoices) {
     const prsourcenames = new Set();
-    
+
     invoices.forEach(invoice => {
         const items = invoice.PINVOICEITEMS || invoice.PINVOICEITEMS_SUBFORM;
         if (items && items.length > 0 && items[0].PRSOURCENAME) {
             prsourcenames.add(items[0].PRSOURCENAME);
         }
     });
-    
+
     // אם כל החשבוניות עם אותו PRSOURCENAME
     if (prsourcenames.size === 1) {
         const value = Array.from(prsourcenames)[0];
         if (value === 'קבלה למלאי') return 'managed_inventory';
         if (value === 'ידני') return 'not_managed_inventory';
     }
-    
+
     return 'not_managed_inventory'; // ברירת מחדל
 }
 
@@ -101,7 +104,7 @@ function extractSupplierInfo(invoices) {
         supplier_phone: '',
         supplier_email: ''
     };
-    
+
     for (const invoice of invoices) {
         const cont = invoice.PINVOICESCONT || invoice.PINVOICESCONT_SUBFORM;
         if (cont && cont.length > 0) {
@@ -115,12 +118,12 @@ function extractSupplierInfo(invoices) {
                 info.supplier_email = cont[0].EMAIL;
             }
         }
-        
+
         if (info.vendor_tax_id_reference && info.supplier_phone && info.supplier_email) {
             break;
         }
     }
-    
+
     return info;
 }
 
@@ -130,21 +133,21 @@ function extractSupplierInfo(invoices) {
 
 function analyzeVehicleRules(invoices) {
     const vehicleData = {};
-    
+
     invoices.forEach(invoice => {
         const items = invoice.PINVOICEITEMS || invoice.PINVOICEITEMS_SUBFORM;
         if (!items) return;
-        
+
         items.forEach(item => {
             if (item.PARTNAME !== 'car') return;
-            
+
             // חילוץ מספר רכב מ-ACCDES
             const accdes = item.ACCDES || '';
             const vehicleMatch = accdes.match(/^(\d{3}-\d{2}-\d{3})/);
-            
+
             if (vehicleMatch && item.ACCNAME) {
                 const vehicleNumber = vehicleMatch[1];
-                
+
                 if (!vehicleData[vehicleNumber]) {
                     vehicleData[vehicleNumber] = {
                         accname: item.ACCNAME,
@@ -156,7 +159,7 @@ function analyzeVehicleRules(invoices) {
                         has_pdaccname: new Set()
                     };
                 }
-                
+
                 const vd = vehicleData[vehicleNumber];
                 if (item.VATFLAG) vd.vatflag_values.add(item.VATFLAG);
                 if (item.SPECIALVATFLAG) vd.specialvatflag_values.add(item.SPECIALVATFLAG);
@@ -166,12 +169,12 @@ function analyzeVehicleRules(invoices) {
             }
         });
     });
-    
+
     // המרה לפורמט סופי
     const vehicleRules = {};
     Object.keys(vehicleData).forEach(vehicleNumber => {
         const vd = vehicleData[vehicleNumber];
-        
+
         vehicleRules[vehicleNumber] = {
             accname: vd.accname,
             accdes: vd.accdes,
@@ -183,7 +186,7 @@ function analyzeVehicleRules(invoices) {
             pdaccname_pattern: vd.has_pdaccname.has(true) ? 'sometimes' : 'never'
         };
     });
-    
+
     return vehicleRules;
 }
 
@@ -209,17 +212,17 @@ function deepAnalyzeSupplier(invoices) {
         document_types: [],
         totquant_sample: 0
     };
-    
+
     const docTypesSeen = new Map();
-    
+
     // שם ספק ומידע
     if (invoices.length > 0 && invoices[0].SUPDES) {
         analysis.supplier_name = invoices[0].SUPDES;
     }
-    
+
     analysis.supplier_info = extractSupplierInfo(invoices);
     analysis.inventory_management = analyzeInventoryManagement(invoices);
-    
+
     // ניתוח כל החשבוניות
     invoices.forEach(data => {
         const docType = identifyDocumentType(data);
@@ -228,10 +231,17 @@ function deepAnalyzeSupplier(invoices) {
                 ...docType,
                 sample: data
             });
+        } else {
+            // הוספה לרשימת הדוגמאות של התבנית
+            const existing = docTypesSeen.get(docType.type_key);
+            if (!existing.all_samples) {
+                existing.all_samples = [existing.sample];
+            }
+            existing.all_samples.push(data);
         }
-        
+
         // זיהוי שדות מיוחדים
-        if ((data.PIVDOC && data.PIVDOC.length > 0) || 
+        if ((data.PIVDOC && data.PIVDOC.length > 0) ||
             (data.PIVDOC_SUBFORM && data.PIVDOC_SUBFORM.length > 0) ||
             data.DOCNO) {
             analysis.has_doc = true;
@@ -241,18 +251,18 @@ function deepAnalyzeSupplier(invoices) {
         if (data.DOCNO) analysis.has_docno = true;
         if (data.ORDNAME) analysis.has_ordname = true;
         if (data.IMPFNUM) analysis.has_impfnum = true;
-        
+
         // TOTQUANT לדוגמה
         if (data.TOTQUANT && !analysis.totquant_sample) {
             analysis.totquant_sample = data.TOTQUANT;
         }
     });
-    
+
     analysis.has_delivery_notes = analysis.has_sdinumit || analysis.has_docno;
-    
+
     // ניתוח מקטים (רק אם אין תעודות)
     const needsPartnameAnalysis = !analysis.has_doc && !analysis.has_delivery_notes;
-    
+
     if (needsPartnameAnalysis) {
         invoices.forEach(data => {
             const items = data.PINVOICEITEMS || data.PINVOICEITEMS_SUBFORM;
@@ -267,7 +277,7 @@ function deepAnalyzeSupplier(invoices) {
                                 sample_pdes: new Set()
                             };
                         }
-                        
+
                         if (item.ACCNAME) {
                             analysis.partnames[partname].accnames.add(item.ACCNAME);
                         }
@@ -282,12 +292,12 @@ function deepAnalyzeSupplier(invoices) {
             }
         });
     }
-    
+
     // ניתוח רכבים
     analysis.vehicle_rules = analyzeVehicleRules(invoices);
-    
+
     analysis.document_types = Array.from(docTypesSeen.values());
-    
+
     return analysis;
 }
 
@@ -297,13 +307,13 @@ function deepAnalyzeSupplier(invoices) {
 
 function shouldMergeTemplates(type1, type2) {
     const fieldsToCompare = ['has_import', 'debit_type', 'has_date_range', 'has_budcode', 'has_pdaccname', 'has_doc'];
-    
+
     for (const field of fieldsToCompare) {
         if (type1[field] !== type2[field]) {
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -315,35 +325,37 @@ function mergeIdenticalTemplates(documentTypes) {
     if (documentTypes.length <= 1) {
         return documentTypes;
     }
-    
+
     const merged = [];
     const processed = new Set();
-    
+
     for (let i = 0; i < documentTypes.length; i++) {
         if (processed.has(i)) continue;
-        
+
         let currentType = { ...documentTypes[i] };
         const allAccnames = new Set(currentType.accnames || []);
-        let allSamples = [currentType.sample];
-        
+        let allSamples = currentType.all_samples || [currentType.sample];
+
         for (let j = i + 1; j < documentTypes.length; j++) {
             if (processed.has(j)) continue;
-            
+
             if (shouldMergeTemplates(currentType, documentTypes[j])) {
                 // מיזוג accnames
                 (documentTypes[j].accnames || []).forEach(acc => allAccnames.add(acc));
-                allSamples.push(documentTypes[j].sample);
+                // מיזוג דוגמאות
+                const jSamples = documentTypes[j].all_samples || [documentTypes[j].sample];
+                allSamples = allSamples.concat(jSamples);
                 processed.add(j);
             }
         }
-        
+
         currentType.accnames = Array.from(allAccnames);
         currentType.all_samples = allSamples;
-        
+
         merged.push(currentType);
         processed.add(i);
     }
-    
+
     return merged;
 }
 
@@ -361,101 +373,19 @@ function calculateDocumentType(docType) {
         }
         return 'זיכוי רגיל עם פירוט';
     }
-    
+
     if (docType.has_import) {
         if (docType.has_doc) {
             return 'חשבונית עם תיק יבוא עם תעודות';
         }
         return 'חשבונית עם תיק יבוא - הוצאות ללא תעודות';
     }
-    
+
     if (docType.has_doc) {
         return 'חשבונית עם תעודות ללא פירוט';
     }
-    
+
     return 'חשבונית רגילה עם פירוט';
-}
-
-// ============================================================================
-// יצירת config מתקדם
-// ============================================================================
-
-function createAdvancedConfig(supplierId, analysis) {
-    const config = {
-        supplier_config: {
-            supplier_code: supplierId,
-            supplier_name: analysis.supplier_name,
-            vendor_tax_id_reference: analysis.supplier_info.vendor_tax_id_reference
-        },
-        structure: [],
-        rules: {
-            invoice_date_format: 'DD/MM/YY',
-            doc_variation: analysis.has_doc ? 'תעודה אחת (DOCNO) או מרובות (PIVDOC_SUBFORM) - שניהם בתבנית' : '',
-            validation_data: {
-                TOTQUANT: analysis.totquant_sample
-            },
-            critical_patterns: {
-                vehicle_rules: Object.keys(analysis.vehicle_rules).length > 0 ? {
-                    partname: 'car',
-                    vehicle_account_mapping: analysis.vehicle_rules
-                } : {},
-                partname_rules: {}
-            }
-        },
-        document_types: []
-    };
-    
-    // מיזוג תבניות
-    const mergedTypes = mergeIdenticalTemplates(analysis.document_types);
-    
-    // יצירת structure ו-document_types
-    mergedTypes.forEach(docType => {
-        // has_purchase_orders לפי הכלל החדש (סעיף 1)
-        let hasPurchaseOrders = false;
-        if (docType.has_import) {
-            hasPurchaseOrders = true; // יבוא - תמיד
-        } else if (!docType.has_doc && !analysis.has_delivery_notes && analysis.has_ordname) {
-            hasPurchaseOrders = true; // אין תעודות אבל יש הזמנה
-        }
-        
-        const structureItem = {
-            has_import: docType.has_import,
-            has_purchase_orders: hasPurchaseOrders,
-            has_doc: docType.has_doc,
-            has_date_range: docType.has_date_range,
-            has_budcode: docType.has_budcode,
-            has_pdaccname: docType.has_pdaccname,
-            inventory_management: analysis.inventory_management,
-            debit_type: docType.debit_type
-        };
-        
-        config.structure.push(structureItem);
-        
-        const documentTypeItem = {
-            type: calculateDocumentType(docType),
-            accnames: docType.accnames
-        };
-        
-        config.document_types.push(documentTypeItem);
-    });
-    
-    // הוספת partname_rules (רק אם אין תעודות ויש מקטים)
-    if (!analysis.has_doc && !analysis.has_delivery_notes && Object.keys(analysis.partnames).length > 0) {
-        const partnameRules = {};
-        
-        Object.keys(analysis.partnames).forEach(partname => {
-            const info = analysis.partnames[partname];
-            partnameRules[partname] = {
-                accnames: Array.from(info.accnames),
-                has_pdaccname: info.has_pdaccname,
-                sample_description: Array.from(info.sample_pdes)[0] || ''
-            };
-        });
-        
-        config.rules.critical_patterns.partname_rules = partnameRules;
-    }
-    
-    return config;
 }
 
 // ============================================================================
@@ -470,34 +400,34 @@ function cleanTemplate(sample, analysis, docType) {
         IVDATE: convertDateToFormat(sample.IVDATE),
         BOOKNUM: sample.BOOKNUM
     };
-    
+
     // DOCNO אם יש תעודה אחת
     if (sample.DOCNO) {
         cleaned.DOCNO = sample.DOCNO;
     }
-    
+
     // ORDNAME רק אם צריך הזמנה
     if (docType.has_import || (!docType.has_doc && !analysis.has_delivery_notes && analysis.has_ordname)) {
         if (sample.ORDNAME) {
             cleaned.ORDNAME = sample.ORDNAME;
         }
     }
-    
+
     // IMPFNUM אם יבוא
     if (docType.has_import && sample.IMPFNUM) {
         cleaned.IMPFNUM = sample.IMPFNUM;
     }
-    
+
     // SDINUMIT אם יש
     if (sample.SDINUMIT) {
         cleaned.SDINUMIT = sample.SDINUMIT;
     }
-    
+
     // DETAILS אם יש
     if (sample.DETAILS) {
         cleaned.DETAILS = sample.DETAILS;
     }
-    
+
     // PIVDOC_SUBFORM אם יש תעודות מרובות
     if (docType.has_doc) {
         cleaned.PIVDOC_SUBFORM = [
@@ -507,7 +437,7 @@ function cleanTemplate(sample, analysis, docType) {
             }
         ];
     }
-    
+
     // PINVOICEITEMS_SUBFORM אם אין תעודות
     if (!docType.has_doc && !analysis.has_delivery_notes) {
         const items = sample.PINVOICEITEMS || sample.PINVOICEITEMS_SUBFORM;
@@ -522,23 +452,23 @@ function cleanTemplate(sample, analysis, docType) {
                     VATFLAG: item.VATFLAG,
                     ACCNAME: item.ACCNAME
                 };
-                
+
                 // ICODE רק אם שונה מכותרת
                 if (item.ICODE && item.ICODE !== sample.CODE) {
                     cleanedItem.ICODE = item.ICODE;
                 }
-                
+
                 if (item.SPECIALVATFLAG) cleanedItem.SPECIALVATFLAG = item.SPECIALVATFLAG;
                 if (item.BUDCODE) cleanedItem.BUDCODE = item.BUDCODE;
                 if (item.FROMDATE) cleanedItem.FROMDATE = item.FROMDATE;
                 if (item.TODATE) cleanedItem.TODATE = item.TODATE;
                 if (item.PDACCNAME) cleanedItem.PDACCNAME = item.PDACCNAME;
-                
+
                 return cleanedItem;
             });
         }
     }
-    
+
     // PINVOICESCONT_SUBFORM - רק אם יש שדות רלוונטיים
     const cont = sample.PINVOICESCONT || sample.PINVOICESCONT_SUBFORM;
     if (cont && cont.length > 0) {
@@ -550,111 +480,139 @@ function cleanTemplate(sample, analysis, docType) {
             }];
         }
     }
-    
+
     return cleaned;
 }
 
 // ============================================================================
-// יצירת תבנית מרובה
+// יצירת תבנית מפורטת עם כל הפריטים הממוזגים
 // ============================================================================
 
-function createMultiSampleTemplate(analysis) {
-    const mergedTypes = mergeIdenticalTemplates(analysis.document_types);
-    const samples = [];
-    
-    mergedTypes.forEach(docType => {
-        // אם יש מיזוג תבניות (פירוט) - לקחת כל הרשומות השונות
-        if (docType.all_samples && docType.all_samples.length > 1 && !docType.has_doc) {
-            // מיזוג כל הפריטים מכל הדוגמאות
-            const allItems = [];
-            const seenItems = new Set();
-            
-            docType.all_samples.forEach(sample => {
-                const items = sample.PINVOICEITEMS || sample.PINVOICEITEMS_SUBFORM;
-                if (items) {
-                    items.forEach(item => {
-                        const itemKey = `${item.PARTNAME}_${item.ACCNAME}`;
-                        if (!seenItems.has(itemKey)) {
-                            allItems.push(item);
-                            seenItems.add(itemKey);
-                        }
-                    });
-                }
-            });
-            
-            // יצירת תבנית אחת עם כל הפריטים
-            const baseSample = docType.all_samples[0];
-            const cleanedSample = cleanTemplate(baseSample, analysis, docType);
-            
-            if (allItems.length > 0) {
-                cleanedSample.PINVOICEITEMS_SUBFORM = allItems.map(item => {
-                    const cleanedItem = {
-                        PARTNAME: item.PARTNAME,
-                        PDES: item.PDES,
-                        TQUANT: item.TQUANT,
-                        TUNITNAME: item.TUNITNAME,
-                        PRICE: item.PRICE,
-                        VATFLAG: item.VATFLAG,
-                        ACCNAME: item.ACCNAME
-                    };
-                    
-                    if (item.ICODE && item.ICODE !== baseSample.CODE) {
-                        cleanedItem.ICODE = item.ICODE;
+function createMergedTemplateData(docType, analysis) {
+    // אם יש מיזוג תבניות (פירוט) - לקחת כל הרשומות השונות
+    if (docType.all_samples && docType.all_samples.length > 1 && !docType.has_doc) {
+        // מיזוג כל הפריטים מכל הדוגמאות
+        const allItems = [];
+        const seenItems = new Set();
+
+        docType.all_samples.forEach(sample => {
+            const items = sample.PINVOICEITEMS || sample.PINVOICEITEMS_SUBFORM;
+            if (items) {
+                items.forEach(item => {
+                    const itemKey = `${item.PARTNAME}_${item.ACCNAME}`;
+                    if (!seenItems.has(itemKey)) {
+                        allItems.push(item);
+                        seenItems.add(itemKey);
                     }
-                    if (item.SPECIALVATFLAG) cleanedItem.SPECIALVATFLAG = item.SPECIALVATFLAG;
-                    if (item.BUDCODE) cleanedItem.BUDCODE = item.BUDCODE;
-                    if (item.FROMDATE) cleanedItem.FROMDATE = item.FROMDATE;
-                    if (item.TODATE) cleanedItem.TODATE = item.TODATE;
-                    if (item.PDACCNAME) cleanedItem.PDACCNAME = item.PDACCNAME;
-                    
-                    return cleanedItem;
                 });
             }
-            
-            samples.push(cleanedSample);
-        } else {
-            // תבנית רגילה
-            const sample = docType.sample;
-            samples.push(cleanTemplate(sample, analysis, docType));
+        });
+
+        // יצירת תבנית אחת עם כל הפריטים
+        const baseSample = docType.all_samples[0];
+        const cleanedSample = cleanTemplate(baseSample, analysis, docType);
+
+        if (allItems.length > 0) {
+            cleanedSample.PINVOICEITEMS_SUBFORM = allItems.map(item => {
+                const cleanedItem = {
+                    PARTNAME: item.PARTNAME,
+                    PDES: item.PDES,
+                    TQUANT: item.TQUANT,
+                    TUNITNAME: item.TUNITNAME,
+                    PRICE: item.PRICE,
+                    VATFLAG: item.VATFLAG,
+                    ACCNAME: item.ACCNAME
+                };
+
+                if (item.ICODE && item.ICODE !== baseSample.CODE) {
+                    cleanedItem.ICODE = item.ICODE;
+                }
+                if (item.SPECIALVATFLAG) cleanedItem.SPECIALVATFLAG = item.SPECIALVATFLAG;
+                if (item.BUDCODE) cleanedItem.BUDCODE = item.BUDCODE;
+                if (item.FROMDATE) cleanedItem.FROMDATE = item.FROMDATE;
+                if (item.TODATE) cleanedItem.TODATE = item.TODATE;
+                if (item.PDACCNAME) cleanedItem.PDACCNAME = item.PDACCNAME;
+
+                return cleanedItem;
+            });
         }
-    });
-    
-    return {
-        PINVOICES: samples,
-        document_types_count: samples.length
-    };
+
+        return cleanedSample;
+    } else {
+        // תבנית רגילה
+        const sample = docType.sample;
+        return cleanTemplate(sample, analysis, docType);
+    }
 }
 
 // ============================================================================
-// יצירת דוגמאות מומלצות - לכל תבנית דוגמה מתאימה
+// יצירת מערך התבניות - כל תבנית עם כל המידע שלה
 // ============================================================================
 
-function createRecommendedSamples(analysis) {
+function createTemplatesArray(analysis) {
     const mergedTypes = mergeIdenticalTemplates(analysis.document_types);
-    const samples = [];
+    const templates = [];
 
     mergedTypes.forEach((docType, index) => {
-        // ✅ תיקון: בחירה מתוך החשבוניות של התבנית הספציפית (לא מכל הנתונים!)
+        // has_purchase_orders לפי הכלל החדש
+        let hasPurchaseOrders = false;
+        if (docType.has_import) {
+            hasPurchaseOrders = true; // יבוא - תמיד
+        } else if (!docType.has_doc && !analysis.has_delivery_notes && analysis.has_ordname) {
+            hasPurchaseOrders = true; // אין תעודות אבל יש הזמנה
+        }
+
+        // בחירת דוגמה לסריקה
         const templateSamples = docType.all_samples || [docType.sample];
         const randomIndex = Math.floor(Math.random() * templateSamples.length);
         const sampleInvoice = templateSamples[randomIndex];
 
-        samples.push({
-            template_index: index,  // ✅ חדש! קישור לתבנית
-            sample_ivnum: sampleInvoice.IVNUM || '',
-            sample_booknum: sampleInvoice.BOOKNUM || '',
-            sample_impfnum: sampleInvoice.IMPFNUM || '',
-            sample_supname: sampleInvoice.SUPNAME || ''
-        });
+        // יצירת אובייקט התבנית המלא
+        const templateObj = {
+            template_index: index,
+
+            // מידע על סוג המסמך
+            document_type: {
+                type: calculateDocumentType(docType),
+                accnames: docType.accnames
+            },
+
+            // מבנה התבנית
+            structure: {
+                has_import: docType.has_import,
+                has_purchase_orders: hasPurchaseOrders,
+                has_doc: docType.has_doc,
+                has_date_range: docType.has_date_range,
+                has_budcode: docType.has_budcode,
+                has_pdaccname: docType.has_pdaccname,
+                inventory_management: analysis.inventory_management,
+                debit_type: docType.debit_type
+            },
+
+            // דוגמת תבנית מלאה (PINVOICES format)
+            template: createMergedTemplateData(docType, analysis),
+
+            // ========================================
+            // sampleCollection - החשבונית המלאה לדוגמה
+            // ========================================
+            sample: sampleInvoice
+
+            // ========================================
+            // שדות שיתווספו ע"י Make אחרי עיבוד:
+            // azure_result: {...}  ← תוצאת Azure OCR
+            // docs: [...]          ← רשימת מסמכים מ-Priority
+            // import_files: [...]  ← קבצי יבוא (אם רלוונטי)
+            // ========================================
+        };
+
+        templates.push(templateObj);
     });
 
-    return {
-        samples: samples
-    };
+    return templates;
 }
 
 // ============================================================================
-// הפונקציה הראשית
+// הפונקציה הראשית - מבנה חדש
 // ============================================================================
 
 function processSupplierInvoices(invoicesJson, supplierId) {
@@ -663,30 +621,65 @@ function processSupplierInvoices(invoicesJson, supplierId) {
         if (typeof invoicesJson === 'string') {
             invoices = JSON.parse(invoicesJson);
         }
-        
+
         if (!Array.isArray(invoices)) {
             throw new Error('invoices_json must be an array');
         }
-        
+
         const analysis = deepAnalyzeSupplier(invoices);
-        const config = createAdvancedConfig(supplierId, analysis);
-        const template = createMultiSampleTemplate(analysis);
-        const recommended = createRecommendedSamples(analysis);
-        
+        const templates = createTemplatesArray(analysis);
+
+        // ========================================
+        // מבנה הפלט החדש:
+        // - מידע ספק ברמה העליונה (כללי)
+        // - templates[] - מערך עם כל המידע לכל תבנית
+        // ========================================
+
         return {
             status: 'success',
+
+            // === מידע ספק (רמה עליונה) ===
             supplier_id: supplierId,
             supplier_name: analysis.supplier_name,
             vendor_tax_id_reference: analysis.supplier_info.vendor_tax_id_reference,
             supplier_phone: analysis.supplier_info.supplier_phone,
             supplier_email: analysis.supplier_info.supplier_email,
+
+            // === סטטיסטיקות ===
             json_files_analyzed: invoices.length,
-            templates_detected: template.document_types_count,
-            config: config,
-            template: template,
-            recommended_samples: recommended
+            templates_detected: templates.length,
+
+            // === הגדרות כלליות לספק (לא תלויות בתבנית) ===
+            supplier_config: {
+                supplier_code: supplierId,
+                supplier_name: analysis.supplier_name,
+                vendor_tax_id_reference: analysis.supplier_info.vendor_tax_id_reference
+            },
+
+            // === כללים כלליים (לכל התבניות) ===
+            rules: {
+                invoice_date_format: 'DD/MM/YY',
+                doc_variation: analysis.has_doc ? 'תעודה אחת (DOCNO) או מרובות (PIVDOC_SUBFORM) - שניהם בתבנית' : ''
+            },
+
+            // === נתוני validation ===
+            validation: {
+                TOTQUANT: analysis.totquant_sample
+            },
+
+            // === דפוסים קריטיים (רכבים, מקטים) ===
+            critical_patterns: {
+                vehicle_rules: Object.keys(analysis.vehicle_rules).length > 0 ? {
+                    partname: 'car',
+                    vehicle_account_mapping: analysis.vehicle_rules
+                } : {},
+                partname_rules: createPartnameRules(analysis)
+            },
+
+            // === מערך התבניות - כל תבנית עם כל המידע שלה ===
+            templates: templates
         };
-        
+
     } catch (error) {
         return {
             status: 'error',
@@ -694,6 +687,29 @@ function processSupplierInvoices(invoicesJson, supplierId) {
             stack: error.stack
         };
     }
+}
+
+// ============================================================================
+// יצירת partname_rules (רק אם אין תעודות ויש מקטים)
+// ============================================================================
+
+function createPartnameRules(analysis) {
+    if (analysis.has_doc || analysis.has_delivery_notes || Object.keys(analysis.partnames).length === 0) {
+        return {};
+    }
+
+    const partnameRules = {};
+
+    Object.keys(analysis.partnames).forEach(partname => {
+        const info = analysis.partnames[partname];
+        partnameRules[partname] = {
+            accnames: Array.from(info.accnames),
+            has_pdaccname: info.has_pdaccname,
+            sample_description: Array.from(info.sample_pdes)[0] || ''
+        };
+    });
+
+    return partnameRules;
 }
 
 // ============================================================================
@@ -705,7 +721,7 @@ const supplierId = input.supplier_id;
 let invoices;
 try {
     let rawData = input.invoices_json;
-    
+
     if (rawData && typeof rawData === 'object' && rawData.type === 'Buffer' && Array.isArray(rawData.data)) {
         const uint8Array = new Uint8Array(rawData.data);
         const decoder = new TextDecoder('utf-8');
@@ -718,7 +734,7 @@ try {
     else {
         invoices = rawData;
     }
-    
+
     if (!Array.isArray(invoices)) {
         return {
             status: 'error',
@@ -726,7 +742,7 @@ try {
             received_structure: JSON.stringify(invoices).substring(0, 300)
         };
     }
-    
+
 } catch (e) {
     return {
         status: 'error',

@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 4.11 - 19.11.25.16:05)
-// מקבל: OCR + הגדרות + תעודות + יבוא
+// קוד 2 - עיבוד חשבוניות (גרסה 4.13 - 12.12.25)
+// מקבל: OCR + הגדרות + תעודות + יבוא + template_index (אופציונלי)
 // מחזיר: JSON לפריוריטי + דוח ביצוע + זיהוי רכבים משופר
 //
 // 📁 קבצי בדיקה: MakeCode/Processing Invoice/EXEMPTS/
@@ -8,6 +8,9 @@
 //
 // ⚠️ קשור ל: MakeCode/Production Invoice/v1.0-production.js
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
+//
+// v4.12: תמיכה ב-template_index מהקלט (לתמיכה במספר תבניות לספק)
+// v4.13: תיקון - תמיכה ב-template_index כמחרוזת (Make שולח מחרוזת)
 // ============================================================================
 
 // ============================================================================
@@ -144,17 +147,36 @@ function processInvoiceComplete(input) {
 
         // ד. חיפוש תבנית מתאימה
         const config = input.learned_config.config;
-        const templateIndex = findMatchingTemplate(config.structure, hasImport, hasDocs, debitType);
 
-        if (templateIndex === -1) {
-            executionReport.errors.push("לא נמצאה תבנית מתאימה!");
-            throw new Error("לא נמצאה תבנית מתאימה");
+        // ✅ חדש! אם קיבלנו template_index בקלט - להשתמש בו ישירות
+        // תמיכה גם במספר וגם במחרוזת (Make שולח מחרוזת)
+        let templateIndex;
+        const rawTemplateIndex = input.template_index;
+        if (rawTemplateIndex !== undefined && rawTemplateIndex !== null && rawTemplateIndex !== '') {
+            templateIndex = parseInt(rawTemplateIndex, 10);
+            if (!isNaN(templateIndex) && templateIndex >= 0) {
+                executionReport.found.push(`תבנית: index=${templateIndex} (מקלט - template_index)`);
+            } else {
+                // template_index לא תקין - fallback
+                templateIndex = findMatchingTemplate(config.structure, hasImport, hasDocs, debitType);
+                if (templateIndex === -1) {
+                    executionReport.errors.push("לא נמצאה תבנית מתאימה!");
+                    throw new Error("לא נמצאה תבנית מתאימה");
+                }
+                executionReport.found.push(`תבנית: index=${templateIndex} (זיהוי אוטומטי - template_index לא תקין)`);
+            }
+        } else {
+            // fallback - זיהוי אוטומטי לפי מאפייני המסמך
+            templateIndex = findMatchingTemplate(config.structure, hasImport, hasDocs, debitType);
+            if (templateIndex === -1) {
+                executionReport.errors.push("לא נמצאה תבנית מתאימה!");
+                throw new Error("לא נמצאה תבנית מתאימה");
+            }
+            executionReport.found.push(`תבנית: index=${templateIndex} (זיהוי אוטומטי)`);
         }
 
         const structure = config.structure[templateIndex];
         const template = input.learned_config.template.PINVOICES[templateIndex];
-
-        executionReport.found.push(`תבנית: index=${templateIndex}`);
 
         // ============================================================================
         // שלב 2: הכנה - הבנת דפוסים
