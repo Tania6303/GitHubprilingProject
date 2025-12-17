@@ -1,0 +1,166 @@
+[
+    {
+        "logs": {
+            "stdout": [
+                "v1.7.1: input type = object isArray = false\n",
+                "🔍 inputData keys: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN, template_index\n",
+                "🔍 inputData.input exists? false\n",
+                "🔍 inputData.AZURE exists? false\n",
+                "🔍 inputData.SUPNAME exists? false\n",
+                "✅ docs_list parsed: 0 תעודות\n",
+                "✅ vehicles parsed: 0 רכבים\n",
+                "🔧 בונה structure מתוך processing_scenario.all_templates\n",
+                "✅ נבנו 1 structures: [{\"has_import\":false,\"has_doc\":false,\"has_vehicles\":false,\"debit_type\":\"D\",\"has_budcode\":true,\"inventory_management\":\"not_managed_inventory\"}]\n",
+                "🚗 vehicleRules: false mapping: 0\n",
+                "BOOKNUM: \"052569\" → \"052569\"\n",
+                "✅ DETAILS מ-searchResults: טלפון: 073-2400700 פקס: 09-8628554\n",
+                "🔧 needItems=true (has_doc=false, found docs=0)\n",
+                "📝 PDES חולץ מ-AZURE_TEXT: \"2025 ריטיינר יולי\"\n",
+                "📊 PRICE מ-SubTotal (פריט יחיד): 7500\n",
+                "✅ סכום תואם: OCR=7500, חישוב=7500.00\n",
+                "נוצרו 1 פריטים מ-OCR\n",
+                "✅ DETAILS kept from searchResults: טלפון: 073-2400700 פקס: 09-8628554\n",
+                "{\n  \"status\": \"success\",\n  \"supplier_identification\": {\n    \"supplier_code\": \"3710\",\n    \"supplier_name\": \"דרין טרגל ושות`\",\n    \"identification_method\": \"vendor_tax_id\",\n    \"confidence\": \"high\"\n  },\n  \"invoice_data\": {\n    \"PINVOICES\": [\n      {\n        \"SUPNAME\": \"3710\",\n        \"CODE\": \"ש\\\"ח\",\n        \"DEBIT\": \"D\",\n        \"IVDATE\": \"25/08/25\",\n        \"BOOKNUM\": \"052569\",\n        \"DETAILS\": \"טלפון: 073-2400700 פקס: 09-8628554\",\n        \"PINVOICEITEMS_SUBFORM\": [\n          {\n            \"PARTNAME\": \"zzz02\",\n            \"TUNITNAME\": \"יח'\",\n            \"VATFLAG\": \"Y\",\n            \"ACCNAME\": \"49998\",\n            \"SPECIALVATFLAG\": \"Y\",\n            \"PDES\": \"2025 ריטיינר יולי\",\n            \"TQUANT\": 1,\n            \"PRICE\": 7500\n          }\n        ],\n        \"PINVOICESCONT_SUBFORM\": []\n      }\n    ]\n  },\n  \"validation\": {\n    \"all_valid\": true,\n    \"checks\": {\n      \"required_fields_check\": \"passed\",\n      \"invoice_structure_check\": \"passed\",\n      \"amount_validation\": \"passed\",\n      \"field_mapping\": {\n        \"SUPNAME\": {\n          \"source\": \"Template\",\n          \"field\": \"supplier_code\",\n          \"value\": \"3710\"\n        },\n        \"CODE\": {\n          \"source\": \"Template\",\n          \"value\": \"ש\\\"ח\"\n        },\n        \"DEBIT\": {\n          \"source\": \"Template\",\n          \"value\": \"D\"\n        },\n        \"IVDATE\": {\n          \"source\": \"OCR\",\n          \"field\": \"InvoiceDate\",\n          \"value\": \"25/08/25\",\n          \"ocr_value\": \"2025-08-25\"\n        },\n        \"BOOKNUM\": {\n          \"source\": \"OCR\",\n          \"field\": \"InvoiceId\",\n          \"value\": \"052569\",\n          \"ocr_value\": \"052569\"\n        },\n        \"DETAILS\": {\n          \"source\": \"First Item PDES\",\n          \"value\": \"טלפון: 073-2400700 פקס: 09-8628554\"\n        },\n        \"PINVOICEITEMS_SUBFORM\": {\n          \"source\": \"OCR Items\",\n          \"count\": 1\n        }\n      }\n    },\n    \"warnings\": [\n      \"✅ סכום תקין: 7500.00 ש\\\"ח (0.0% הפרש)\"\n    ]\n  },\n  \"learning_analysis\": {\n    \"learning_required\": false,\n    \"new_patterns\": {\n      \"new_partnames\": [],\n      \"new_vehicles\": [],\n      \"unknown_accounts\": []\n    },\n    \"learning_instructions\": [],\n    \"recommendation\": \"אין צורך בלמידה\"\n  },\n  \"execution_report\": {\n    \"stage\": \"שלב 7: ניקוי והכנה לפריוריטי\",\n    \"found\": [\n      \"סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D\",\n      \"תבנית: index=0 (מקלט - template_index)\",\n      \"דפוסים: נמצאו\",\n      \"booknum: \\\"052569\\\"\",\n      \"ivdate: \\\"25/08/25\\\"\",\n      \"details: \\\"טלפון: 073-2400700 פקס: 09-8628554\\\"\",\n      \"items: 1 פריטים\"\n    ],\n    \"not_found\": [],\n    \"warnings\": [],\n    \"errors\": [],\n    \"template_match\": {\n      \"status\": \"forced\",\n      \"template_index\": 0,\n      \"reason\": \"template_index סופק בקלט\",\n      \"document_characteristics\": {\n        \"has_import\": false,\n        \"has_doc\": false,\n        \"debit_type\": \"D\"\n      },\n      \"available_templates\": 1\n    }\n  },\n  \"metadata\": {\n    \"ocr_invoice_id\": \"052569\",\n    \"ocr_invoice_date\": \"2025-08-25\",\n    \"ocr_total_amount\": 8850,\n    \"ocr_subtotal\": 7500,\n    \"ocr_tax\": 1350,\n    \"processing_timestamp\": \"2025-12-17T10:27:38.956Z\",\n    \"version\": \"1.0-production\",\n    \"template_index\": 0,\n    \"template_type\": \"regular\",\n    \"has_vehicles\": false,\n    \"vehicle_numbers\": [],\n    \"vehicle_count\": 0,\n    \"has_documents\": false,\n    \"document_count\": 0,\n    \"has_import\": false\n  }\n}\n",
+                "v1.7.1: items = 1\n",
+                "v1.7.1: BOOKNUM = 052569\n",
+                "v1.7.1: DOCNO = undefined\n",
+                "==========================================\n"
+            ],
+            "stderr": []
+        },
+        "executionTimeMs": 1592,
+        "result": {
+            "status": "success",
+            "supplier_identification": {
+                "supplier_code": "3710",
+                "supplier_name": "דרין טרגל ושות`",
+                "identification_method": "vendor_tax_id",
+                "confidence": "high"
+            },
+            "invoice_data": {
+                "PINVOICES": [
+                    {
+                        "SUPNAME": "3710",
+                        "CODE": "ש\"ח",
+                        "DEBIT": "D",
+                        "IVDATE": "25/08/25",
+                        "BOOKNUM": "052569",
+                        "DETAILS": "טלפון: 073-2400700 פקס: 09-8628554",
+                        "PINVOICEITEMS_SUBFORM": [
+                            {
+                                "PARTNAME": "zzz02",
+                                "TUNITNAME": "יח'",
+                                "VATFLAG": "Y",
+                                "ACCNAME": "49998",
+                                "SPECIALVATFLAG": "Y",
+                                "PDES": "2025 ריטיינר יולי",
+                                "TQUANT": 1,
+                                "PRICE": 7500
+                            }
+                        ],
+                        "PINVOICESCONT_SUBFORM": []
+                    }
+                ]
+            },
+            "validation": {
+                "all_valid": true,
+                "checks": {
+                    "required_fields_check": "passed",
+                    "invoice_structure_check": "passed",
+                    "amount_validation": "passed",
+                    "field_mapping": {
+                        "SUPNAME": {
+                            "source": "Template",
+                            "field": "supplier_code",
+                            "value": "3710"
+                        },
+                        "CODE": {
+                            "source": "Template",
+                            "value": "ש\"ח"
+                        },
+                        "DEBIT": {
+                            "source": "Template",
+                            "value": "D"
+                        },
+                        "IVDATE": {
+                            "source": "OCR",
+                            "field": "InvoiceDate",
+                            "value": "25/08/25",
+                            "ocr_value": "2025-08-25"
+                        },
+                        "BOOKNUM": {
+                            "source": "OCR",
+                            "field": "InvoiceId",
+                            "value": "052569",
+                            "ocr_value": "052569"
+                        },
+                        "DETAILS": {
+                            "source": "First Item PDES",
+                            "value": "טלפון: 073-2400700 פקס: 09-8628554"
+                        },
+                        "PINVOICEITEMS_SUBFORM": {
+                            "source": "OCR Items",
+                            "count": 1
+                        }
+                    }
+                },
+                "warnings": [
+                    "✅ סכום תקין: 7500.00 ש\"ח (0.0% הפרש)"
+                ]
+            },
+            "learning_analysis": {
+                "learning_required": false,
+                "new_patterns": {
+                    "new_partnames": [],
+                    "new_vehicles": [],
+                    "unknown_accounts": []
+                },
+                "learning_instructions": [],
+                "recommendation": "אין צורך בלמידה"
+            },
+            "execution_report": {
+                "stage": "שלב 7: ניקוי והכנה לפריוריטי",
+                "found": [
+                    "סוג: יבוא=false, תעודות=false, חיוב/זיכוי=D",
+                    "תבנית: index=0 (מקלט - template_index)",
+                    "דפוסים: נמצאו",
+                    "booknum: \"052569\"",
+                    "ivdate: \"25/08/25\"",
+                    "details: \"טלפון: 073-2400700 פקס: 09-8628554\"",
+                    "items: 1 פריטים"
+                ],
+                "not_found": [],
+                "warnings": [],
+                "errors": [],
+                "template_match": {
+                    "status": "forced",
+                    "template_index": 0,
+                    "reason": "template_index סופק בקלט",
+                    "document_characteristics": {
+                        "has_import": false,
+                        "has_doc": false,
+                        "debit_type": "D"
+                    },
+                    "available_templates": 1
+                }
+            },
+            "metadata": {
+                "ocr_invoice_id": "052569",
+                "ocr_invoice_date": "2025-08-25",
+                "ocr_total_amount": 8850,
+                "ocr_subtotal": 7500,
+                "ocr_tax": 1350,
+                "processing_timestamp": "2025-12-17T10:27:38.956Z",
+                "version": "1.0-production",
+                "template_index": 0,
+                "template_type": "regular",
+                "has_vehicles": false,
+                "vehicle_numbers": [],
+                "vehicle_count": 0,
+                "has_documents": false,
+                "document_count": 0,
+                "has_import": false
+            }
+        }
+    }
+]
