@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 2.0.0)
+// קוד 3 - ייצור חשבוניות (גרסה 2.0.1)
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -10,6 +10,13 @@
 //
 // ⚠️ קשור ל: MakeCode/Processing Invoice/v5.5
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
+//
+// תיקונים v2.0.1:
+// - תיקון searchSdinumit: חיפוש ספציפי ל"מספר הקצאה:" + 9 ספרות
+// - תיקון searchSdinumit: דילוג על שורות עם "תעודת רישום" (לא חסימה גלובלית)
+// - תיקון searchDetails: הוספת genericWords לסינון מילים לא רלוונטיות
+// - תיקון searchDetails: הרחבת serviceKeywords (רבעון, שוטף, חודשים, שנים)
+// - תיקון searchDetails: הסרת fallback לשורות רנדומליות
 //
 // תיקונים v2.0.0:
 // - קריאת instructions.fields מהתבנית ויישום הנחיות
@@ -345,7 +352,7 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 }
 
 function processProductionInvoice(productionInput) {
-    console.log('🚀 PRODUCTION INVOICE v1.6.6 IIFE (21:40 05.11.25) - ' + new Date().toISOString());
+    console.log('🚀 PRODUCTION INVOICE v2.0.1');
     console.log('📦 קוד: 49KB | 🔧 IIFE wrap: ✅ | 🎯 return במקום expression!');
     console.log('==========================================');
     const executionReport = {
@@ -819,7 +826,7 @@ function processInvoiceComplete(input) {
                               ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount : null),
                 ocr_tax: ocrFields.TotalTax || ocrFields.TotalTax_amount || 0,
                 processing_timestamp: new Date().toISOString(),
-                version: "1.0-production",
+                version: "2.0.1-production",
                 template_index: templateIndex,
                 template_type: structure.has_import && structure.has_doc ? "import_with_docs" :
                               structure.has_import ? "import_only" :
@@ -963,81 +970,100 @@ function searchIvdate(ocrFields) {
     return `${day}/${month}/${year}`;
 }
 
+// v2.0.1: searchDetails עם מילות מפתח משופרות
 function searchDetails(ocrFields, azureText, templateInstructions) {
     // v2.0: קריאת do_NOT_use מההנחיות
     const doNotUse = templateInstructions?.fields?.details?.do_NOT_use ||
                      ["טלפון", "פקס", "כתובת", "עוסק מורשה"];
 
-    // פונקציה לבדיקה אם שורה מכילה מילים אסורות
+    // v2.0.1: מילים שאינן תיאור שירות (גנריות/מערכת)
+    const genericWords = [
+        "מסמך חתום", "מסמך ממוחשב", "לכבוד", "מקור", "העתק",
+        "חתימה דיגיטלית", "comsign", "לבדיקת החתימה", "לחץ כאן",
+        "גורם מאשר", "דיגיטלית ומאושר", "הופק ע\"י", "ת.ד.",
+        "פרטי החשבונית", "פרטי התקבולים", "סה\"כ", "מע\"מ"
+    ];
+
+    // פונקציה לבדיקה אם שורה מכילה מילים אסורות או גנריות
     const containsForbidden = (text) => {
         if (!text) return false;
-        return doNotUse.some(forbidden => text.includes(forbidden));
+        const lowerText = text;
+        return doNotUse.some(forbidden => lowerText.includes(forbidden)) ||
+               genericWords.some(generic => lowerText.includes(generic));
     };
 
     // 1. נסה InvoiceDescription מ-OCR (אם לא מכיל מילים אסורות)
     if (ocrFields.InvoiceDescription && !containsForbidden(ocrFields.InvoiceDescription)) {
+        console.log(`✅ DETAILS מ-OCR InvoiceDescription: "${ocrFields.InvoiceDescription}"`);
         return ocrFields.InvoiceDescription;
     }
 
     // 2. חפש בטקסט שורות עם תיאור שירות
     if (azureText) {
-        const lines = azureText.split('\n').filter(l => l.trim());
+        const lines = azureText.split('\n').map(l => l.trim()).filter(l => l);
 
-        // מילות מפתח לשירותים
-        const serviceKeywords = ["ריטיינר", "דוח", "ייעוץ", "שירות", "עבודה", "חודש", "שנת", "תלושי", "שכר"];
+        // v2.0.1: מילות מפתח מורחבות לשירותים
+        const serviceKeywords = [
+            // שירותי חשבונאות
+            "ריטיינר", "דוח", "ייעוץ", "שירות", "הנהלת חשבונות", "תלושי", "שכר", "ביקורת",
+            // תקופות
+            "רבעון", "שוטף", "חודש", "שנת", "שנתי", "חודשי", "Q1", "Q2", "Q3", "Q4",
+            // חודשים
+            "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+            "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+            // שנים
+            "2024", "2025", "2026",
+            // עבודה/פרויקטים
+            "פרויקט", "עבודה", "טיפול", "תחזוקה", "התקנה"
+        ];
 
         // חפש שורה עם מילת מפתח שאינה מכילה מילים אסורות
         for (const line of lines) {
             if (containsForbidden(line)) continue;
+            if (line.length < 5 || line.length > 100) continue;
 
             const hasServiceKeyword = serviceKeywords.some(keyword => line.includes(keyword));
-            if (hasServiceKeyword && line.length > 5 && line.length < 100) {
+            if (hasServiceKeyword) {
                 console.log(`✅ DETAILS נמצא עם מילת מפתח: "${line.substring(0, 50)}"`);
                 return line.substring(0, 100);
             }
         }
 
-        // fallback: קח שורה שאינה מכילה מילים אסורות
-        for (let i = 2; i < Math.min(lines.length, 10); i++) {
-            if (!containsForbidden(lines[i]) && lines[i].length > 3) {
-                console.log(`✅ DETAILS fallback משורה ${i}: "${lines[i].substring(0, 50)}"`);
-                return lines[i].substring(0, 100);
-            }
-        }
+        // v2.0.1: אין fallback לשורות רנדומליות - עדיף להחזיר ריק מאשר "מסמך חתום"
+        console.log(`⚠️ DETAILS: לא נמצאה שורה עם מילת מפתח שירות`);
     }
 
     return "";
 }
 
-// v2.0: חיפוש מספר הקצאה (SDINUMIT) - רק אם מופיעה המילה "הקצאה"
+// v2.0.1: חיפוש מספר הקצאה (SDINUMIT) - לוגיקה משופרת
 function searchSdinumit(azureText, templateInstructions) {
     if (!azureText) return null;
 
-    // v2.0: קריאת הנחיות מהתבנית
-    const sdinumitInstructions = templateInstructions?.fields?.sdinumit || {};
-    const requiredKeyword = sdinumitInstructions.required_keyword || "הקצאה";
-    const notValid = sdinumitInstructions.NOT_valid || ["תעודת רישום", "מספר אסמכתא"];
-
-    // בדיקה: האם המילה "הקצאה" מופיעה בטקסט?
-    if (!azureText.includes(requiredKeyword)) {
-        return null;
-    }
-
-    // בדיקה: האם זה לא אחד מהמקורות הלא תקפים?
-    for (const invalid of notValid) {
-        if (azureText.includes(invalid)) {
-            console.log(`⚠️ SDINUMIT: נמצא "${invalid}" - לא מספר הקצאה`);
-            return null;
-        }
-    }
-
-    // חיפוש מספר 9 ספרות אחרי המילה "הקצאה"
-    const pattern = /הקצאה[:\s]*(\d{9})/;
-    const match = azureText.match(pattern);
+    // v2.0.1: חיפוש ספציפי ל"מספר הקצאה:" עם המספר שאחריו
+    // זה הפורמט הנכון: "מספר הקצאה: 133075998"
+    const allocationPattern = /מספר\s+הקצאה[:\s]+(\d{9})/;
+    const match = azureText.match(allocationPattern);
 
     if (match) {
         console.log(`✅ SDINUMIT נמצא: ${match[1]}`);
         return match[1];
+    }
+
+    // fallback: חיפוש "הקצאה" + 9 ספרות (אבל לא בשורת "תעודת רישום")
+    const lines = azureText.split('\n');
+    for (const line of lines) {
+        // דלג על שורות עם "תעודת רישום" או "אסמכתא"
+        if (line.includes('תעודת רישום') || line.includes('אסמכתא')) {
+            continue;
+        }
+
+        // חפש "הקצאה" + מספר בשורה זו
+        const lineMatch = line.match(/הקצאה[:\s]*(\d{9})/);
+        if (lineMatch) {
+            console.log(`✅ SDINUMIT נמצא בשורה: ${lineMatch[1]}`);
+            return lineMatch[1];
+        }
     }
 
     return null;
@@ -1718,7 +1744,7 @@ function analyzeLearning(invoice, config) {
 result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v2.0.0: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v2.0.1: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1762,9 +1788,9 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v2.0.0: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v2.0.0: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    console.log("v2.0.0: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+    console.log("v2.0.1: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v2.0.1: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v2.0.1: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
     console.log("==========================================");
 }
 
