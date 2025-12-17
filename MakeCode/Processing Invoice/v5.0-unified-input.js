@@ -1,9 +1,11 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 5.5)
-// עדכון אחרון: 17.12.25 16:15
+// קוד 2 - עיבוד חשבוניות (גרסה 5.6)
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
+//
+// תיקונים v5.6:
+// - העברת SDINUMIT מ-PINVOICESCONT_SUBFORM למסך הראשי (PINVOICES)
 //
 // תיקונים v5.4:
 // - 16:10 העברת sample_from_history כמו שהוא מהקלט (ללא סינון שדות)
@@ -755,6 +757,11 @@ function buildInvoiceFromTemplate(templateData, structure, mergedConfig, searchR
         invoice.DETAILS = searchResults.details;
     }
 
+    // v5.6: SDINUMIT במסך הראשי (לא ב-SUBFORM)
+    if (searchResults.sdinumit) {
+        invoice.SDINUMIT = searchResults.sdinumit;
+    }
+
     // תעודות
     if (structure.has_doc && searchResults.documents && searchResults.documents.length > 0) {
         if (searchResults.documents.length === 1) {
@@ -790,7 +797,7 @@ function buildInvoiceFromTemplate(templateData, structure, mergedConfig, searchR
         }
     }
 
-    // v5.2: בניית PINVOICESCONT_SUBFORM עם FNCPATNAME ו-SDINUMIT
+    // v5.6: בניית PINVOICESCONT_SUBFORM עם FNCPATNAME בלבד (SDINUMIT עבר למסך הראשי)
     const contSubform = {};
 
     // FNCPATNAME מהתבנית (סוג תנועה)
@@ -799,11 +806,6 @@ function buildInvoiceFromTemplate(templateData, structure, mergedConfig, searchR
         if (templateCont.FNCPATNAME) {
             contSubform.FNCPATNAME = templateCont.FNCPATNAME;
         }
-    }
-
-    // SDINUMIT - מספר הקצאה (אם נמצא)
-    if (searchResults.sdinumit) {
-        contSubform.SDINUMIT = searchResults.sdinumit;
     }
 
     // הוסף את ה-subform רק אם יש בו תוכן
