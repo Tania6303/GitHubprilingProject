@@ -1,0 +1,426 @@
+{
+  "status": "success",
+
+  "llm_prompt": {
+    "supplier_code": "3710",
+    "supplier_name": "דרין טרגל ושות`",
+
+    "all_templates": [
+      {
+        "template_index": 0,
+        "document_type": "חשבונית רגילה עם פירוט",
+        "document_type_key": "regular_invoice_with_items",
+
+        "document_characteristics": {
+          "inventory_management": "not_managed_inventory",
+          "has_line_items": true,
+          "has_docs": false,
+          "has_import": false,
+          "has_vehicles": false,
+          "debit_type": "D",
+          "description": "חשבונית שירותים/הוצאות עם פירוט שורות - ללא ניהול מלאי"
+        },
+
+        "critical_note_for_this_type": "בחשבונית עם פירוט ללא מלאי - השדות PDES (תיאור) ו-ACCNAME (חשבון) הם הקריטיים ביותר! התיאור מזהה את סוג ההוצאה והחשבון מסווג אותה בהנהלת החשבונות.",
+
+        "instructions": {
+          "overview": "חשבונית שירותים מספק דרין טרגל ושות` - רואי חשבון",
+
+          "processing_steps": [
+            "1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId",
+            "2. חלץ תאריך חשבונית (IVDATE) מתוך InvoiceDate - המר לפורמט DD/MM/YY",
+            "3. חלץ תיאור כללי (DETAILS) - חפש תיאור השירות העיקרי (לא טלפון/כתובת!)",
+            "4. זהה פריטי חשבונית מהטקסט - כל שורת שירות עם מחיר",
+            "5. לכל פריט: חלץ PDES (תיאור), TQUANT (כמות), PRICE (מחיר לפני מע\"מ)",
+            "6. לכל פריט: בחר ACCNAME מתוך החשבונות הזמינים לפי סוג ההוצאה",
+            "7. בדוק אם יש מספר הקצאה (רק אם מופיעה המילה 'הקצאה'!)",
+            "8. חשב סה\"כ: SubTotal_amount או (InvoiceTotal_amount - TotalTax_amount)"
+          ],
+
+          "header_fields": {
+            "SUPNAME": {
+              "field_name": "SUPNAME",
+              "description": "קוד ספק בפריוריטי",
+              "value": "3710",
+              "source": "קבוע מהגדרות הספק"
+            },
+            "CODE": {
+              "field_name": "CODE",
+              "description": "מטבע",
+              "value": "ש\"ח",
+              "source": "קבוע"
+            },
+            "DEBIT": {
+              "field_name": "DEBIT",
+              "description": "סוג תנועה",
+              "value": "D",
+              "meaning": "D=חיוב (חשבונית), C=זיכוי"
+            },
+            "BOOKNUM": {
+              "field_name": "BOOKNUM",
+              "description": "מספר חשבונית ספק",
+              "how_to_find": "חפש בשדה InvoiceId ב-OCR",
+              "example_from_ocr": "052785",
+              "note": "זהו המספר שמופיע על החשבונית המקורית"
+            },
+            "IVDATE": {
+              "field_name": "IVDATE",
+              "description": "תאריך חשבונית",
+              "how_to_find": "קח את InvoiceDate והמר לפורמט DD/MM/YY",
+              "example_from_ocr": "11/09/25",
+              "format": "DD/MM/YY"
+            },
+            "DETAILS": {
+              "field_name": "DETAILS",
+              "description": "תיאור כללי של החשבונית בכותרת",
+              "importance": "גבוהה - מסכם את מהות החשבונית",
+              "how_to_find": "חפש את תיאור השירות העיקרי בטקסט",
+              "what_NOT_to_use": [
+                "טלפון/פקס",
+                "כתובת",
+                "מספר עוסק מורשה",
+                "פרטי תשלום"
+              ],
+              "example_from_ocr": "ריטיינר אוגוסט 2025",
+              "example_from_history": "דרין 8/25"
+            }
+          },
+
+          "line_items_fields": {
+            "subform_name": "PINVOICEITEMS_SUBFORM",
+            "description": "שורות פירוט החשבונית - כל שירות/מוצר בשורה נפרדת",
+            "importance": "קריטי בחשבונית עם פירוט!",
+
+            "fields": {
+              "PARTNAME": {
+                "field_name": "PARTNAME",
+                "description": "קוד פריט/מוצר בפריוריטי",
+                "value_for_this_supplier": "zzz02",
+                "note": "קבוע לספק זה - פריט כללי לשירותים"
+              },
+              "PDES": {
+                "field_name": "PDES",
+                "description": "תיאור הפריט/שירות",
+                "importance": "קריטי מאוד! זה מזהה את סוג ההוצאה",
+                "how_to_find": "חפש בטקסט שורות המתארות שירותים",
+                "max_length": 48,
+                "examples_from_ocr": [
+                  "ריטיינר אוגוסט 2025"
+                ],
+                "examples_from_history": [
+                  "תלושי שכר",
+                  "דוח לשנת 2024 חלק 2",
+                  "רבעון 3 לשנת 2025"
+                ]
+              },
+              "TQUANT": {
+                "field_name": "TQUANT",
+                "description": "כמות",
+                "default": 1,
+                "how_to_find": "חפש עמודת 'כמות' בטבלת הפריטים"
+              },
+              "TUNITNAME": {
+                "field_name": "TUNITNAME",
+                "description": "יחידת מידה",
+                "value": "יח'",
+                "note": "קבוע לשירותים"
+              },
+              "PRICE": {
+                "field_name": "PRICE",
+                "description": "מחיר ליחידה לפני מע\"מ",
+                "importance": "קריטי!",
+                "how_to_calculate": "מחיר השורה לפני מע\"מ",
+                "example_from_ocr": 7500,
+                "note": "אם יש שורה אחת: SubTotal_amount. אם מספר שורות: מחיר כל שורה בנפרד"
+              },
+              "VATFLAG": {
+                "field_name": "VATFLAG",
+                "description": "חייב מע\"מ",
+                "value": "Y",
+                "meaning": "Y=חייב מע\"מ, N=פטור"
+              },
+              "ACCNAME": {
+                "field_name": "ACCNAME",
+                "description": "חשבון הנהלת חשבונות לסיווג ההוצאה",
+                "importance": "קריטי! קובע איך ההוצאה מסווגת",
+                "available_accounts": ["49998", "49902"],
+                "selection_logic": {
+                  "description": "בחר חשבון לפי סוג ההוצאה/שירות",
+                  "examples_from_history": [
+                    {
+                      "pdes": "תלושי שכר",
+                      "accname": "49902",
+                      "accdes": "הוצאות לשלם"
+                    },
+                    {
+                      "pdes": "דוח לשנת 2024 חלק 2",
+                      "accname": "49998",
+                      "note": "דוחות/ביקורת"
+                    },
+                    {
+                      "pdes": "רבעון 3 לשנת 2025",
+                      "accname": "49902",
+                      "note": "שירות שוטף"
+                    }
+                  ],
+                  "guidance": "השתמש בדוגמאות ההיסטוריות כדי להתאים את החשבון לסוג השירות"
+                }
+              }
+            }
+          },
+
+          "contact_subform": {
+            "subform_name": "PINVOICESCONT_SUBFORM",
+            "description": "פרטי קשר ומידע נוסף",
+
+            "fields": {
+              "SDINUMIT": {
+                "field_name": "SDINUMIT",
+                "description": "מספר הקצאה מרשות המיסים",
+                "importance": "קריטי לחשבוניות מעל סף! ללא מספר זה - לא ניתן לנכות מע\"מ",
+                "rule": "רק אם מופיעה המילה 'הקצאה' במפורש!",
+                "format": "9 ספרות",
+                "how_to_find": {
+                  "search_for": ["מספר הקצאה", "הקצאה מס'"],
+                  "NOT_valid": [
+                    "תעודת רישום - זה לא מספר הקצאה",
+                    "מספר אסמכתא - זה לא מספר הקצאה"
+                  ]
+                },
+                "in_current_document": {
+                  "found": false,
+                  "reason": "לא נמצאה המילה 'הקצאה' - ייתכן שהחשבונית מתחת לסף (7,500 ₪)"
+                }
+              },
+              "IVREF": {
+                "field_name": "IVREF",
+                "description": "מספר עוסק מורשה של הספק",
+                "value": "557149143",
+                "source": "VendorTaxId מה-OCR"
+              }
+            }
+          },
+
+          "price_calculation": {
+            "method": "InvoiceTotal_amount - TotalTax_amount",
+            "or": "SubTotal_amount (אם קיים)",
+            "from_ocr": {
+              "InvoiceTotal_amount": 8850,
+              "TotalTax_amount": 1350,
+              "SubTotal_amount": 7500
+            },
+            "result": 7500,
+            "note": "זהו הסכום לפני מע\"מ שצריך להופיע ב-PRICE"
+          }
+        },
+
+        "sample_invoice_from_history": {
+          "description": "חשבונית קודמת שנקלטה בהצלחה מאותו ספק - השתמש כדוגמה!",
+          "header": {
+            "BOOKNUM": "052785",
+            "IVDATE": "2025-09-11",
+            "DETAILS": "דרין 8/25",
+            "TOTPRICE": 8850,
+            "QPRICE": 7500
+          },
+          "items": [
+            {
+              "PARTNAME": "zzz02",
+              "PDES": "תלושי שכר",
+              "TQUANT": 1,
+              "PRICE": 7500,
+              "ACCNAME": "49902",
+              "ACCDES": "הוצאות לשלם"
+            }
+          ]
+        },
+
+        "ocr_data_summary": {
+          "description": "נתונים שחולצו מה-OCR - לשימוש בקליטה",
+          "header": {
+            "InvoiceId": "052785",
+            "InvoiceDate": "2025-09-11",
+            "VendorName": "דרין, טרגל ושות' - רואי חשבון",
+            "VendorTaxId": "557149143",
+            "CustomerName": "ט.פ.י פל ים בע״מ",
+            "CustomerTaxId": "513327064"
+          },
+          "amounts": {
+            "SubTotal_amount": 7500,
+            "TotalTax_amount": 1350,
+            "InvoiceTotal_amount": 8850
+          },
+          "line_items_from_text": [
+            {
+              "description": "ריטיינר אוגוסט 2025",
+              "quantity": 1,
+              "price": 7500
+            }
+          ],
+          "note": "שים לב: OCR Items מכיל פרטי תשלום (העברה בנקאית) ולא פריטי חשבונית!"
+        },
+
+        "expected_output": {
+          "description": "כך צריכה להיראות החשבונית המוכנה לקליטה בפריוריטי",
+          "PINVOICES": [
+            {
+              "SUPNAME": "3710",
+              "CODE": "ש\"ח",
+              "DEBIT": "D",
+              "IVDATE": "11/09/25",
+              "BOOKNUM": "052785",
+              "DETAILS": "ריטיינר אוגוסט 2025",
+              "PINVOICEITEMS_SUBFORM": [
+                {
+                  "PARTNAME": "zzz02",
+                  "PDES": "ריטיינר אוגוסט 2025",
+                  "TQUANT": 1,
+                  "TUNITNAME": "יח'",
+                  "PRICE": 7500,
+                  "VATFLAG": "Y",
+                  "ACCNAME": "49902"
+                }
+              ],
+              "PINVOICESCONT_SUBFORM": [
+                {
+                  "IVREF": "557149143"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+  "technical_config": {
+    "supplier_code": "3710",
+    "supplier_name": "דרין טרגל ושות`",
+    "all_templates": [
+      {
+        "template_index": 0,
+        "version": "5.2",
+        "document_type": "regular_invoice_with_items",
+        "extraction_rules": {
+          "booknum": {
+            "source": "ocrFields.InvoiceId",
+            "transformations": [],
+            "example": "052785"
+          },
+          "ivdate": {
+            "source": "ocrFields.InvoiceDate",
+            "format": "DD/MM/YY",
+            "example": "11/09/25"
+          },
+          "details": {
+            "source": "azureText",
+            "method": "find_service_description",
+            "exclude_patterns": ["טלפון", "פקס", "כתובת", "עוסק מורשה"],
+            "example": "ריטיינר אוגוסט 2025"
+          },
+          "price": {
+            "primary": "ocrFields.SubTotal_amount",
+            "fallback": "ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount",
+            "example": 7500
+          },
+          "sdinumit": {
+            "source": "azureText",
+            "pattern": "הקצאה[:\\s]*(\\d{9})",
+            "required_keyword": "הקצאה",
+            "example": null
+          }
+        },
+        "validation_rules": {
+          "required_fields": ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"],
+          "required_item_fields": ["PARTNAME", "PDES", "PRICE", "ACCNAME"],
+          "price_must_be_positive": true
+        }
+      }
+    ]
+  },
+
+  "processing_scenario": {
+    "supplier_code": "3710",
+    "supplier_name": "דרין טרגל ושות`",
+    "all_templates": [
+      {
+        "document_type": "regular_invoice_with_items",
+        "check_docs": false,
+        "check_import": false,
+        "check_vehicles": false,
+        "check_sdinumit": true,
+        "extract_line_items": true,
+        "account_selection_required": true
+      }
+    ]
+  },
+
+  "execution_report": {
+    "stage": "שלב 3: בניית פלט",
+    "found": [
+      "סה\"כ תבניות: 1",
+      "תבניות נסרקו: 1",
+      "תבנית 0: יבוא=false, תעודות=false, חיוב/זיכוי=D",
+      "BOOKNUM: 052785",
+      "IVDATE: 11/09/25",
+      "PRICE: 7500 (מ-SubTotal_amount)",
+      "DETAILS: ריטיינר אוגוסט 2025",
+      "חשבונות זמינים: 49998, 49902"
+    ],
+    "not_found": [
+      "מספר הקצאה (אין את המילה 'הקצאה' במסמך)"
+    ],
+    "warnings": [
+      "OCR Items מכיל פרטי תשלום ולא פריטי חשבונית - יש לחלץ מהטקסט"
+    ],
+    "errors": [],
+    "templates_processed": [
+      {
+        "template_index": 0,
+        "document_type": "חשבונית רגילה עם פירוט",
+        "status": "success"
+      }
+    ]
+  },
+
+  "_comparison_with_old_output": {
+    "old_problems_fixed": [
+      {
+        "field": "PRICE",
+        "old_value": 0,
+        "new_value": 7500,
+        "fix": "שימוש ב-SubTotal_amount במקום OCR Items"
+      },
+      {
+        "field": "PDES",
+        "old_value": "",
+        "new_value": "ריטיינר אוגוסט 2025",
+        "fix": "חילוץ מהטקסט במקום OCR Items"
+      },
+      {
+        "field": "DETAILS",
+        "old_value": "טלפון: 073-2400700 פקס: 09-8628554",
+        "new_value": "ריטיינר אוגוסט 2025",
+        "fix": "סינון שורות לא רלוונטיות (טלפון/פקס)"
+      },
+      {
+        "field": "ACCNAME selection",
+        "old_value": "אין הסבר",
+        "new_value": "הנחיות מפורטות עם דוגמאות היסטוריות",
+        "fix": "הוספת selection_logic עם דוגמאות"
+      },
+      {
+        "field": "SDINUMIT",
+        "old_value": "לא קיים",
+        "new_value": "הנחיות מפורטות",
+        "fix": "הוספת שדה עם כללים קשיחים"
+      },
+      {
+        "field": "sample_invoice",
+        "old_value": "לא מועבר",
+        "new_value": "כלול כדוגמה ללמידה",
+        "fix": "העברת הדוגמה ההיסטורית ל-LLM"
+      }
+    ]
+  }
+}
