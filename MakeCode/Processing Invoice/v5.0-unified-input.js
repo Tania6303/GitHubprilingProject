@@ -1,9 +1,14 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 5.2)
-// עדכון אחרון: 17.12.25 14:00
+// קוד 2 - עיבוד חשבוניות (גרסה 5.3)
+// עדכון אחרון: 17.12.25 15:30
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
+//
+// תיקונים v5.3:
+// - 15:30 שיפור generateTechnicalConfig - הוספת extraction_rules חדשים + structure_flags
+// - 15:30 שיפור generateProcessingScenario - הוספת check_sdinumit, extract_line_items, account_selection_required
+// - 15:30 עדכון version ל-5.2 בכל הפלטים
 //
 // תיקונים v5.2:
 // - 14:00 שיפור generateLLMPrompt - הוספת שדות details, pdes, accname, sdinumit, fncpatname
@@ -1224,7 +1229,7 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
 
     return {
         template_index: templateIndex,
-        version: "5.2",
+        version: "5.3",
         document_type: documentTypeKey,
         extraction_rules: extractionRules,
         structure_flags: {
