@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 2.0.1)
+// קוד 3 - ייצור חשבוניות (גרסה 2.0.2)
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -10,6 +10,9 @@
 //
 // ⚠️ קשור ל: MakeCode/Processing Invoice/v5.5
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
+//
+// תיקונים v2.0.2:
+// - תיקון searchDetails: הוספת "תאריך מסמך", "מספר חשבונית" ל-genericWords
 //
 // תיקונים v2.0.1:
 // - תיקון searchSdinumit: חיפוש ספציפי ל"מספר הקצאה:" + 9 ספרות
@@ -352,7 +355,7 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 }
 
 function processProductionInvoice(productionInput) {
-    console.log('🚀 PRODUCTION INVOICE v2.0.1');
+    console.log('🚀 PRODUCTION INVOICE v2.0.2');
     console.log('📦 קוד: 49KB | 🔧 IIFE wrap: ✅ | 🎯 return במקום expression!');
     console.log('==========================================');
     const executionReport = {
@@ -826,7 +829,7 @@ function processInvoiceComplete(input) {
                               ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount : null),
                 ocr_tax: ocrFields.TotalTax || ocrFields.TotalTax_amount || 0,
                 processing_timestamp: new Date().toISOString(),
-                version: "2.0.1-production",
+                version: "2.0.2-production",
                 template_index: templateIndex,
                 template_type: structure.has_import && structure.has_doc ? "import_with_docs" :
                               structure.has_import ? "import_only" :
@@ -970,18 +973,21 @@ function searchIvdate(ocrFields) {
     return `${day}/${month}/${year}`;
 }
 
-// v2.0.1: searchDetails עם מילות מפתח משופרות
+// v2.0.2: searchDetails עם מילות מפתח משופרות
 function searchDetails(ocrFields, azureText, templateInstructions) {
     // v2.0: קריאת do_NOT_use מההנחיות
     const doNotUse = templateInstructions?.fields?.details?.do_NOT_use ||
                      ["טלפון", "פקס", "כתובת", "עוסק מורשה"];
 
-    // v2.0.1: מילים שאינן תיאור שירות (גנריות/מערכת)
+    // v2.0.2: מילים שאינן תיאור שירות (גנריות/מערכת)
     const genericWords = [
         "מסמך חתום", "מסמך ממוחשב", "לכבוד", "מקור", "העתק",
         "חתימה דיגיטלית", "comsign", "לבדיקת החתימה", "לחץ כאן",
         "גורם מאשר", "דיגיטלית ומאושר", "הופק ע\"י", "ת.ד.",
-        "פרטי החשבונית", "פרטי התקבולים", "סה\"כ", "מע\"מ"
+        "פרטי החשבונית", "פרטי התקבולים", "סה\"כ", "מע\"מ",
+        // v2.0.2: מטא-דאטה של מסמך (לא תיאור שירות)
+        "תאריך מסמך", "תאריך הפקה", "תאריך חשבונית", "מספר חשבונית",
+        "מספר מסמך", "אסמכתא", "ע.מ.", "ח.פ."
     ];
 
     // פונקציה לבדיקה אם שורה מכילה מילים אסורות או גנריות
@@ -1002,7 +1008,7 @@ function searchDetails(ocrFields, azureText, templateInstructions) {
     if (azureText) {
         const lines = azureText.split('\n').map(l => l.trim()).filter(l => l);
 
-        // v2.0.1: מילות מפתח מורחבות לשירותים
+        // v2.0.2: מילות מפתח מורחבות לשירותים
         const serviceKeywords = [
             // שירותי חשבונאות
             "ריטיינר", "דוח", "ייעוץ", "שירות", "הנהלת חשבונות", "תלושי", "שכר", "ביקורת",
@@ -1029,18 +1035,18 @@ function searchDetails(ocrFields, azureText, templateInstructions) {
             }
         }
 
-        // v2.0.1: אין fallback לשורות רנדומליות - עדיף להחזיר ריק מאשר "מסמך חתום"
+        // v2.0.2: אין fallback לשורות רנדומליות - עדיף להחזיר ריק מאשר "מסמך חתום"
         console.log(`⚠️ DETAILS: לא נמצאה שורה עם מילת מפתח שירות`);
     }
 
     return "";
 }
 
-// v2.0.1: חיפוש מספר הקצאה (SDINUMIT) - לוגיקה משופרת
+// v2.0.2: חיפוש מספר הקצאה (SDINUMIT) - לוגיקה משופרת
 function searchSdinumit(azureText, templateInstructions) {
     if (!azureText) return null;
 
-    // v2.0.1: חיפוש ספציפי ל"מספר הקצאה:" עם המספר שאחריו
+    // v2.0.2: חיפוש ספציפי ל"מספר הקצאה:" עם המספר שאחריו
     // זה הפורמט הנכון: "מספר הקצאה: 133075998"
     const allocationPattern = /מספר\s+הקצאה[:\s]+(\d{9})/;
     const match = azureText.match(allocationPattern);
@@ -1744,7 +1750,7 @@ function analyzeLearning(invoice, config) {
 result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v2.0.1: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v2.0.2: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1788,9 +1794,9 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v2.0.1: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v2.0.1: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    console.log("v2.0.1: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+    console.log("v2.0.2: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v2.0.2: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v2.0.2: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
     console.log("==========================================");
 }
 
