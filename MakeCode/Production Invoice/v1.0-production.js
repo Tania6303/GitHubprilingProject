@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.8.1 - 13.12.25)
-// עדכון אחרון: 13.12.25 19:30
+// קוד 3 - ייצור חשבוניות (גרסה 1.8.5 - 16.12.25)
+// עדכון אחרון: 16.12.25 17:45
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -13,10 +13,11 @@
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
 // תיקונים:
+// v1.8.5: DETAILS fallback מ-template.DETAILS (כשאין searchResults ואין PDES)
+// v1.8.4: חילוץ PDES מ-AZURE_TEXT_CLEAN (כשאין Description ב-Items)
+// v1.8.3: תיקון DETAILS - הסרת בדיקת vehicles (מערך ריק הוא truthy!)
+// v1.8.2: תיקון AZURE_RESULT quote בהתחלה, PRICE מ-SubTotal לפריט יחיד
 // v1.8.1: לעולם לא מחזיר שגיאה! אם אין התאמה - לוקח תבנית 0 + מדווח בפירוט
-// v1.8.0: תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
-// v1.7.9: תיקון - תמיכה ב-template_index כמחרוזת (Make שולח מחרוזת)
-// v1.7.8: תמיכה ב-template_index מהקלט (לתמיכה במספר תבניות לספק)
 // ============================================================================
 
 // ⚠️ CRITICAL: result חייב להיות global כדי ש-Make.com יקרא אותו!
@@ -503,10 +504,33 @@ function processInvoiceComplete(input) {
         }
 
         let azureResult = inputData.AZURE_RESULT || { data: { fields: {} } };
+        // תיקון v1.8.2: טיפול בפורמטים שונים של AZURE_RESULT
+        // פורמט 1: מחרוזת JSON רגילה - {"data":...}
+        // פורמט 2: מחרוזת עם quotes חיצוניים - "{"data":...}" (מ-Make.com)
+        // פורמט 3: double-escaped - "\"{\"data\":...}\""
         if (typeof azureResult === 'string') {
             try {
-                azureResult = JSON.parse(azureResult);
+                let jsonStr = azureResult.trim();
+
+                // פורמט 2: אם מתחיל ב-"{ - הסר quote מיותר בהתחלה
+                // (Make.com שולח: "{"structure":...,"status":"success"})
+                if (jsonStr.startsWith('"{')) {
+                    jsonStr = jsonStr.slice(1);  // הסר רק את ה-" בהתחלה
+                    console.log('⚠️ AZURE_RESULT: הוסר quote בהתחלה');
+                }
+
+                azureResult = JSON.parse(jsonStr);
+
+                // פורמט 3: בדיקה אם עדיין מחרוזת (double-escaped)
+                if (typeof azureResult === 'string') {
+                    console.log('⚠️ AZURE_RESULT: double-escaped, מפרסר שוב');
+                    azureResult = JSON.parse(azureResult);
+                }
+
+                console.log('✅ AZURE_RESULT נפרסר בהצלחה, יש data:', !!azureResult.data);
             } catch (e) {
+                console.log('❌ שגיאה בפרסור AZURE_RESULT:', e.message);
+                console.log('   10 תווים ראשונים:', JSON.stringify(String(inputData.AZURE_RESULT).substring(0, 10)));
                 azureResult = { data: { fields: {} } };
             }
         }
@@ -1111,12 +1135,13 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         IVDATE: searchResults.ivdate,
         BOOKNUM: searchResults.booknum
     };
-    // DETAILS - יוגדר מאוחר יותר לפי שורה 1 של PDES (אם יש פריטים)
-    // אם זה לא רכבים ויש details מ-OCR
-    if (searchResults.details && searchResults.details.trim() && !searchResults.vehicles) {
+    // DETAILS - מ-searchResults.details (אם לא ריק ולא גנרי)
+    // לא תלוי ברכבים - תמיד לקחת details אם קיים
+    if (searchResults.details && searchResults.details.trim()) {
         const isGeneric = ['עבודה', 'work', 'labor'].some(term => searchResults.details.trim() === term);
         if (!isGeneric) {
             invoice.DETAILS = searchResults.details;
+            console.log(`✅ DETAILS מ-searchResults: ${invoice.DETAILS}`);
         }
     }
 
@@ -1164,10 +1189,27 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         }
     }
 
-    // DETAILS - לפי PDES של שורה 1 (אם יש פריטים)
+    // DETAILS - לפי PDES של שורה 1, או מהתבנית
     if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
-        invoice.DETAILS = invoice.PINVOICEITEMS_SUBFORM[0].PDES || null;
-        console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+        if (!invoice.DETAILS) {
+            // אם אין DETAILS - נסה PDES של הפריט הראשון
+            const pdesValue = invoice.PINVOICEITEMS_SUBFORM[0].PDES;
+            if (pdesValue && pdesValue.trim()) {
+                invoice.DETAILS = pdesValue;
+                console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+            }
+            // אם עדיין אין - קח מהתבנית
+            else if (template.DETAILS) {
+                invoice.DETAILS = template.DETAILS;
+                console.log(`✅ DETAILS set from template: ${invoice.DETAILS}`);
+            }
+            else {
+                invoice.DETAILS = null;
+                console.log(`⚠️ DETAILS: לא נמצא מקור`);
+            }
+        } else {
+            console.log(`✅ DETAILS kept from searchResults: ${invoice.DETAILS}`);
+        }
     }
 
     if (template.PINVOICESCONT_SUBFORM) {
@@ -1212,22 +1254,71 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
     if (!ocrItems || ocrItems.length === 0) return [];
     const items = [];
     const templateItem = template.PINVOICEITEMS_SUBFORM?.[0] || {};
+
+    // חישוב SubTotal לפני מע"מ
+    let subtotal = ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
+    if (!subtotal && ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount) {
+        subtotal = ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount;
+    }
+
+    // חילוץ תיאור מ-AZURE_TEXT_CLEAN אם אין Description ב-Items
+    let extractedDescription = "";
+    const azureText = ocrFields.AZURE_TEXT_CLEAN || "";
+    if (azureText) {
+        const lines = azureText.split('\n').map(l => l.trim()).filter(l => l);
+
+        // חיפוש תיאור שירות - שנה + טקסט (למשל "2025 ריטיינר יולי")
+        for (const line of lines) {
+            // דפוס: שנה (2020-2030) + טקסט
+            if (/^20[2-3]\d\s+\S/.test(line)) {
+                extractedDescription = line;
+                break;
+            }
+            // דפוס: מילות מפתח של תיאור שירות
+            if ((line.includes('ריטיינר') || line.includes('שירות') ||
+                 line.includes('ייעוץ') || line.includes('הנהלת חשבונות')) &&
+                line.length > 5 && line.length < 100) {
+                extractedDescription = line;
+                break;
+            }
+        }
+
+        if (extractedDescription) {
+            console.log(`📝 PDES חולץ מ-AZURE_TEXT: "${extractedDescription}"`);
+        }
+    }
+
     ocrItems.forEach((ocrItem, index) => {
         let price = 0;
-        if (ocrItem.UnitPrice) {
-            price = ocrItem.UnitPrice;
-        } else if (ocrItem.Amount && ocrItem.Quantity) {
-            price = ocrItem.Amount / (ocrItem.Quantity || 1);
-        } else if (ocrItem.Amount) {
-            price = ocrItem.Amount;
+
+        // אם יש רק פריט אחד - עדיף לקחת SubTotal (לפני מע"מ)
+        if (ocrItems.length === 1 && subtotal > 0) {
+            price = subtotal;
+            console.log(`📊 PRICE מ-SubTotal (פריט יחיד): ${price}`);
         }
+        // אחרת - בדיקת מקורות שונים למחיר
+        else if (ocrItem.UnitPrice) {
+            price = ocrItem.UnitPrice;
+        } else if (ocrItem.Amount) {
+            price = ocrItem.Amount / (ocrItem.Quantity || 1);
+        } else if (ocrItem.Amount_amount) {
+            price = ocrItem.Amount_amount / (ocrItem.Quantity || 1);
+        } else if (ocrItem.TotalPrice) {
+            // TotalPrice - מחיר כולל מע"מ (פחות מדויק)
+            price = ocrItem.TotalPrice;
+            console.log(`⚠️ PRICE מ-TotalPrice (כולל מע"מ): ${price}`);
+        }
+
+        // PDES - תיאור הפריט (מספר מקורות אפשריים)
+        let pdes = ocrItem.Description || extractedDescription || templateItem.PDES || "";
+
         const item = {
             PARTNAME: templateItem.PARTNAME || "item",
             TUNITNAME: ocrItem.Unit || templateItem.TUNITNAME || "יח'",
             VATFLAG: templateItem.VATFLAG || "Y",
             ACCNAME: templateItem.ACCNAME || "",
             SPECIALVATFLAG: templateItem.SPECIALVATFLAG || "Y",
-            PDES: ocrItem.Description || templateItem.PDES || "",
+            PDES: pdes,
             TQUANT: ocrItem.Quantity || 1,
             PRICE: price
         };
