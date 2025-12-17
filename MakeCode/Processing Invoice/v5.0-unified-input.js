@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 5.4)
-// עדכון אחרון: 17.12.25 16:10
+// קוד 2 - עיבוד חשבוניות (גרסה 5.5)
+// עדכון אחרון: 17.12.25 16:15
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
@@ -1181,10 +1181,9 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
     };
 
     // v5.2: fncpatname - סוג תנועה
-    const sample = templateData?.sample || {};
     extractionRules.fncpatname = {
         source: "template.sample",
-        value: sample.FNCPATNAME || null,
+        value: sample?.FNCPATNAME || null,
         note: "קבוע מהתבנית הנלמדת"
     };
 
@@ -1219,7 +1218,7 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
 
     return {
         template_index: templateIndex,
-        version: "5.4",
+        version: "5.5",
         document_type: documentTypeKey,
         extraction_rules: extractionRules,
         structure_flags: {
