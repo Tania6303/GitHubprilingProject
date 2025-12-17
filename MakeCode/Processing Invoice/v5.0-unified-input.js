@@ -1,14 +1,16 @@
 // ============================================================================
 // קוד 2 - עיבוד חשבוניות (גרסה 5.3)
-// עדכון אחרון: 17.12.25 15:30
+// עדכון אחרון: 17.12.25 16:00
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
 //
 // תיקונים v5.3:
+// - 16:00 העברת sample_from_history כמו שהוא מהקלט (ללא סינון שדות)
+// - 16:00 הוספת sample_from_history גם ל-technical_config
 // - 15:30 שיפור generateTechnicalConfig - הוספת extraction_rules חדשים + structure_flags
 // - 15:30 שיפור generateProcessingScenario - הוספת check_sdinumit, extract_line_items, account_selection_required
-// - 15:30 עדכון version ל-5.2 בכל הפלטים
+// - 15:30 עדכון version ל-5.3 בכל הפלטים
 //
 // תיקונים v5.2:
 // - 14:00 שיפור generateLLMPrompt - הוספת שדות details, pdes, accname, sdinumit, fncpatname
@@ -354,7 +356,7 @@ function processTemplate(template, mergedConfig, executionReport) {
         template  // v5.2: העברת התבנית המלאה לחילוץ מידע נוסף
     );
 
-    // יצירת technical config - v5.2: הוספת documentType ו-templateData
+    // יצירת technical config - v5.3: הוספת documentType, templateData ו-sample
     const technicalConfig = generateTechnicalConfig(
         mergedConfig,
         ocrFields,
@@ -364,7 +366,8 @@ function processTemplate(template, mergedConfig, executionReport) {
         documentPatterns,
         vehicleRules,
         documentType,
-        templateData
+        templateData,
+        template.sample  // v5.3: העברת sample כמו שהוא
     );
 
     // יצירת processing scenario - v5.2: הוספת documentType
@@ -1102,22 +1105,8 @@ function generateLLMPrompt(mergedConfig, ocrFields, searchResults, templateIndex
         }
     };
 
-    // v5.2: הוספת דוגמה מההיסטוריה
-    let sampleFromHistory = null;
-    if (template?.sample) {
-        sampleFromHistory = {
-            BOOKNUM: template.sample.BOOKNUM,
-            DETAILS: template.sample.DETAILS,
-            QPRICE: template.sample.QPRICE
-        };
-        if (template.sample.PINVOICEITEMS_SUBFORM) {
-            sampleFromHistory.items = template.sample.PINVOICEITEMS_SUBFORM.map(item => ({
-                PDES: item.PDES,
-                PRICE: item.PRICE,
-                ACCNAME: item.ACCNAME
-            }));
-        }
-    }
+    // v5.3: העברת ה-sample כמו שהוא מהקלט
+    const sampleFromHistory = template?.sample || null;
 
     return {
         template_index: templateIndex,
@@ -1137,7 +1126,7 @@ function generateLLMPrompt(mergedConfig, ocrFields, searchResults, templateIndex
     };
 }
 
-function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templateIndex, structure, documentPatterns, vehicleRules, documentType, templateData) {
+function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templateIndex, structure, documentPatterns, vehicleRules, documentType, templateData, sample) {
     const extractionRules = {};
 
     // v5.2: booknum
@@ -1244,7 +1233,9 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
         },
         validation_rules: {
             required_fields: ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"]
-        }
+        },
+        // v5.3: העברת ה-sample כמו שהוא
+        sample_from_history: sample || null
     };
 }
 
