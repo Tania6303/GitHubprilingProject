@@ -1,7 +1,19 @@
 // ================================================================
-// Azure Invoice Processor v2.23 - EXPANDED STRUCTURE: vendor mapping
-// עודכן: 13 נובמבר 2025 (FIX #2)
+// Azure Invoice Processor v2.24 - FIX: table selection for invoice items
+// עודכן: 17 דצמבר 2025
 // ================================================================
+// שינויים ב-v2.24:
+// 🔴 FIX: בחירת טבלה נכונה לפירוט פריטי חשבונית
+//
+//    בעיה: הקוד הקודם בחר את הטבלה עם הכי הרבה תאים,
+//    ולפעמים זו הייתה טבלת פרטי תשלום/בנק במקום טבלת הפריטים!
+//
+//    פתרון: פונקציה חדשה scoreTableAsInvoiceItems() שמחשבת ציון:
+//    - ציון חיובי (+10) לכותרות פריטי חשבונית (תאור, כמות, מחיר, מק"ט)
+//    - ציון שלילי (-20) לכותרות בנק/תשלום (בנק, סניף, חשבון, אופן תשלום)
+//
+//    הטבלה עם הציון הגבוה ביותר נבחרת (לא הגדולה ביותר!)
+//
 // שינויים ב-v2.23:
 // 🎯 EXPANDED STRUCTURE: מבנה מורחב לזיהוי ספק עתידי
 //
@@ -548,6 +560,74 @@ function deduplicateItems(items) {
     return result;
 }
 
+/**
+ * מחשב ציון לטבלה - כמה סביר שזו טבלת פריטי חשבונית
+ * ציון חיובי = כותרות של פריטי חשבונית (תאור, כמות, מחיר, מק"ט)
+ * ציון שלילי = כותרות של פרטי תשלום/בנק (בנק, סניף, חשבון, אופן תשלום)
+ *
+ * @param {Object} table - טבלה מה-JSON של Azure
+ * @returns {number} - ציון הטבלה (גבוה יותר = סביר יותר שזו טבלת פריטים)
+ */
+function scoreTableAsInvoiceItems(table) {
+    if (!table || !table.cells) return -1000;
+
+    let score = 0;
+
+    // כותרות של פריטי חשבונית (ציון חיובי)
+    const invoiceItemHeaders = [
+        'תאור', 'תיאור', 'description', 'פריט', 'שם מוצר', 'item',
+        'כמות', 'quantity', 'qty',
+        'מחיר', 'price', 'unit price', 'מחיר ליחידה',
+        'סה"כ', 'סה״כ', 'total', 'סכום', 'amount', 'line total',
+        'מק"ט', 'מק״ט', 'מקט', 'sku', 'item code', 'product code', 'קוד פריט',
+        'יחידה', 'unit', 'יח', 'uom',
+        'הנחה', 'discount', 'אחוז הנחה',
+        'מע"מ', 'מע״מ', 'vat', 'tax'
+    ];
+
+    // כותרות של פרטי תשלום/בנק (ציון שלילי)
+    const paymentBankHeaders = [
+        'בנק', 'bank',
+        'סניף', 'branch',
+        'חשבון', 'account', 'account number',
+        'תאריך פרעון', 'payment date', 'due date',
+        'אופן תשלום', 'payment method', 'payment type',
+        'העברה', 'transfer', 'שיק', 'check', 'cheque',
+        'מספר צק', 'check number', 'cheque number'
+    ];
+
+    // עבור על כל התאים ובדוק כותרות
+    for (let i = 0; i < table.cells.length; i++) {
+        const cell = table.cells[i];
+
+        // בדוק רק תאי כותרת
+        if (cell.kind !== 'columnHeader') continue;
+
+        const content = (cell.content || '').toLowerCase().trim();
+        if (!content) continue;
+
+        // בדוק התאמה לכותרות פריטי חשבונית
+        for (let j = 0; j < invoiceItemHeaders.length; j++) {
+            const header = invoiceItemHeaders[j].toLowerCase();
+            if (content === header || content.indexOf(header) >= 0) {
+                score += 10;
+                break;
+            }
+        }
+
+        // בדוק התאמה לכותרות בנק/תשלום
+        for (let k = 0; k < paymentBankHeaders.length; k++) {
+            const header = paymentBankHeaders[k].toLowerCase();
+            if (content === header || content.indexOf(header) >= 0) {
+                score -= 20; // ציון שלילי חזק יותר למנוע בחירה בטעות
+                break;
+            }
+        }
+    }
+
+    return score;
+}
+
 function extractRealItemsFromTable(tables, azureItems) {
     // ⚠️ חשוב! תמיד נתח את הטבלה תחילה כדי לבנות columnMap
     if (!tables || tables.length === 0) {
@@ -564,14 +644,23 @@ function extractRealItemsFromTable(tables, azureItems) {
         };
     }
 
+    // ✅ FIX v2.24: בחר טבלה לפי ציון (לא לפי מספר תאים!)
+    // ציון מודד כמה סביר שזו טבלת פריטי חשבונית ולא טבלת בנק/תשלומים
     let mainTable = {};
-    let maxCells = 0;
+    let bestScore = -1000;
 
     for (let i = 0; i < tables.length; i++) {
         const table = tables[i];
-        if (table.cells && table.cells.length > maxCells) {
+        if (!table.cells || table.cells.length === 0) continue;
+
+        const tableScore = scoreTableAsInvoiceItems(table);
+
+        // בחר טבלה עם הציון הגבוה ביותר
+        // אם הציון זהה, בחר את זו עם יותר תאים
+        if (tableScore > bestScore ||
+            (tableScore === bestScore && table.cells.length > (mainTable.cells ? mainTable.cells.length : 0))) {
             mainTable = table;
-            maxCells = table.cells.length;
+            bestScore = tableScore;
         }
     }
 
