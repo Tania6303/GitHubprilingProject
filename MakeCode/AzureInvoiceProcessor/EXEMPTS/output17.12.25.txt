@@ -1,0 +1,152 @@
+[
+    {
+        "logs": {
+            "stdout": [],
+            "stderr": []
+        },
+        "executionTimeMs": 1068,
+        "result": {
+            "structure": {
+                "docType": "string",
+                "fields": {
+                    "AmountDue_amount": "number",
+                    "AmountDue_currency": "string",
+                    "CustomerAddress": "string",
+                    "CustomerAddress_houseNumber": "string",
+                    "CustomerAddress_road": "string",
+                    "CustomerAddress_streetAddress": "string",
+                    "CustomerAddress_house": "string",
+                    "CustomerAddressRecipient": "string",
+                    "CustomerName": "string",
+                    "CustomerTaxId": "string",
+                    "InvoiceDate": "YYYY-MM-DD",
+                    "InvoiceId": "string",
+                    "InvoiceTotal_amount": "number",
+                    "InvoiceTotal_currency": "string",
+                    "SubTotal_amount": "number",
+                    "SubTotal_currency": "string",
+                    "TotalDiscount_amount": "number",
+                    "TotalDiscount_currency": "string",
+                    "TotalTax_amount": "number",
+                    "TotalTax_currency": "string",
+                    "VendorAddress": "string",
+                    "VendorAddress_houseNumber": "string",
+                    "VendorAddress_road": "string",
+                    "VendorAddress_poBox": "string",
+                    "VendorAddress_city": "string",
+                    "VendorAddress_streetAddress": "string",
+                    "VendorAddress_house": "string",
+                    "VendorAddressRecipient": "string",
+                    "VendorName": "string",
+                    "VendorTaxId": "string",
+                    "VendorTel": "string",
+                    "VendorFax": "string",
+                    "InvoiceTime": "HH:MM:SS",
+                    "DueDate": "YYYY-MM-DD",
+                    "CustomerEmail": "string",
+                    "UnidentifiedNumbers": [
+                        "object"
+                    ]
+                },
+                "Items": [
+                    {
+                        "TotalPrice": {
+                            "type": "number",
+                            "originalHeader": "סכום"
+                        },
+                        "UnknownColumn_1": {
+                            "type": "string",
+                            "originalHeader": "תאריך פרעון"
+                        },
+                        "LineNumber": {
+                            "type": "string",
+                            "originalHeader": "חשבון"
+                        },
+                        "UnknownColumn_3": {
+                            "type": "number",
+                            "originalHeader": "סניף"
+                        },
+                        "UnknownColumn_4": {
+                            "type": "number",
+                            "originalHeader": "בנק"
+                        }
+                    }
+                ]
+            },
+            "data": {
+                "docType": "invoice",
+                "fields": {
+                    "AmountDue_amount": 8850,
+                    "AmountDue_currency": "ILS",
+                    "CustomerAddress": "הקטיף 11 פארק תעשיות",
+                    "CustomerAddress_houseNumber": "11",
+                    "CustomerAddress_road": "הקטיף",
+                    "CustomerAddress_streetAddress": "11 הקטיף",
+                    "CustomerAddress_house": "פארק תעשיות",
+                    "CustomerAddressRecipient": "ט.פ.י פל ים בע״מ",
+                    "CustomerName": "ט.פ.י פל ים בע״מ",
+                    "CustomerTaxId": "513327064",
+                    "InvoiceDate": "2025-08-25",
+                    "InvoiceId": "052569",
+                    "InvoiceTotal_amount": 8850,
+                    "InvoiceTotal_currency": "ILS",
+                    "Items": [
+                        {
+                            "TotalPrice": 8850,
+                            "UnknownColumn_1": "24/08/2025",
+                            "LineNumber": "העברה",
+                            "UnknownColumn_3": 744,
+                            "UnknownColumn_4": 10
+                        }
+                    ],
+                    "SubTotal_amount": 7500,
+                    "SubTotal_currency": "ILS",
+                    "TotalDiscount_amount": 0,
+                    "TotalDiscount_currency": "ILS",
+                    "TotalTax_amount": 1350,
+                    "TotalTax_currency": "ILS",
+                    "VendorAddress": "רח׳ המלאכה 8 ת.ד. 8642 א.ת. פולג נתניה",
+                    "VendorAddress_houseNumber": "8",
+                    "VendorAddress_road": "רח׳ המלאכה",
+                    "VendorAddress_poBox": "ת.ד. 8642",
+                    "VendorAddress_city": "נתניה",
+                    "VendorAddress_streetAddress": "8 רח׳ המלאכה ת.ד. 8642",
+                    "VendorAddress_house": "א.ת. פולג",
+                    "VendorAddressRecipient": "דרין, טרגל ושות' - רואי חשבון",
+                    "VendorName": "דרין, טרגל ושות' - רואי חשבון",
+                    "VendorTaxId": "557149143",
+                    "VendorTel": "073-2400700",
+                    "VendorFax": "09-8628554",
+                    "InvoiceTime": "10:41:23",
+                    "DueDate": "2025-08-24",
+                    "CustomerEmail": "account@t-p-y.co.il",
+                    "UnidentifiedNumbers": [
+                        {
+                            "label": "טלפון",
+                            "value": "073-2400700 פקס: 09-8628554"
+                        },
+                        {
+                            "label": "עמק חפר",
+                            "value": 3877701
+                        },
+                        {
+                            "label": "מספר לקוח",
+                            "value": 260
+                        },
+                        {
+                            "label": "מספר",
+                            "value": "2230018"
+                        }
+                    ]
+                }
+            },
+            "metadata": {
+                "modelId": "",
+                "totalFields": 37,
+                "uniqueDataFound": 4,
+                "pageCount": 1
+            },
+            "status": "success"
+        }
+    }
+]
