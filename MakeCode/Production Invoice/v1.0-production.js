@@ -1,6 +1,6 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 1.8.5 - 16.12.25)
-// עדכון אחרון: 16.12.25 17:45
+// קוד 3 - ייצור חשבוניות (גרסה 2.0.0 - 17.12.25)
+// עדכון אחרון: 17.12.25 16:30
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -9,10 +9,18 @@
 // 📁 קבצי בדיקה: MakeCode/Production Invoice/EXEMPTS/
 // לקיחת הקובץ העדכני: ls -lt "MakeCode/Production Invoice/EXEMPTS" | head -5
 //
-// ⚠️ קשור ל: MakeCode/Processing Invoice/v5.1
+// ⚠️ קשור ל: MakeCode/Processing Invoice/v5.5
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
 //
-// תיקונים:
+// תיקונים v2.0.0:
+// - קריאת instructions.fields מהתבנית ויישום הנחיות
+// - סינון DETAILS לפי do_NOT_use (טלפון/פקס/כתובת)
+// - שימוש ב-sample_from_history לבחירת ACCNAME
+// - בניית PINVOICESCONT_SUBFORM מ-sample (כולל FNCPATNAME)
+// - חיפוש SDINUMIT (מספר הקצאה) לפי הנחיות
+// - שיפור בחירת ACCNAME לפי available_accounts ו-examples_from_history
+//
+// תיקונים קודמים:
 // v1.8.5: DETAILS fallback מ-template.DETAILS (כשאין searchResults ואין PDES)
 // v1.8.4: חילוץ PDES מ-AZURE_TEXT_CLEAN (כשאין Description ב-Items)
 // v1.8.3: תיקון DETAILS - הסרת בדיקת vehicles (מערך ריק הוא truthy!)
@@ -730,6 +738,15 @@ function processInvoiceComplete(input) {
         executionReport.stage = "שלב 3: חיפוש נתונים";
         const ocrFields = azureResult.data.fields || {};
         ocrFields.AZURE_TEXT_CLEAN = azureTextClean;
+
+        // v2.0: חילוץ הנחיות ו-sample מהתבנית
+        const llmTemplate = learnedConfig.llm_prompt?.all_templates?.[templateIndex] ||
+                           learnedConfig.llm_prompt?.all_templates?.[0] || {};
+        const templateInstructions = llmTemplate.instructions || {};
+        const sampleFromHistory = llmTemplate.sample_from_history || null;
+
+        console.log(`📋 v2.0: יש instructions: ${!!templateInstructions.fields}, יש sample: ${!!sampleFromHistory}`);
+
         const searchResults = searchAllData(
             ocrFields,
             azureText,
@@ -737,7 +754,8 @@ function processInvoiceComplete(input) {
             structure,
             importFiles,
             docsList,
-            vehicleRules
+            vehicleRules,
+            templateInstructions
         );
         Object.keys(searchResults).forEach(key => {
             if (key === 'vehicles' && searchResults.vehicles) {
@@ -763,7 +781,9 @@ function processInvoiceComplete(input) {
             config,
             searchResults,
             learnedConfig,
-            ocrFields
+            ocrFields,
+            sampleFromHistory,      // v2.0
+            templateInstructions    // v2.0
         );
         executionReport.stage = "שלב 5: בקרות";
         const validation = performValidation(invoice, ocrFields, config, docsList, patterns, structure, searchResults, template);
@@ -889,7 +909,7 @@ function extractPatterns(recommendedSamples, docsList) {
     return patterns;
 }
 
-function searchAllData(ocrFields, azureText, patterns, structure, importFiles, docsList, vehicleRules) {
+function searchAllData(ocrFields, azureText, patterns, structure, importFiles, docsList, vehicleRules, templateInstructions) {
     // חיפוש תעודות אם נדרש
     let documents = null;
     if (structure.has_doc) {
@@ -897,15 +917,21 @@ function searchAllData(ocrFields, azureText, patterns, structure, importFiles, d
         console.log(`🔍 מחפש תעודות: נמצאו ${documents?.length || 0}`);
     }
 
+    // v2.0: העברת הנחיות לפונקציות החיפוש
     return {
         booknum: searchBooknum(ocrFields, patterns),
         ivdate: searchIvdate(ocrFields),
-        details: searchDetails(ocrFields, azureText),
+        details: searchDetails(ocrFields, azureText, templateInstructions),
         ordname: null,
         impfnum: null,
         documents: documents,
         vehicles: vehicleRules ? extractVehiclesAdvanced(ocrFields, vehicleRules) : [],
-        items: ocrFields.Items || []
+        items: ocrFields.Items || [],
+        // v2.0: שדות חדשים
+        sdinumit: searchSdinumit(azureText, templateInstructions),
+        subtotal: ocrFields.SubTotal_amount || ocrFields.SubTotal || null,
+        total_tax: ocrFields.TotalTax_amount || ocrFields.TotalTax || null,
+        invoice_total: ocrFields.InvoiceTotal_amount || ocrFields.InvoiceTotal || null
     };
 }
 
@@ -938,17 +964,84 @@ function searchIvdate(ocrFields) {
     return `${day}/${month}/${year}`;
 }
 
-function searchDetails(ocrFields, azureText) {
-    if (ocrFields.InvoiceDescription) {
+function searchDetails(ocrFields, azureText, templateInstructions) {
+    // v2.0: קריאת do_NOT_use מההנחיות
+    const doNotUse = templateInstructions?.fields?.details?.do_NOT_use ||
+                     ["טלפון", "פקס", "כתובת", "עוסק מורשה"];
+
+    // פונקציה לבדיקה אם שורה מכילה מילים אסורות
+    const containsForbidden = (text) => {
+        if (!text) return false;
+        return doNotUse.some(forbidden => text.includes(forbidden));
+    };
+
+    // 1. נסה InvoiceDescription מ-OCR (אם לא מכיל מילים אסורות)
+    if (ocrFields.InvoiceDescription && !containsForbidden(ocrFields.InvoiceDescription)) {
         return ocrFields.InvoiceDescription;
     }
+
+    // 2. חפש בטקסט שורות עם תיאור שירות
     if (azureText) {
         const lines = azureText.split('\n').filter(l => l.trim());
-        if (lines.length > 2) {
-            return lines[2].substring(0, 100);
+
+        // מילות מפתח לשירותים
+        const serviceKeywords = ["ריטיינר", "דוח", "ייעוץ", "שירות", "עבודה", "חודש", "שנת", "תלושי", "שכר"];
+
+        // חפש שורה עם מילת מפתח שאינה מכילה מילים אסורות
+        for (const line of lines) {
+            if (containsForbidden(line)) continue;
+
+            const hasServiceKeyword = serviceKeywords.some(keyword => line.includes(keyword));
+            if (hasServiceKeyword && line.length > 5 && line.length < 100) {
+                console.log(`✅ DETAILS נמצא עם מילת מפתח: "${line.substring(0, 50)}"`);
+                return line.substring(0, 100);
+            }
+        }
+
+        // fallback: קח שורה שאינה מכילה מילים אסורות
+        for (let i = 2; i < Math.min(lines.length, 10); i++) {
+            if (!containsForbidden(lines[i]) && lines[i].length > 3) {
+                console.log(`✅ DETAILS fallback משורה ${i}: "${lines[i].substring(0, 50)}"`);
+                return lines[i].substring(0, 100);
+            }
         }
     }
+
     return "";
+}
+
+// v2.0: חיפוש מספר הקצאה (SDINUMIT) - רק אם מופיעה המילה "הקצאה"
+function searchSdinumit(azureText, templateInstructions) {
+    if (!azureText) return null;
+
+    // v2.0: קריאת הנחיות מהתבנית
+    const sdinumitInstructions = templateInstructions?.fields?.sdinumit || {};
+    const requiredKeyword = sdinumitInstructions.required_keyword || "הקצאה";
+    const notValid = sdinumitInstructions.NOT_valid || ["תעודת רישום", "מספר אסמכתא"];
+
+    // בדיקה: האם המילה "הקצאה" מופיעה בטקסט?
+    if (!azureText.includes(requiredKeyword)) {
+        return null;
+    }
+
+    // בדיקה: האם זה לא אחד מהמקורות הלא תקפים?
+    for (const invalid of notValid) {
+        if (azureText.includes(invalid)) {
+            console.log(`⚠️ SDINUMIT: נמצא "${invalid}" - לא מספר הקצאה`);
+            return null;
+        }
+    }
+
+    // חיפוש מספר 9 ספרות אחרי המילה "הקצאה"
+    const pattern = /הקצאה[:\s]*(\d{9})/;
+    const match = azureText.match(pattern);
+
+    if (match) {
+        console.log(`✅ SDINUMIT נמצא: ${match[1]}`);
+        return match[1];
+    }
+
+    return null;
 }
 
 function searchDocuments(ocrFields, azureText, docsList) {
@@ -1121,7 +1214,7 @@ function extractVehiclesAdvanced(ocrFields, vehicleRules) {
     return [...new Set(foundVehicles)];
 }
 
-function buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields) {
+function buildInvoiceFromTemplate(template, structure, config, searchResults, learnedConfig, ocrFields, sampleFromHistory, templateInstructions) {
     const supplierCode = template.SUPNAME ||
                         config.supplier_config?.supplier_code ||
                         learnedConfig.supplier_id ||
@@ -1135,6 +1228,7 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         IVDATE: searchResults.ivdate,
         BOOKNUM: searchResults.booknum
     };
+
     // DETAILS - מ-searchResults.details (אם לא ריק ולא גנרי)
     // לא תלוי ברכבים - תמיד לקחת details אם קיים
     if (searchResults.details && searchResults.details.trim()) {
@@ -1179,17 +1273,20 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
                 ocrFields
             );
         } else if (searchResults.items && searchResults.items.length > 0) {
+            // v2.0: העברת sample והנחיות לבחירת ACCNAME
             invoice.PINVOICEITEMS_SUBFORM = createItemsFromOCR(
                 searchResults.items,
                 template,
-                ocrFields
+                ocrFields,
+                sampleFromHistory,
+                templateInstructions
             );
         } else if (template.PINVOICEITEMS_SUBFORM) {
             invoice.PINVOICEITEMS_SUBFORM = JSON.parse(JSON.stringify(template.PINVOICEITEMS_SUBFORM));
         }
     }
 
-    // DETAILS - לפי PDES של שורה 1, או מהתבנית
+    // DETAILS - לפי PDES של שורה 1, או מהתבנית, או מ-sample
     if (invoice.PINVOICEITEMS_SUBFORM && invoice.PINVOICEITEMS_SUBFORM.length > 0) {
         if (!invoice.DETAILS) {
             // אם אין DETAILS - נסה PDES של הפריט הראשון
@@ -1197,6 +1294,11 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
             if (pdesValue && pdesValue.trim()) {
                 invoice.DETAILS = pdesValue;
                 console.log(`✅ DETAILS set from first item PDES: ${invoice.DETAILS}`);
+            }
+            // v2.0: נסה מ-sample
+            else if (sampleFromHistory?.DETAILS) {
+                invoice.DETAILS = sampleFromHistory.DETAILS;
+                console.log(`✅ DETAILS set from sample: ${invoice.DETAILS}`);
             }
             // אם עדיין אין - קח מהתבנית
             else if (template.DETAILS) {
@@ -1212,10 +1314,48 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         }
     }
 
-    if (template.PINVOICESCONT_SUBFORM) {
-        invoice.PINVOICESCONT_SUBFORM = template.PINVOICESCONT_SUBFORM;
-    }
+    // v2.0: בניית PINVOICESCONT_SUBFORM מ-sample (כולל FNCPATNAME ו-SDINUMIT)
+    invoice.PINVOICESCONT_SUBFORM = buildPinvoicescontSubform(
+        template.PINVOICESCONT_SUBFORM,
+        sampleFromHistory,
+        searchResults.sdinumit
+    );
+
     return invoice;
+}
+
+// v2.0: בניית PINVOICESCONT_SUBFORM מ-sample
+function buildPinvoicescontSubform(templateSubform, sampleFromHistory, sdinumit) {
+    // אם יש ב-sample - קח משם (כולל FNCPATNAME)
+    if (sampleFromHistory?.PINVOICESCONT_SUBFORM && sampleFromHistory.PINVOICESCONT_SUBFORM.length > 0) {
+        const sampleCont = sampleFromHistory.PINVOICESCONT_SUBFORM[0];
+        const result = {
+            FNCPATNAME: sampleCont.FNCPATNAME || null
+        };
+
+        // הוסף SDINUMIT אם נמצא
+        if (sdinumit) {
+            result.SDINUMIT = sdinumit;
+            console.log(`✅ PINVOICESCONT: FNCPATNAME=${result.FNCPATNAME}, SDINUMIT=${sdinumit}`);
+        } else {
+            console.log(`✅ PINVOICESCONT: FNCPATNAME=${result.FNCPATNAME}`);
+        }
+
+        return [result];
+    }
+
+    // אם יש SDINUMIT אבל אין sample - צור רשומה חדשה
+    if (sdinumit) {
+        console.log(`✅ PINVOICESCONT: SDINUMIT=${sdinumit} (ללא FNCPATNAME)`);
+        return [{ SDINUMIT: sdinumit }];
+    }
+
+    // fallback לתבנית או מערך ריק
+    if (templateSubform && templateSubform.length > 0) {
+        return templateSubform;
+    }
+
+    return [];
 }
 
 function extractShortDescription(ocrFields, vehicleNum) {
@@ -1250,10 +1390,23 @@ function extractShortDescription(ocrFields, vehicleNum) {
     return 'טיפול';
 }
 
-function createItemsFromOCR(ocrItems, template, ocrFields) {
+function createItemsFromOCR(ocrItems, template, ocrFields, sampleFromHistory, templateInstructions) {
     if (!ocrItems || ocrItems.length === 0) return [];
     const items = [];
     const templateItem = template.PINVOICEITEMS_SUBFORM?.[0] || {};
+
+    // v2.0: קבלת ACCNAME מ-sample_from_history (עדיפות גבוהה יותר)
+    const sampleItem = sampleFromHistory?.PINVOICEITEMS_SUBFORM?.[0] || {};
+    const accnameInstructions = templateInstructions?.fields?.accname || {};
+    const availableAccounts = accnameInstructions.available_accounts || [];
+
+    // v2.0: בחירת ACCNAME - עדיפות: sample > available_accounts[0] > template
+    let selectedAccname = sampleItem.ACCNAME || availableAccounts[0] || templateItem.ACCNAME || "";
+    if (sampleItem.ACCNAME) {
+        console.log(`✅ ACCNAME מ-sample: ${selectedAccname}`);
+    } else if (availableAccounts.length > 0) {
+        console.log(`✅ ACCNAME מ-available_accounts: ${selectedAccname} (מתוך ${availableAccounts.length} אפשרויות)`);
+    }
 
     // חישוב SubTotal לפני מע"מ
     let subtotal = ocrFields.SubTotal || ocrFields.SubTotal_amount || 0;
@@ -1276,7 +1429,8 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
             }
             // דפוס: מילות מפתח של תיאור שירות
             if ((line.includes('ריטיינר') || line.includes('שירות') ||
-                 line.includes('ייעוץ') || line.includes('הנהלת חשבונות')) &&
+                 line.includes('ייעוץ') || line.includes('הנהלת חשבונות') ||
+                 line.includes('תלושי') || line.includes('שכר')) &&
                 line.length > 5 && line.length < 100) {
                 extractedDescription = line;
                 break;
@@ -1286,6 +1440,12 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
         if (extractedDescription) {
             console.log(`📝 PDES חולץ מ-AZURE_TEXT: "${extractedDescription}"`);
         }
+    }
+
+    // v2.0: fallback ל-PDES מ-sample אם לא נמצא
+    if (!extractedDescription && sampleItem.PDES) {
+        extractedDescription = sampleItem.PDES;
+        console.log(`📝 PDES מ-sample: "${extractedDescription}"`);
     }
 
     ocrItems.forEach((ocrItem, index) => {
@@ -1316,7 +1476,7 @@ function createItemsFromOCR(ocrItems, template, ocrFields) {
             PARTNAME: templateItem.PARTNAME || "item",
             TUNITNAME: ocrItem.Unit || templateItem.TUNITNAME || "יח'",
             VATFLAG: templateItem.VATFLAG || "Y",
-            ACCNAME: templateItem.ACCNAME || "",
+            ACCNAME: selectedAccname,  // v2.0: משתמש ב-ACCNAME מ-sample
             SPECIALVATFLAG: templateItem.SPECIALVATFLAG || "Y",
             PDES: pdes,
             TQUANT: ocrItem.Quantity || 1,
@@ -1559,7 +1719,7 @@ function analyzeLearning(invoice, config) {
 result = { status: "error", message: "No input provided" };
 
 if (typeof input !== 'undefined') {
-    console.log("v1.7.1: input type =", typeof input, "isArray =", Array.isArray(input));
+    console.log("v2.0.0: input type =", typeof input, "isArray =", Array.isArray(input));
     // אם input הוא array, ניקח את הפריט הראשון
     let inputData = Array.isArray(input) ? input[0] : input;
     // אם inputData הוא array, ניקח את הפריט הראשון שלו
@@ -1603,9 +1763,9 @@ if (typeof input !== 'undefined') {
         ]});
     }
     console.log(JSON.stringify(result, null, 2));
-    console.log("v1.7.1: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
-    console.log("v1.7.1: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
-    console.log("v1.7.1: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
+    console.log("v2.0.0: items =", result.invoice_data?.PINVOICES?.[0]?.PINVOICEITEMS_SUBFORM?.length || 0);
+    console.log("v2.0.0: BOOKNUM =", result.invoice_data?.PINVOICES?.[0]?.BOOKNUM);
+    console.log("v2.0.0: DOCNO =", result.invoice_data?.PINVOICES?.[0]?.DOCNO);
     console.log("==========================================");
 }
 
