@@ -1,11 +1,27 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 5.1)
-// עדכון אחרון: 13.12.25 18:00
+// קוד 2 - עיבוד חשבוניות (גרסה 5.5)
+// עדכון אחרון: 17.12.25 16:15
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
 //
-// תיקונים:
+// תיקונים v5.4:
+// - 16:10 העברת sample_from_history כמו שהוא מהקלט (ללא סינון שדות)
+// - 16:10 הוספת sample_from_history גם ל-technical_config
+//
+// תיקונים v5.3:
+// - 15:30 שיפור generateTechnicalConfig - הוספת extraction_rules חדשים + structure_flags
+// - 15:30 שיפור generateProcessingScenario - הוספת check_sdinumit, extract_line_items, account_selection_required
+//
+// תיקונים v5.2:
+// - 14:00 שיפור generateLLMPrompt - הוספת שדות details, pdes, accname, sdinumit, fncpatname
+// - 14:00 תיקון searchDetails - סינון טלפון/פקס/כתובת
+// - 14:00 תיקון buildItems - חילוץ PDES ו-PRICE מהתבנית או azureText
+// - 14:00 הוספת searchSdinumit - חיפוש מספר הקצאה
+// - 14:00 הוספת PINVOICESCONT_SUBFORM עם FNCPATNAME ו-SDINUMIT
+// - 14:00 הוספת לוגיקת בחירת ACCNAME כשיש מספר חשבונות
+//
+// תיקונים קודמים:
 // - 18:00 תאימות ל-v1.7: sample.BOOKNUM במקום sample.sample_booknum
 // - 16:00 תמיכה בעטיפת learned_config מ-Make
 // - 15:30 תמיכה בקלט כמחרוזת JSON (JSON.parse)
@@ -309,7 +325,8 @@ function processTemplate(template, mergedConfig, executionReport) {
         structure,
         imfp,
         docs,
-        vehicleRules
+        vehicleRules,
+        templateData  // v5.2: העברת נתוני תבנית לחילוץ DETAILS
     );
 
     // בניית חשבונית
@@ -319,10 +336,14 @@ function processTemplate(template, mergedConfig, executionReport) {
         mergedConfig,
         searchResults,
         ocrFields,
-        docs
+        docs,
+        azureText  // v5.2: העברת azureText לחילוץ פריטים
     );
 
     const cleanedInvoice = cleanInvoiceForPriority(invoice);
+
+    // v5.2: חילוץ document_type מ-templateData
+    const documentType = templateData?.document_type || {};
 
     // יצירת LLM prompt
     const llmPrompt = generateLLMPrompt(
@@ -332,10 +353,11 @@ function processTemplate(template, mergedConfig, executionReport) {
         template.template_index,
         structure,
         documentPatterns,
-        vehicleRules
+        vehicleRules,
+        template  // v5.2: העברת התבנית המלאה לחילוץ מידע נוסף
     );
 
-    // יצירת technical config
+    // יצירת technical config - v5.3: הוספת documentType, templateData ו-sample
     const technicalConfig = generateTechnicalConfig(
         mergedConfig,
         ocrFields,
@@ -343,11 +365,14 @@ function processTemplate(template, mergedConfig, executionReport) {
         template.template_index,
         structure,
         documentPatterns,
-        vehicleRules
+        vehicleRules,
+        documentType,
+        templateData,
+        template.sample  // v5.3: העברת sample כמו שהוא
     );
 
-    // יצירת processing scenario
-    const processingScenario = generateProcessingScenario(structure, vehicleRules);
+    // יצירת processing scenario - v5.2: הוספת documentType
+    const processingScenario = generateProcessingScenario(structure, vehicleRules, documentType);
 
     return {
         status: "success",
@@ -435,16 +460,21 @@ function detectDocumentPatterns(ocrFields, azureText) {
 // חיפוש נתונים
 // ============================================================================
 
-function searchAllData(ocrFields, azureText, sample, structure, imfp, docs, vehicleRules) {
+function searchAllData(ocrFields, azureText, sample, structure, imfp, docs, vehicleRules, templateData) {
     return {
         booknum: searchBooknum(ocrFields, sample),
         ivdate: searchIvdate(ocrFields),
-        details: searchDetails(ocrFields, azureText),
+        details: searchDetails(ocrFields, azureText, templateData),
         ordname: structure.has_purchase_orders || structure.has_import ? searchOrdname(ocrFields) : null,
         impfnum: structure.has_import ? searchImpfnum(ocrFields, imfp) : null,
         documents: structure.has_doc ? searchDocuments(ocrFields, azureText, docs) : null,
         vehicles: vehicleRules ? extractVehicles(ocrFields, vehicleRules, azureText) : [],
-        items: ocrFields.Items || []
+        items: ocrFields.Items || [],
+        sdinumit: searchSdinumit(azureText),
+        // מידע נוסף לשימוש ב-LLM prompt
+        subtotal: ocrFields.SubTotal_amount || null,
+        total_tax: ocrFields.TotalTax_amount || null,
+        invoice_total: ocrFields.InvoiceTotal_amount || null
     };
 }
 
@@ -475,15 +505,52 @@ function searchIvdate(ocrFields) {
     return `${day}/${month}/${year}`;
 }
 
-function searchDetails(ocrFields, azureText) {
+function searchDetails(ocrFields, azureText, templateData) {
+    // 1. קודם כל - נסה לקחת מתבנית הלמידה
+    if (templateData && templateData.DETAILS) {
+        return templateData.DETAILS;
+    }
+
+    // 2. אם יש InvoiceDescription מה-OCR
     if (ocrFields.InvoiceDescription) {
         return ocrFields.InvoiceDescription;
     }
 
+    // 3. חפש בטקסט - אבל סנן שורות לא רלוונטיות
     if (azureText) {
-        const lines = azureText.split('\n').filter(l => l.trim());
-        if (lines.length > 2) {
-            return lines[2].substring(0, 100);
+        const excludePatterns = [
+            /טלפון|פקס|פקסימיליה/i,
+            /ת\.ד\.|תא דואר/i,
+            /עוסק מורשה/i,
+            /כתובת|רחוב|רח'/i,
+            /^\d+[-\/]\d+[-\/]\d+$/,  // תאריכים
+            /^\d{5,}$/,               // מספרים ארוכים בלבד
+            /מסמך ממוחשב/i,
+            /לכבוד:/i,
+            /מקור|העתק/i
+        ];
+
+        const lines = azureText.split('\n').filter(l => {
+            const trimmed = l.trim();
+            if (!trimmed || trimmed.length < 3) return false;
+
+            // בדוק אם השורה מכילה תבניות לא רצויות
+            for (const pattern of excludePatterns) {
+                if (pattern.test(trimmed)) return false;
+            }
+            return true;
+        });
+
+        // חפש שורות שמתארות שירות/מוצר
+        const serviceKeywords = /ריטיינר|דוח|ייעוץ|שירות|עבודה|תלושי|הנה"ח|ביקורת|רבעון|שנתי/i;
+        const serviceLine = lines.find(l => serviceKeywords.test(l));
+        if (serviceLine) {
+            return serviceLine.substring(0, 100);
+        }
+
+        // אם לא נמצא - קח שורה ראשונה תקינה (אחרי הסינון)
+        if (lines.length > 0) {
+            return lines[0].substring(0, 100);
         }
     }
 
@@ -598,6 +665,32 @@ function searchDocuments(ocrFields, azureText, docs) {
     return foundDocs;
 }
 
+// ============================================================================
+// חיפוש מספר הקצאה - רק אם יש את המילה "הקצאה" במפורש!
+// ============================================================================
+
+function searchSdinumit(azureText) {
+    if (!azureText) return "";
+
+    // חיפוש קשיח: רק המילה "הקצאה" + מספר (בדרך כלל 9 ספרות)
+    const patterns = [
+        /מספר\s+הקצאה[:\s]*(\d{9})/i,
+        /הקצאה\s+מס[׳']?[:\s]*(\d{9})/i,
+        /הקצאה[:\s]+(\d{9})/i
+    ];
+
+    for (const pattern of patterns) {
+        const match = azureText.match(pattern);
+        if (match) {
+            console.log(`   ✅ נמצא מספר הקצאה: ${match[1]}`);
+            return match[1];
+        }
+    }
+
+    // לא נמצא - זה תקין (ייתכן מתחת לסף או מסמך ישן)
+    return "";
+}
+
 function extractVehicles(ocrFields, vehicleRules, azureText) {
     if (!vehicleRules || !vehicleRules.vehicle_account_mapping) return [];
 
@@ -641,7 +734,7 @@ function extractVehicles(ocrFields, vehicleRules, azureText) {
 // בניית חשבונית
 // ============================================================================
 
-function buildInvoiceFromTemplate(templateData, structure, mergedConfig, searchResults, ocrFields, docs) {
+function buildInvoiceFromTemplate(templateData, structure, mergedConfig, searchResults, ocrFields, docs, azureText) {
     const invoice = {
         SUPNAME: mergedConfig.supplier_id,
         CODE: templateData.CODE || "ש\"ח",
@@ -685,15 +778,39 @@ function buildInvoiceFromTemplate(templateData, structure, mergedConfig, searchR
                 vehicleRules,
                 ocrFields
             );
-        } else if (searchResults.items && searchResults.items.length > 0) {
+        } else {
+            // v5.2: העברת פרמטרים נוספים ל-buildItems
             invoice.PINVOICEITEMS_SUBFORM = buildItems(
                 searchResults.items,
-                templateData
+                templateData,
+                ocrFields,
+                azureText,
+                searchResults
             );
         }
     }
 
-    if (templateData.PINVOICESCONT_SUBFORM) {
+    // v5.2: בניית PINVOICESCONT_SUBFORM עם FNCPATNAME ו-SDINUMIT
+    const contSubform = {};
+
+    // FNCPATNAME מהתבנית (סוג תנועה)
+    if (templateData.PINVOICESCONT_SUBFORM && templateData.PINVOICESCONT_SUBFORM[0]) {
+        const templateCont = templateData.PINVOICESCONT_SUBFORM[0];
+        if (templateCont.FNCPATNAME) {
+            contSubform.FNCPATNAME = templateCont.FNCPATNAME;
+        }
+    }
+
+    // SDINUMIT - מספר הקצאה (אם נמצא)
+    if (searchResults.sdinumit) {
+        contSubform.SDINUMIT = searchResults.sdinumit;
+    }
+
+    // הוסף את ה-subform רק אם יש בו תוכן
+    if (Object.keys(contSubform).length > 0) {
+        invoice.PINVOICESCONT_SUBFORM = [contSubform];
+    } else if (templateData.PINVOICESCONT_SUBFORM) {
+        // אם אין תוכן חדש אבל יש בתבנית - השתמש בתבנית
         invoice.PINVOICESCONT_SUBFORM = templateData.PINVOICESCONT_SUBFORM;
     }
 
@@ -762,38 +879,95 @@ function extractShortDescription(ocrFields, vehicleNum) {
     return 'טיפול';
 }
 
-function buildItems(ocrItems, templateData) {
-    const templateItem = templateData.PINVOICEITEMS_SUBFORM?.[0] || {};
+function buildItems(ocrItems, templateData, ocrFields, azureText, searchResults) {
+    const templateItems = templateData.PINVOICEITEMS_SUBFORM || [];
+    const templateItem = templateItems[0] || {};
 
-    return ocrItems.map(ocrItem => {
-        const item = {
-            PARTNAME: templateItem.PARTNAME || "",
-            TUNITNAME: templateItem.TUNITNAME || "יח'",
-            VATFLAG: templateItem.VATFLAG || "Y",
-            ACCNAME: templateItem.ACCNAME || "",
-            PDES: ocrItem.Description || "",
-            TQUANT: ocrItem.Quantity || 1,
-            PRICE: ocrItem.UnitPrice || ocrItem.UnitPrice_amount || 0
-        };
+    // בדוק אם OCR Items מכיל פריטי חשבונית אמיתיים (יש Description)
+    const hasValidOcrItems = ocrItems && ocrItems.length > 0 &&
+        ocrItems.some(item => item.Description && !item.Description.includes('העברה'));
 
-        if (templateItem.SPECIALVATFLAG === "Y") {
-            item.SPECIALVATFLAG = "Y";
+    if (hasValidOcrItems) {
+        // שימוש ב-OCR Items
+        return ocrItems.map(ocrItem => {
+            const item = {
+                PARTNAME: templateItem.PARTNAME || "",
+                TUNITNAME: templateItem.TUNITNAME || "יח'",
+                VATFLAG: templateItem.VATFLAG || "Y",
+                ACCNAME: templateItem.ACCNAME || "",
+                PDES: ocrItem.Description || "",
+                TQUANT: ocrItem.Quantity || 1,
+                PRICE: ocrItem.UnitPrice || ocrItem.UnitPrice_amount || 0
+            };
+
+            if (templateItem.SPECIALVATFLAG === "Y") {
+                item.SPECIALVATFLAG = "Y";
+            }
+
+            return item;
+        });
+    }
+
+    // OCR Items לא תקין - בנה פריטים מהתבנית או מהנתונים
+    const subtotal = searchResults?.subtotal ||
+        (ocrFields.InvoiceTotal_amount && ocrFields.TotalTax_amount
+            ? ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount
+            : ocrFields.SubTotal_amount || 0);
+
+    // אם יש פריטים בתבנית - השתמש בהם כבסיס
+    if (templateItems.length > 0) {
+        // אם פריט אחד בתבנית - השתמש במחיר מה-OCR
+        if (templateItems.length === 1) {
+            const pdes = searchResults?.details || templateItem.PDES || "";
+            return [{
+                PARTNAME: templateItem.PARTNAME || "",
+                PDES: pdes,
+                TQUANT: templateItem.TQUANT || 1,
+                TUNITNAME: templateItem.TUNITNAME || "יח'",
+                PRICE: subtotal,
+                VATFLAG: templateItem.VATFLAG || "Y",
+                ACCNAME: templateItem.ACCNAME || "",
+                ...(templateItem.SPECIALVATFLAG === "Y" ? { SPECIALVATFLAG: "Y" } : {})
+            }];
         }
 
-        return item;
-    });
+        // אם מספר פריטים - שמור את המבנה מהתבנית
+        return templateItems.map(ti => ({
+            PARTNAME: ti.PARTNAME || "",
+            PDES: ti.PDES || "",
+            TQUANT: ti.TQUANT || 1,
+            TUNITNAME: ti.TUNITNAME || "יח'",
+            PRICE: ti.PRICE || 0,
+            VATFLAG: ti.VATFLAG || "Y",
+            ACCNAME: ti.ACCNAME || "",
+            ...(ti.SPECIALVATFLAG === "Y" ? { SPECIALVATFLAG: "Y" } : {})
+        }));
+    }
+
+    // אין תבנית - צור פריט בודד עם המחיר מה-OCR
+    const pdes = searchResults?.details || "";
+    return [{
+        PARTNAME: "",
+        PDES: pdes,
+        TQUANT: 1,
+        TUNITNAME: "יח'",
+        PRICE: subtotal,
+        VATFLAG: "Y",
+        ACCNAME: ""
+    }];
 }
 
 // ============================================================================
 // יצירת פלטים
 // ============================================================================
 
-function generateLLMPrompt(mergedConfig, ocrFields, searchResults, templateIndex, structure, documentPatterns, vehicleRules) {
+function generateLLMPrompt(mergedConfig, ocrFields, searchResults, templateIndex, structure, documentPatterns, vehicleRules, template) {
     const fieldInstructions = {};
 
+    // שדות בסיסיים - תמיד
     fieldInstructions.booknum = {
         field_name: "BOOKNUM",
-        description: "מספר חשבונית",
+        description: "מספר חשבונית ספק",
         how_to_find: "חפש בשדה InvoiceId ב-OCR",
         example: searchResults.booknum || ""
     };
@@ -805,39 +979,158 @@ function generateLLMPrompt(mergedConfig, ocrFields, searchResults, templateIndex
         example: searchResults.ivdate || ""
     };
 
-    fieldInstructions.price = {
-        field_name: "PRICE",
-        description: "מחיר לפני מע\"מ",
-        how_to_calculate: "InvoiceTotal_amount - TotalTax_amount"
+    // v5.2: שדה DETAILS
+    fieldInstructions.details = {
+        field_name: "DETAILS",
+        description: "תיאור כללי של החשבונית בכותרת",
+        importance: "גבוהה - מסכם את מהות החשבונית",
+        how_to_find: "חפש תיאור השירות העיקרי בטקסט",
+        do_NOT_use: ["טלפון", "פקס", "כתובת", "מספר עוסק מורשה"],
+        example: searchResults.details || ""
     };
 
-    if (vehicleRules && vehicleRules.vehicle_account_mapping) {
+    // v5.2: שדה PRICE עם חישוב
+    fieldInstructions.price = {
+        field_name: "PRICE",
+        location: "PINVOICEITEMS_SUBFORM",
+        description: "מחיר לפני מע\"מ",
+        how_to_calculate: "SubTotal_amount או (InvoiceTotal_amount - TotalTax_amount)",
+        example: searchResults.subtotal || ""
+    };
+
+    // v5.2: שדה PDES - קריטי לחשבונית עם פירוט
+    if (!structure.has_doc) {
+        fieldInstructions.pdes = {
+            field_name: "PDES",
+            location: "PINVOICEITEMS_SUBFORM",
+            description: "תיאור הפריט/שירות בשורת הפירוט",
+            importance: "קריטי! זה מזהה את סוג ההוצאה",
+            max_length: 48,
+            how_to_find: "חפש בטקסט שורות המתארות שירותים",
+            example: searchResults.details || ""
+        };
+    }
+
+    // v5.2: שדה ACCNAME - עם לוגיקת בחירה
+    const documentTypeInfo = template?.document_type || {};
+    const availableAccounts = documentTypeInfo.accnames || [];
+    const partNameRules = mergedConfig.critical_patterns?.partname_rules || {};
+
+    if (availableAccounts.length > 0 || Object.keys(partNameRules).length > 0) {
+        fieldInstructions.accname = {
+            field_name: "ACCNAME",
+            location: "PINVOICEITEMS_SUBFORM",
+            description: "חשבון הנהלת חשבונות לסיווג ההוצאה",
+            importance: "קריטי! קובע איך ההוצאה מסווגת",
+            available_accounts: availableAccounts
+        };
+
+        // הוסף דוגמאות מההיסטוריה אם יש
+        if (Object.keys(partNameRules).length > 0) {
+            const examples = [];
+            for (const [partname, rules] of Object.entries(partNameRules)) {
+                if (rules.accnames && rules.sample_description) {
+                    rules.accnames.forEach(acc => {
+                        examples.push({
+                            partname: partname,
+                            description: rules.sample_description,
+                            accname: acc
+                        });
+                    });
+                }
+            }
+            if (examples.length > 0) {
+                fieldInstructions.accname.examples_from_history = examples;
+                fieldInstructions.accname.selection_guide = "בחר חשבון לפי סוג ההוצאה/שירות בהתאם לדוגמאות ההיסטוריות";
+            }
+        }
+
+        // אם יש מספר חשבונות - הדגש שצריך לבחור
+        if (availableAccounts.length > 1) {
+            fieldInstructions.accname.note = `יש ${availableAccounts.length} חשבונות אפשריים - בחר לפי סוג ההוצאה`;
+        }
+    }
+
+    // v5.2: שדה SDINUMIT - מספר הקצאה
+    fieldInstructions.sdinumit = {
+        field_name: "SDINUMIT",
+        location: "PINVOICESCONT_SUBFORM",
+        description: "מספר הקצאה מרשות המיסים",
+        importance: "קריטי לחשבוניות מעל סף! ללא מספר זה לא ניתן לנכות מע\"מ",
+        format: "9 ספרות",
+        rule: "רק אם מופיעה המילה 'הקצאה' במפורש!",
+        search_keywords: ["מספר הקצאה", "הקצאה מס'"],
+        NOT_valid: ["תעודת רישום", "מספר אסמכתא"],
+        example: searchResults.sdinumit || null
+    };
+
+    // v5.2: שדה FNCPATNAME - סוג תנועה
+    const templateCont = template?.template?.PINVOICESCONT_SUBFORM?.[0];
+    if (templateCont && templateCont.FNCPATNAME) {
+        fieldInstructions.fncpatname = {
+            field_name: "FNCPATNAME",
+            location: "PINVOICESCONT_SUBFORM",
+            description: "סוג תנועה",
+            value: templateCont.FNCPATNAME,
+            source: "קבוע מהתבנית הנלמדת"
+        };
+    }
+
+    // רכבים - אם רלוונטי
+    if (vehicleRules && vehicleRules.vehicle_account_mapping && Object.keys(vehicleRules.vehicle_account_mapping).length > 0) {
         fieldInstructions.vehicles = {
             field_name: "VEHICLES",
             description: "מספרי רכבים",
             pattern: "\\d{3}-\\d{2}-\\d{3}",
+            mapping: "כל רכב ממופה לחשבון הנה\"ח שלו",
             example: searchResults.vehicles?.join(', ') || ""
         };
     }
 
     let documentType = determineDocumentType(structure, vehicleRules);
-
     const processingSteps = buildProcessingSteps(structure, vehicleRules, documentPatterns);
+
+    // v5.2: הוספת מידע על סוג המסמך
+    const documentTypeInfoOutput = {
+        type: documentType,
+        type_key: determineDocumentTypeKey(structure, vehicleRules),
+        structure_flags: {
+            has_import: structure.has_import || false,
+            has_doc: structure.has_doc || false,
+            has_purchase_orders: structure.has_purchase_orders || false,
+            has_date_range: structure.has_date_range || false,
+            has_budcode: structure.has_budcode || false,
+            has_pdaccname: structure.has_pdaccname || false,
+            inventory_management: structure.inventory_management || "unknown",
+            debit_type: structure.debit_type || "D"
+        }
+    };
+
+    // v5.3: העברת ה-sample כמו שהוא מהקלט
+    const sampleFromHistory = template?.sample || null;
 
     return {
         template_index: templateIndex,
         document_type: documentType,
+        document_type_info: documentTypeInfoOutput,
         instructions: {
             overview: `חשבונית מספק ${mergedConfig.supplier_name}`,
             processing_steps: processingSteps,
             fields: fieldInstructions
+        },
+        sample_from_history: sampleFromHistory,
+        ocr_extracted: {
+            subtotal: searchResults.subtotal,
+            total_tax: searchResults.total_tax,
+            invoice_total: searchResults.invoice_total
         }
     };
 }
 
-function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templateIndex, structure, documentPatterns, vehicleRules) {
+function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templateIndex, structure, documentPatterns, vehicleRules, documentType, templateData, sample) {
     const extractionRules = {};
 
+    // v5.2: booknum
     extractionRules.booknum = {
         source: "ocrFields.InvoiceId",
         transformations: [
@@ -847,18 +1140,54 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
         example: searchResults.booknum || ""
     };
 
+    // v5.2: ivdate
     extractionRules.ivdate = {
         source: "ocrFields.InvoiceDate",
         format: "DD/MM/YY",
         example: searchResults.ivdate || ""
     };
 
-    extractionRules.price = {
-        calculation: {
-            formula: "InvoiceTotal_amount - TotalTax_amount"
-        }
+    // v5.2: details - תיאור כללי
+    extractionRules.details = {
+        source: "azureText",
+        method: "find_service_description",
+        exclude: ["טלפון", "פקס", "כתובת", "עוסק מורשה"],
+        example: searchResults.details || ""
     };
 
+    // v5.2: price
+    extractionRules.price = {
+        primary: "ocrFields.SubTotal_amount",
+        fallback: "ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount",
+        example: searchResults.subtotal || null
+    };
+
+    // v5.2: sdinumit - מספר הקצאה
+    extractionRules.sdinumit = {
+        source: "azureText",
+        required_keyword: "הקצאה",
+        pattern: "הקצאה[:\\s]*(\\d{9})",
+        example: searchResults.sdinumit || null
+    };
+
+    // v5.2: accname - חשבון הנה"ח
+    const accnames = documentType?.accnames || [];
+    const partnameRules = mergedConfig.supplier_config?.critical_patterns?.partname_rules || {};
+
+    extractionRules.accname = {
+        available_accounts: accnames,
+        selection_method: accnames.length > 1 ? "by_service_type" : "single_account",
+        partname_rules: Object.keys(partnameRules).length > 0 ? partnameRules : null
+    };
+
+    // v5.2: fncpatname - סוג תנועה
+    extractionRules.fncpatname = {
+        source: "template.sample",
+        value: sample?.FNCPATNAME || null,
+        note: "קבוע מהתבנית הנלמדת"
+    };
+
+    // רכבים
     if (vehicleRules && vehicleRules.vehicle_account_mapping) {
         extractionRules.vehicles = {
             pattern: "\\d{3}-\\d{2}-\\d{3}",
@@ -866,6 +1195,7 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
         };
     }
 
+    // תעודות
     if (structure.has_doc) {
         extractionRules.documents = {
             booknum_pattern: documentPatterns?.booknum_pattern || "\\b10\\d{7}\\b",
@@ -874,29 +1204,63 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
         };
     }
 
+    // v5.2: פריטים - כשאין תעודות
+    if (!structure.has_doc && !structure.has_import) {
+        extractionRules.pdes = {
+            source: "azureText or ocrFields.Items",
+            max_length: 48,
+            importance: "critical",
+            note: "תיאור הפריט/שירות - קריטי לזיהוי סוג ההוצאה"
+        };
+    }
+
     const documentTypeKey = determineDocumentTypeKey(structure, vehicleRules);
 
     return {
         template_index: templateIndex,
-        version: "5.0",
+        version: "5.5",
         document_type: documentTypeKey,
         extraction_rules: extractionRules,
+        structure_flags: {
+            has_import: structure.has_import || false,
+            has_doc: structure.has_doc || false,
+            has_purchase_orders: structure.has_purchase_orders || false,
+            has_date_range: structure.has_date_range || false,
+            has_budcode: structure.has_budcode || false,
+            has_pdaccname: structure.has_pdaccname || false,
+            inventory_management: structure.inventory_management || "not_managed_inventory",
+            debit_type: structure.debit_type || "D"
+        },
         validation_rules: {
             required_fields: ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"]
-        }
+        },
+        // v5.3: העברת ה-sample כמו שהוא
+        sample_from_history: sample || null
     };
 }
 
-function generateProcessingScenario(structure, vehicleRules) {
+function generateProcessingScenario(structure, vehicleRules, documentType) {
     const hasVehicles = vehicleRules &&
         vehicleRules.vehicle_account_mapping &&
         Object.keys(vehicleRules.vehicle_account_mapping).length > 0;
 
+    const accnames = documentType?.accnames || [];
+    const hasDocs = structure.has_doc || false;
+    const hasImport = structure.has_import || false;
+
     return {
         document_type: determineDocumentTypeKey(structure, vehicleRules),
-        check_docs: structure.has_doc || false,
-        check_import: structure.has_import || false,
-        check_vehicles: hasVehicles || false
+        // v5.2: בדיקות בסיסיות
+        check_docs: hasDocs,
+        check_import: hasImport,
+        check_vehicles: hasVehicles || false,
+        // v5.2: בדיקות חדשות
+        check_sdinumit: true,  // תמיד לבדוק מספר הקצאה
+        extract_line_items: !hasDocs && !hasImport,  // רק בחשבונית רגילה
+        account_selection_required: accnames.length > 1,  // כשיש יותר מחשבון אחד
+        // v5.2: מידע נוסף
+        debit_type: structure.debit_type || "D",
+        inventory_management: structure.inventory_management || "not_managed_inventory"
     };
 }
 
@@ -933,7 +1297,10 @@ function determineDocumentTypeKey(structure, vehicleRules) {
 function buildProcessingSteps(structure, vehicleRules, documentPatterns) {
     const steps = [];
     steps.push("1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId");
-    steps.push("2. חלץ תאריך חשבונית (IVDATE) מתוך InvoiceDate");
+    steps.push("2. חלץ תאריך חשבונית (IVDATE) מתוך InvoiceDate - המר לפורמט DD/MM/YY");
+
+    // v5.2: תיאור - תמיד
+    steps.push(`${steps.length + 1}. חלץ תיאור כללי (DETAILS) - תיאור השירות העיקרי (לא טלפון/כתובת!)`);
 
     if (structure.has_import) {
         steps.push(`${steps.length + 1}. זהה מספר יבוא (IMPFNUM)`);
@@ -946,6 +1313,10 @@ function buildProcessingSteps(structure, vehicleRules, documentPatterns) {
             docsGuidance += ` - פורמט ${prefix}XXXXXX`;
         }
         steps.push(`${steps.length + 1}. ${docsGuidance}`);
+    } else {
+        // v5.2: לחשבונית עם פירוט - הוסף שלבי פריטים
+        steps.push(`${steps.length + 1}. לכל פריט: חלץ PDES (תיאור), TQUANT (כמות), PRICE (מחיר לפני מע"מ)`);
+        steps.push(`${steps.length + 1}. לכל פריט: בחר ACCNAME מתוך החשבונות הזמינים לפי סוג ההוצאה`);
     }
 
     if (vehicleRules && Object.keys(vehicleRules.vehicle_account_mapping || {}).length > 0) {
@@ -953,7 +1324,10 @@ function buildProcessingSteps(structure, vehicleRules, documentPatterns) {
         steps.push(`${steps.length + 1}. מפה כל רכב לחשבון הנכון`);
     }
 
-    steps.push(`${steps.length + 1}. חשב מחיר: InvoiceTotal - TotalTax`);
+    // v5.2: מספר הקצאה - תמיד
+    steps.push(`${steps.length + 1}. בדוק אם יש מספר הקצאה (רק אם מופיעה המילה 'הקצאה'!) - אם כן, רשום ב-SDINUMIT`);
+
+    steps.push(`${steps.length + 1}. חשב מחיר: SubTotal_amount או (InvoiceTotal - TotalTax)`);
 
     return steps;
 }

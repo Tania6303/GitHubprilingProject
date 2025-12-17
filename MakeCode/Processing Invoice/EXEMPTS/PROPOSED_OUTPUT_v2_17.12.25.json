@@ -1,0 +1,253 @@
+{
+  "status": "success",
+
+  "llm_prompt": {
+    "supplier_code": "3710",
+    "supplier_name": "דרין טרגל ושות`",
+
+    "all_templates": [
+      {
+        "template_index": 0,
+        "document_type": "חשבונית רגילה עם פירוט",
+
+        "instructions": {
+          "overview": "חשבונית מספק דרין טרגל ושות`",
+
+          "processing_steps": [
+            "1. זהה את מספר החשבונית (BOOKNUM) מתוך InvoiceId",
+            "2. חלץ תאריך חשבונית (IVDATE) מתוך InvoiceDate - המר לפורמט DD/MM/YY",
+            "3. חלץ תיאור כללי (DETAILS) - תיאור השירות העיקרי מהטקסט (לא טלפון/כתובת!)",
+            "4. לכל פריט: חלץ PDES (תיאור שירות), TQUANT (כמות), PRICE (מחיר לפני מע\"מ)",
+            "5. לכל פריט: בחר ACCNAME מתוך החשבונות הזמינים לפי סוג ההוצאה",
+            "6. בדוק אם יש מספר הקצאה (רק אם מופיעה המילה 'הקצאה' במפורש!) - אם כן, רשום ב-SDINUMIT",
+            "7. חשב סה\"כ: SubTotal_amount או (InvoiceTotal_amount - TotalTax_amount)"
+          ],
+
+          "fields": {
+            "booknum": {
+              "field_name": "BOOKNUM",
+              "description": "מספר חשבונית ספק",
+              "how_to_find": "חפש בשדה InvoiceId ב-OCR",
+              "example": "052785"
+            },
+            "ivdate": {
+              "field_name": "IVDATE",
+              "description": "תאריך חשבונית",
+              "how_to_find": "קח את InvoiceDate והמר ל-DD/MM/YY",
+              "example": "11/09/25"
+            },
+            "details": {
+              "field_name": "DETAILS",
+              "description": "תיאור כללי של החשבונית בכותרת",
+              "importance": "גבוהה - מסכם את מהות החשבונית",
+              "how_to_find": "חפש תיאור השירות העיקרי בטקסט",
+              "do_NOT_use": ["טלפון", "פקס", "כתובת", "מספר עוסק מורשה"],
+              "example": "ריטיינר אוגוסט 2025"
+            },
+            "pdes": {
+              "field_name": "PDES",
+              "location": "PINVOICEITEMS_SUBFORM",
+              "description": "תיאור הפריט/שירות בשורת הפירוט",
+              "importance": "קריטי! זה מזהה את סוג ההוצאה",
+              "max_length": 48,
+              "how_to_find": "חפש בטקסט שורות המתארות שירותים עם מחיר",
+              "example": "ריטיינר אוגוסט 2025",
+              "examples_from_history": ["תלושי שכר", "דוח לשנת 2024 חלק 2", "רבעון 3 לשנת 2025"]
+            },
+            "price": {
+              "field_name": "PRICE",
+              "location": "PINVOICEITEMS_SUBFORM",
+              "description": "מחיר לפני מע\"מ",
+              "how_to_calculate": "SubTotal_amount או (InvoiceTotal_amount - TotalTax_amount)",
+              "example": 7500,
+              "note": "אם שורה אחת - הסכום המלא. אם מספר שורות - מחיר כל שורה"
+            },
+            "accname": {
+              "field_name": "ACCNAME",
+              "location": "PINVOICEITEMS_SUBFORM",
+              "description": "חשבון הנהלת חשבונות לסיווג ההוצאה",
+              "importance": "קריטי! קובע איך ההוצאה מסווגת",
+              "available_accounts": ["49998", "49902"],
+              "selection_guide": {
+                "method": "בחר לפי סוג השירות/הוצאה",
+                "examples_from_history": [
+                  {"pdes": "תלושי שכר", "accname": "49902"},
+                  {"pdes": "דוח לשנת 2024 חלק 2", "accname": "49998"},
+                  {"pdes": "רבעון 3 לשנת 2025", "accname": "49902"}
+                ]
+              }
+            },
+            "sdinumit": {
+              "field_name": "SDINUMIT",
+              "location": "PINVOICESCONT_SUBFORM",
+              "description": "מספר הקצאה מרשות המיסים",
+              "importance": "קריטי לחשבוניות מעל סף! ללא מספר זה לא ניתן לנכות מע\"מ",
+              "format": "9 ספרות",
+              "rule": "רק אם מופיעה המילה 'הקצאה' במפורש!",
+              "search_keywords": ["מספר הקצאה", "הקצאה מס'"],
+              "NOT_valid": ["תעודת רישום", "מספר אסמכתא", "מספר אישור כללי"],
+              "in_current_doc": null,
+              "note": "במסמך זה אין מספר הקצאה (לא נמצאה המילה 'הקצאה')"
+            },
+            "fncpatname": {
+              "field_name": "FNCPATNAME",
+              "location": "PINVOICESCONT_SUBFORM",
+              "description": "סוג תנועה",
+              "value": "חסמ",
+              "meaning": "חשבונית ספק מרכזת",
+              "source": "קבוע מהתבנית הנלמדת"
+            }
+          }
+        },
+
+        "document_type_info": {
+          "type_key": "regular_invoice_with_items",
+          "inventory_management": "not_managed_inventory",
+          "has_line_items": true,
+          "has_docs": false,
+          "has_import": false,
+          "has_vehicles": false,
+          "debit_type": "D",
+          "critical_note": "בחשבונית עם פירוט ללא מלאי - PDES ו-ACCNAME הם הקריטיים ביותר!"
+        },
+
+        "sample_from_history": {
+          "description": "חשבונית קודמת שנקלטה בהצלחה - להשוואה ולמידה",
+          "BOOKNUM": "052785",
+          "DETAILS": "דרין 8/25",
+          "QPRICE": 7500,
+          "items": [
+            {"PDES": "תלושי שכר", "PRICE": 7500, "ACCNAME": "49902"}
+          ]
+        },
+
+        "ocr_extracted": {
+          "InvoiceId": "052785",
+          "InvoiceDate": "2025-09-11",
+          "SubTotal_amount": 7500,
+          "TotalTax_amount": 1350,
+          "InvoiceTotal_amount": 8850,
+          "VendorTaxId": "557149143",
+          "service_description_from_text": "ריטיינר אוגוסט 2025"
+        },
+
+        "invoice_data": {
+          "PINVOICES": [
+            {
+              "SUPNAME": "3710",
+              "CODE": "ש\"ח",
+              "DEBIT": "D",
+              "IVDATE": "11/09/25",
+              "BOOKNUM": "052785",
+              "DETAILS": "ריטיינר אוגוסט 2025",
+              "PINVOICEITEMS_SUBFORM": [
+                {
+                  "PARTNAME": "zzz02",
+                  "PDES": "ריטיינר אוגוסט 2025",
+                  "TQUANT": 1,
+                  "TUNITNAME": "יח'",
+                  "PRICE": 7500,
+                  "VATFLAG": "Y",
+                  "ACCNAME": "49902"
+                }
+              ],
+              "PINVOICESCONT_SUBFORM": [
+                {
+                  "FNCPATNAME": "חסמ"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+  "technical_config": {
+    "supplier_code": "3710",
+    "supplier_name": "דרין טרגל ושות`",
+    "all_templates": [
+      {
+        "template_index": 0,
+        "version": "5.0",
+        "document_type": "regular_invoice",
+        "extraction_rules": {
+          "booknum": {
+            "source": "ocrFields.InvoiceId",
+            "transformations": [
+              {"action": "remove_prefix", "pattern": "^SI"},
+              {"action": "take_last_n_chars", "count": 7}
+            ],
+            "example": "052785"
+          },
+          "ivdate": {
+            "source": "ocrFields.InvoiceDate",
+            "format": "DD/MM/YY",
+            "example": "11/09/25"
+          },
+          "details": {
+            "source": "azureText",
+            "method": "find_service_description",
+            "exclude": ["טלפון", "פקס", "כתובת", "עוסק מורשה"],
+            "example": "ריטיינר אוגוסט 2025"
+          },
+          "price": {
+            "primary": "ocrFields.SubTotal_amount",
+            "fallback": "ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount",
+            "example": 7500
+          },
+          "sdinumit": {
+            "source": "azureText",
+            "required_keyword": "הקצאה",
+            "pattern": "הקצאה[:\\s]*(\\d{9})",
+            "example": null
+          }
+        },
+        "validation_rules": {
+          "required_fields": ["SUPNAME", "CODE", "DEBIT", "IVDATE", "BOOKNUM"]
+        }
+      }
+    ]
+  },
+
+  "processing_scenario": {
+    "supplier_code": "3710",
+    "supplier_name": "דרין טרגל ושות`",
+    "all_templates": [
+      {
+        "document_type": "regular_invoice",
+        "check_docs": false,
+        "check_import": false,
+        "check_vehicles": false
+      }
+    ]
+  },
+
+  "execution_report": {
+    "stage": "שלב 3: בניית פלט",
+    "found": [
+      "סה\"כ תבניות: 1",
+      "תבניות נסרקו: 1",
+      "תבנית 0: יבוא=false, תעודות=false, חיוב/זיכוי=D",
+      "BOOKNUM: 052785",
+      "IVDATE: 11/09/25",
+      "PRICE: 7500 (מ-SubTotal_amount)",
+      "DETAILS: ריטיינר אוגוסט 2025",
+      "חשבונות זמינים: 49998, 49902"
+    ],
+    "not_found": [
+      "מספר הקצאה (אין את המילה 'הקצאה' במסמך)"
+    ],
+    "warnings": [
+      "OCR Items מכיל פרטי תשלום (העברה בנקאית) ולא פריטי חשבונית - יש לחלץ תיאור מהטקסט"
+    ],
+    "errors": [],
+    "templates_processed": [
+      {
+        "template_index": 0,
+        "document_type": "חשבונית רגילה עם פירוט",
+        "status": "success"
+      }
+    ]
+  }
+}
