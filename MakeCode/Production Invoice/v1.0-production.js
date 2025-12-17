@@ -1,5 +1,5 @@
 // ============================================================================
-// קוד 3 - ייצור חשבוניות (גרסה 2.0.2)
+// קוד 3 - ייצור חשבוניות (גרסה 2.0.3)
 //
 // מקבל: learned_config, docs_list, import_files, vehicles, AZURE_RESULT, AZURE_TEXT_CLEAN
 //        + template_index (אופציונלי)
@@ -10,6 +10,9 @@
 //
 // ⚠️ קשור ל: MakeCode/Processing Invoice/v5.5
 // אם מתקנים בעיה כאן (כמו תבנית BOOKNUM, docs_list) - לבדוק גם שם!
+//
+// תיקונים v2.0.3:
+// - העברת SDINUMIT מ-PINVOICESCONT_SUBFORM למסך הראשי (PINVOICES)
 //
 // תיקונים v2.0.2:
 // - תיקון searchDetails: הוספת "תאריך מסמך", "מספר חשבונית" ל-genericWords
@@ -355,7 +358,7 @@ function buildLearnedConfigFromProduction(supname, cars, supTemp) {
 }
 
 function processProductionInvoice(productionInput) {
-    console.log('🚀 PRODUCTION INVOICE v2.0.2');
+    console.log('🚀 PRODUCTION INVOICE v2.0.3');
     console.log('📦 קוד: 49KB | 🔧 IIFE wrap: ✅ | 🎯 return במקום expression!');
     console.log('==========================================');
     const executionReport = {
@@ -829,7 +832,7 @@ function processInvoiceComplete(input) {
                               ocrFields.InvoiceTotal_amount - ocrFields.TotalTax_amount : null),
                 ocr_tax: ocrFields.TotalTax || ocrFields.TotalTax_amount || 0,
                 processing_timestamp: new Date().toISOString(),
-                version: "2.0.2-production",
+                version: "2.0.3-production",
                 template_index: templateIndex,
                 template_type: structure.has_import && structure.has_doc ? "import_with_docs" :
                               structure.has_import ? "import_only" :
@@ -1345,40 +1348,31 @@ function buildInvoiceFromTemplate(template, structure, config, searchResults, le
         }
     }
 
-    // v2.0: בניית PINVOICESCONT_SUBFORM מ-sample (כולל FNCPATNAME ו-SDINUMIT)
+    // v2.0.3: SDINUMIT במסך הראשי (לא ב-SUBFORM)
+    if (searchResults.sdinumit) {
+        invoice.SDINUMIT = searchResults.sdinumit;
+        console.log(`✅ SDINUMIT (main): ${searchResults.sdinumit}`);
+    }
+
+    // v2.0.3: בניית PINVOICESCONT_SUBFORM מ-sample (רק FNCPATNAME, בלי SDINUMIT)
     invoice.PINVOICESCONT_SUBFORM = buildPinvoicescontSubform(
         template.PINVOICESCONT_SUBFORM,
-        sampleFromHistory,
-        searchResults.sdinumit
+        sampleFromHistory
     );
 
     return invoice;
 }
 
-// v2.0: בניית PINVOICESCONT_SUBFORM מ-sample
-function buildPinvoicescontSubform(templateSubform, sampleFromHistory, sdinumit) {
+// v2.0.3: בניית PINVOICESCONT_SUBFORM מ-sample (רק FNCPATNAME)
+function buildPinvoicescontSubform(templateSubform, sampleFromHistory) {
     // אם יש ב-sample - קח משם (כולל FNCPATNAME)
     if (sampleFromHistory?.PINVOICESCONT_SUBFORM && sampleFromHistory.PINVOICESCONT_SUBFORM.length > 0) {
         const sampleCont = sampleFromHistory.PINVOICESCONT_SUBFORM[0];
         const result = {
             FNCPATNAME: sampleCont.FNCPATNAME || null
         };
-
-        // הוסף SDINUMIT אם נמצא
-        if (sdinumit) {
-            result.SDINUMIT = sdinumit;
-            console.log(`✅ PINVOICESCONT: FNCPATNAME=${result.FNCPATNAME}, SDINUMIT=${sdinumit}`);
-        } else {
-            console.log(`✅ PINVOICESCONT: FNCPATNAME=${result.FNCPATNAME}`);
-        }
-
+        console.log(`✅ PINVOICESCONT: FNCPATNAME=${result.FNCPATNAME}`);
         return [result];
-    }
-
-    // אם יש SDINUMIT אבל אין sample - צור רשומה חדשה
-    if (sdinumit) {
-        console.log(`✅ PINVOICESCONT: SDINUMIT=${sdinumit} (ללא FNCPATNAME)`);
-        return [{ SDINUMIT: sdinumit }];
     }
 
     // fallback לתבנית או מערך ריק
