@@ -1,8 +1,12 @@
 // ============================================================================
-// קוד 2 - עיבוד חשבוניות (גרסה 5.6)
+// קוד 2 - עיבוד חשבוניות (גרסה 5.7)
 //
 // ✨ שינוי מבנה קלט: מקבל קלט מאוחד מ-SupplierDataLearningConfig
 // במקום קלטים נפרדים (learned_config, docs_list, import_files, AZURE_RESULT)
+//
+// תיקונים v5.7:
+// - תיקון באג partname_rules: נתיב אחיד mergedConfig.critical_patterns
+// - סנכרון has_doc: מקור אמת אחיד + Warning על סתירות
 //
 // תיקונים v5.6:
 // - העברת SDINUMIT מ-PINVOICESCONT_SUBFORM למסך הראשי (PINVOICES)
@@ -300,8 +304,17 @@ function processTemplate(template, mergedConfig, executionReport) {
 
     // בדיקות בסיסיות
     const hasImport = structure.has_import || false;
-    const hasDocs = checkDocsExist(docs);
+    const docsExistInInput = checkDocsExist(docs);
     const debitType = structure.debit_type || "D";
+
+    // v5.6: סנכרון has_doc - מקור אמת אחיד
+    // structure.has_doc מהתבנית, docsExistInInput מהקלט בפועל
+    const hasDocs = structure.has_doc ?? docsExistInInput;
+
+    // Warning אם יש סתירה בין התבנית לקלט
+    if (structure.has_doc !== undefined && structure.has_doc !== docsExistInInput) {
+        executionReport.warnings.push(`⚠️ סתירה: תבנית has_doc=${structure.has_doc}, קלט בפועל=${docsExistInInput}`);
+    }
 
     executionReport.found.push(`תבנית ${template.template_index}: יבוא=${hasImport}, תעודות=${hasDocs}, חיוב/זיכוי=${debitType}`);
 
@@ -1174,7 +1187,8 @@ function generateTechnicalConfig(mergedConfig, ocrFields, searchResults, templat
 
     // v5.2: accname - חשבון הנה"ח
     const accnames = documentType?.accnames || [];
-    const partnameRules = mergedConfig.supplier_config?.critical_patterns?.partname_rules || {};
+    // v5.6: תיקון נתיב - צריך להיות זהה לשורה 1019
+    const partnameRules = mergedConfig.critical_patterns?.partname_rules || {};
 
     extractionRules.accname = {
         available_accounts: accnames,
