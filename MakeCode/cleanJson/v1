@@ -46,40 +46,125 @@ function isEmpty(value) {
 }
 
 // ========================================
-// פונקציה: ניקוי אובייקט רקורסיבית
+// פונקציה: פורמט תאריך למבנה DD/MM/YY
+// ========================================
+function formatDate(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  // בדיקה אם זה נראה כמו תאריך
+  let day, month, year;
+
+  // פורמט ISO: 2024-01-15T10:30:00 או 2024-01-15
+  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})(T.*)?$/);
+  if (isoMatch) {
+    year = isoMatch[1];
+    month = isoMatch[2];
+    day = isoMatch[3];
+  }
+
+  // פורמט: YYYY/MM/DD
+  const slashYMD = value.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (slashYMD) {
+    year = slashYMD[1];
+    month = slashYMD[2];
+    day = slashYMD[3];
+  }
+
+  // פורמט: DD-MM-YYYY או DD.MM.YYYY
+  const dmy = value.match(/^(\d{2})[-.](\d{2})[-.](\d{4})$/);
+  if (dmy) {
+    day = dmy[1];
+    month = dmy[2];
+    year = dmy[3];
+  }
+
+  // פורמט: MM/DD/YYYY (אמריקאי) - נזהה לפי ערכים
+  const mdySlash = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (mdySlash) {
+    const first = parseInt(mdySlash[1]);
+    const second = parseInt(mdySlash[2]);
+    // אם הערך הראשון גדול מ-12, זה יום (DD/MM/YYYY)
+    if (first > 12) {
+      day = mdySlash[1];
+      month = mdySlash[2];
+      year = mdySlash[3];
+    } else if (second > 12) {
+      // אם השני גדול מ-12, זה MM/DD/YYYY
+      month = mdySlash[1];
+      day = mdySlash[2];
+      year = mdySlash[3];
+    } else {
+      // ברירת מחדל: מניחים DD/MM/YYYY
+      day = mdySlash[1];
+      month = mdySlash[2];
+      year = mdySlash[3];
+    }
+  }
+
+  // פורמט: DD/MM/YY (כבר בפורמט הנכון, רק מוודאים)
+  const dmyShort = value.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if (dmyShort) {
+    return value; // כבר בפורמט הנכון
+  }
+
+  // אם מצאנו תאריך תקין, נחזיר בפורמט DD/MM/YY
+  if (day && month && year) {
+    // קיצור השנה לשתי ספרות אחרונות
+    const shortYear = year.slice(-2);
+    return `${day}/${month}/${shortYear}`;
+  }
+
+  // אם לא זוהה כתאריך, נחזיר את הערך המקורי
+  return value;
+}
+
+// ========================================
+// פונקציה: ניקוי אובייקט רקורסיבית עם פורמט תאריכים
 // ========================================
 function cleanObject(obj) {
   if (isEmpty(obj)) {
     return null;
   }
-  
+
   if (Array.isArray(obj)) {
     const cleaned = obj
       .map(item => cleanObject(item))
       .filter(item => item !== null);
     return cleaned.length > 0 ? cleaned : null;
   }
-  
+
   if (typeof obj === 'object') {
     const cleaned = {};
-    
+
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
         const value = obj[key];
-        
+
         if (!isEmpty(value)) {
           const cleanedValue = cleanObject(value);
-          
+
           if (cleanedValue !== null) {
-            cleaned[key] = cleanedValue;
+            // הפעלת פורמט תאריך על ערכים מסוג string
+            if (typeof cleanedValue === 'string') {
+              cleaned[key] = formatDate(cleanedValue);
+            } else {
+              cleaned[key] = cleanedValue;
+            }
           }
         }
       }
     }
-    
+
     return Object.keys(cleaned).length > 0 ? cleaned : null;
   }
-  
+
+  // הפעלת פורמט תאריך על ערכים פרימיטיביים (string)
+  if (typeof obj === 'string') {
+    return formatDate(obj);
+  }
+
   return obj;
 }
 
