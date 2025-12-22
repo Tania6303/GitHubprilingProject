@@ -64,8 +64,12 @@ function formatDate(value) {
     day = isoWithTimeMatch[3];
     hours = isoWithTimeMatch[4];
     minutes = isoWithTimeMatch[5];
-    // פורמט עם שעה: DD/MM/YY hh:mm
     const shortYear = year.slice(-2);
+    // אם השעה היא 00:00, מחזירים רק תאריך ללא שעה
+    if (hours === '00' && minutes === '00') {
+      return `${day}/${month}/${shortYear}`;
+    }
+    // פורמט עם שעה: DD/MM/YY hh:mm
     return `${day}/${month}/${shortYear} ${hours}:${minutes}`;
   }
 
